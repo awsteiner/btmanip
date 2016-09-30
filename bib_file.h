@@ -3,20 +3,20 @@
 
   Copyright (C) 2015-2016, Andrew W. Steiner
 
-  This file is part of O2scl.
+  This file is part of btmanip.
   
-  O2scl is free software; you can redistribute it and/or modify
+  btmanip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 3 of the License, or
   (at your option) any later version.
   
-  O2scl is distributed in the hope that it will be useful,
+  btmanip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
   
   You should have received a copy of the GNU General Public License
-  along with O2scl. If not, see <http://www.gnu.org/licenses/>.
+  along with btmanip. If not, see <http://www.gnu.org/licenses/>.
 
   -------------------------------------------------------------------
 */
@@ -34,7 +34,7 @@
 
 #include <o2scl/err_hnd.h>
 
-namespace o2scl {
+namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
       

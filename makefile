@@ -1,5 +1,4 @@
-FLAGS = -std=c++0x -ggdb -O3 -Wno-deprecated-declarations \
-	-Wno-ignored-attributes
+FLAGS = -std=c++0x -ggdb -O3
 
 INCS = -I$(EIGEN_INC) -I$(O2SCL_INC) -I$(HDF5_INC) -I$(GSL_INC)
 
@@ -18,13 +17,8 @@ btmanip: btmanip.o
 clean:
 	rm -f btmanip *.o
 
-# -------------------------------------------------------
-
 doc: empty
-	cd doc; doxygen Doxyfile
-
-docp: empty
-	cd doc/latex; $(MAKE)
+	cd doc; doxygen doxyfile
 
 empty: 
 

@@ -1,0 +1,7 @@
+.cli_hist
+btmanip
+btmanip.o
+doc/btmanip.tag
+doc/doxygen.log
+*~
+doc/html
