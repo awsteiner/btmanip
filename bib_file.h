@@ -80,7 +80,7 @@ namespace btmanip {
      */
     std::map<std::string,size_t,std::less<std::string> > sort;
     
-    /** \brief Remove extra whitespace inside entries
+    /** \brief Remove extra whitespace inside entries (default false)
      */
     bool remove_extra_whitespace;
     /** \brief Recase tag so that only the first letter is upper case
@@ -107,11 +107,11 @@ namespace btmanip {
     bool check_required;
     /** \brief If true, prefer natbib journal abbreviations 
 	(default false)
-     */
+    */
     bool natbib_jours;
     
     bib_file() {
-      remove_extra_whitespace=true;
+      remove_extra_whitespace=false;
       recase_tag=true;
       reformat_journal=true;
       trans_latex_html=true;
@@ -186,7 +186,7 @@ namespace btmanip {
       }
       fin.close();
       if (verbose>0) {
-	std::cout << journals.size() << " entries read from \""
+	std::cout << journals.size() << " journal name entries read from \""
 		  << fname << "\"." << std::endl;
       }
       return 0;
@@ -334,82 +334,105 @@ namespace btmanip {
 	bibtex::BibTeXEntry &bt=entries[i];
 
 	// Loop over each field
-	for(size_t j=0;j<bt.fields.size();) {
 
-	  // Ensure the field name is all lowercase
-	  if (normalize_fields) {
-	    std::string fitemp=bt.fields[j].first, fitemp2=fitemp;
-	    for(size_t k=0;k<fitemp2.size();k++) {
-	      fitemp2[k]=std::tolower(fitemp2[k]);
-	    }
-	    if (fitemp2!=fitemp) {
-	      bt.fields[j].first=fitemp2;
-	    }
-	  }
-
-	  // Remove extra braces from each value
-	  std::string &valtemp=bt.fields[j].second[0];
-	  while (valtemp.length()>=4 && valtemp[0]=='{' &&
-		 valtemp[1]=='{' && valtemp[valtemp.size()-1]=='}' &&
-		 valtemp[valtemp.size()-2]=='}') {
-	    std::cout << "Removing extra braces: " << valtemp << std::endl;
-	    valtemp=valtemp.substr(1,valtemp.size()-2);
-	    std::cout << "Removing extra braces: " << valtemp << std::endl;
-	  }
-
-	  // Remove extra fields
-	  bool field_removed=false;
-	  for(size_t k=0;k<remove_fields.size();k++) {
-	    if (bt.fields[j].first==((std::string)remove_fields[k])) {
-	      bt.fields.erase(bt.fields.begin()+j);
-	      j=0;
-	      field_removed=true;
-	    }
-	  }
-
-	  if (field_removed) {
-	    entries_fields_removed++;
-	  }
+	bool restart_loop=true;
+	while (restart_loop) {
+	  restart_loop=false;
 	  
-	  if (field_removed==false) {
+	  for(size_t j=0;j<bt.fields.size();j++) {
 	    
-	    if (bt.fields[j].second.size()==0) {
-	      std::string err=((std::string)"Field ")+bt.fields[j].first+
-		" has no values";
-	      O2SCL_ERR(err.c_str(),o2scl::exc_einval);
-	    } else if (bt.fields[j].second.size()>1) {
-	      std::string err=((std::string)"Field ")+bt.fields[j].first+
-		" has more than one value";
-	      O2SCL_ERR(err.c_str(),o2scl::exc_einval);
-	    }
-	  
-	    if (remove_extra_whitespace) {
-	      for(size_t k=0;k<bt.fields[j].second.size();k++) {
-		thin_whitespace(bt.fields[j].second[k]);
+	    // Ensure the field name is all lowercase
+	    if (normalize_fields) {
+	      std::string fitemp=bt.fields[j].first, fitemp2=fitemp;
+	      for(size_t k=0;k<fitemp2.size();k++) {
+		fitemp2[k]=std::tolower(fitemp2[k]);
+	      }
+	      if (fitemp2!=fitemp) {
+		bt.fields[j].first=fitemp2;
 	      }
 	    }
 
-	    // Reformat journal name by replacing it with the
-	    // standard abbreviation
-	    if (reformat_journal &&
-		bt.fields[j].first==((std::string)"journal") &&
-		journals.size()>0 ) {
-	      if (bt.fields[j].second.size()>0) {
-		std::string jour=bt.fields[j].second[0];
-		std::string abbrev;
-		if (find_abbrev(jour,abbrev)==0) {
-		  bt.fields[j].second[0]=abbrev;
-		  journals_renamed++;
-		} else {
-		  std::cout << "Journal " << jour << " not found in key "
-		    << *bt.key << " ." << std::endl;
+	    // Remove extra braces from each value
+	    std::string &valtemp=bt.fields[j].second[0];
+	    bool removed_verb=false;
+	    while (valtemp.length()>=4 && valtemp[0]=='{' &&
+		   valtemp[1]=='{' && valtemp[valtemp.size()-1]=='}' &&
+		   valtemp[valtemp.size()-2]=='}') {
+	      valtemp=valtemp.substr(1,valtemp.size()-2);
+	      if (removed_verb==false && verbose>1) {
+		std::cout << "Removing extra braces in entry with key "
+			  << *bt.key << " for field " << bt.fields[j].first
+			  << "with value:\n" << valtemp << std::endl;
+		removed_verb=true;
+	      }
+	    }
+
+	    // Remove extra fields
+	    bool field_removed=false;
+	    for(size_t k=0;k<remove_fields.size();k++) {
+	      if (bt.fields[j].first==((std::string)remove_fields[k])) {
+		if (verbose>1) {
+		  std::cout << "Removing extra field "
+			    << bt.fields[j].first
+			    << " in entry with key " << *bt.key << std::endl;
+		}
+		bt.fields.erase(bt.fields.begin()+j);
+		restart_loop=true;
+		j=bt.fields.size();
+		field_removed=true;
+	      }
+	    }
+
+	    if (field_removed) {
+	      entries_fields_removed++;
+	    }
+	  
+	    if (field_removed==false) {
+	    
+	      if (bt.fields[j].second.size()==0) {
+		std::string err=((std::string)"Field ")+bt.fields[j].first+
+		  " has no values";
+		O2SCL_ERR(err.c_str(),o2scl::exc_einval);
+	      } else if (bt.fields[j].second.size()>1) {
+		std::string err=((std::string)"Field ")+bt.fields[j].first+
+		  " has more than one value";
+		O2SCL_ERR(err.c_str(),o2scl::exc_einval);
+	      }
+	  
+	      if (remove_extra_whitespace) {
+		for(size_t k=0;k<bt.fields[j].second.size();k++) {
+		  thin_whitespace(bt.fields[j].second[k]);
 		}
 	      }
+
+	      // Reformat journal name by replacing it with the
+	      // standard abbreviation
+	      if (reformat_journal &&
+		  bt.fields[j].first==((std::string)"journal") &&
+		  journals.size()>0 ) {
+		if (bt.fields[j].second.size()>0) {
+		  std::string jour=bt.fields[j].second[0];
+		  std::string abbrev;
+		  if (find_abbrev(jour,abbrev)==0) {
+		    if (jour!=abbrev) {
+		      if (verbose>1) {
+			std::cout << "Reformatting journal " << jour << " to "
+				  << abbrev << std::endl;
+		      }
+		      bt.fields[j].second[0]=abbrev;
+		      journals_renamed++;
+		    }
+		  } else {
+		    std::cout << "Journal " << jour << " not found in key "
+			      << *bt.key << " ." << std::endl;
+		  }
+		}
+	      }
+
+	      // End of if (field_removed==false)
 	    }
-	  
-	    j++;
+	    // End of loop over fields
 	  }
-	  // End of loop over fields
 	}
 
 	// If the journal letter is in the volume, move to
@@ -424,9 +447,17 @@ namespace btmanip {
 	       volume[0]=='C' || volume[0]=='c' ||
 	       volume[0]=='D' || volume[0]=='d' ||
 	       volume[0]=='E' || volume[0]=='e')) {
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " reformatting journal and volume from "
+			<< journal << ", " << volume << " to ";
+	    }
 	    journal+=" ";
 	    journal+=std::toupper(volume[0]);
 	    volume=volume.substr(1,volume.length()-1);
+	    if (verbose>1) {
+	      std::cout << journal << ", " << volume << std::endl;
+	    }
 	    get_field(bt,"journal")=journal;
 	    get_field(bt,"volume")=volume;
 	  }
@@ -436,9 +467,51 @@ namespace btmanip {
 	       volume[0]=='C' || volume[0]=='c' ||
 	       volume[0]=='D' || volume[0]=='d' ||
 	       volume[0]=='E' || volume[0]=='e')) {
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " reformatting journal and volume from "
+			<< journal << ", " << volume << " to ";
+	    }
 	    journal+=" ";
 	    journal+=std::toupper(volume[0]);
 	    volume=volume.substr(1,volume.length()-1);
+	    if (verbose>1) {
+	      std::cout << journal << ", " << volume << std::endl;
+	    }
+	    get_field(bt,"journal")=journal;
+	    get_field(bt,"volume")=volume;
+	  }
+	  if (journal==((std::string)"Nucl. Phys.") &&
+	      (volume[0]=='A' || volume[0]=='a' ||
+	       volume[0]=='B' || volume[0]=='b')) {
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " reformatting journal and volume from "
+			<< journal << ", " << volume << " to ";
+	    }
+	    journal+=" ";
+	    journal+=std::toupper(volume[0]);
+	    volume=volume.substr(1,volume.length()-1);
+	    if (verbose>1) {
+	      std::cout << journal << ", " << volume << std::endl;
+	    }
+	    get_field(bt,"journal")=journal;
+	    get_field(bt,"volume")=volume;
+	  }
+	  if (journal==((std::string)"Phys. Lett.") &&
+	      (volume[0]=='A' || volume[0]=='a' ||
+	       volume[0]=='B' || volume[0]=='b')) {
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " reformatting journal and volume from "
+			<< journal << ", " << volume << " to ";
+	    }
+	    journal+=" ";
+	    journal+=std::toupper(volume[0]);
+	    volume=volume.substr(1,volume.length()-1);
+	    if (verbose>1) {
+	      std::cout << journal << ", " << volume << std::endl;
+	    }
 	    get_field(bt,"journal")=journal;
 	    get_field(bt,"volume")=volume;
 	  }
@@ -453,12 +526,20 @@ namespace btmanip {
 	      if (url.substr(0,17)!=((std::string)"http://dx.doi.org")) {
 		url=((std::string)"http://dx.doi.org/")+
 		  get_field(bt,"doi");
+		if (verbose>1) {
+		  std::cout << "In entry with key " << *bt.key
+			    << " reformatted url to " << url << std::endl;
+		}
 	      }
 	    } else {
 	      std::vector<std::string> val;
 	      val.push_back(((std::string)"http://dx.doi.org/")+
 			    get_field(bt,"doi"));
 	      bt.fields.push_back(std::make_pair("url",val));
+	      if (verbose>1) {
+		std::cout << "In entry with key " << *bt.key
+			  << " added url field " << val[0] << std::endl;
+	      }
 	    }
 	  }
 	}
@@ -471,6 +552,10 @@ namespace btmanip {
 	    val.push_back(" ");
 	    bt.fields.push_back(std::make_pair("title",val));
 	    empty_titles_added++;
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " added empty title." << std::endl;
+	    }
 	  }
 	}
 
@@ -678,9 +763,9 @@ namespace btmanip {
 	std::cout << empty_titles_added << " emtpy titles added." << std::endl;
 	std::cout << duplicates_found << " duplicates found." << std::endl;
 	std::cout << entries_fields_removed
-	     << " entries with extra fields removed." << std::endl;
+		  << " entries with extra fields removed." << std::endl;
 	std::cout << journals_renamed << " journal names standardized."
-	     << std::endl;
+		  << std::endl;
       }
       
       return;
@@ -810,7 +895,7 @@ namespace btmanip {
     
     /** \brief Output one entry \c bt to stream \c outs in 
 	.bib format
-     */
+    */
     void bib_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
 
       // Output tag and key
@@ -890,7 +975,7 @@ namespace btmanip {
 	2 if the tags are the same and the keys are different, but the
 	volume pages, and journal are the same. This function returns
 	zero otherwise.
-     */
+    */
     int possible_duplicate(bibtex::BibTeXEntry &bt, bibtex::BibTeXEntry &bt2) {
       if (bt.tag==bt2.tag && (*bt.key)==(*bt2.key)) {
 	return 1;
@@ -913,7 +998,7 @@ namespace btmanip {
 
     /** \brief Create a list of possible duplicates of \c bt
 	in the current set of BibTeX entries
-     */
+    */
     void list_possible_duplicates(bibtex::BibTeXEntry &bt,
 				  std::vector<size_t> &list) {
       list.clear();
@@ -928,7 +1013,7 @@ namespace btmanip {
     
     /** \brief Output one entry \c bt to stream \c outs in 
 	plain text
-     */
+    */
     void text_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
       outs << "tag: " << bt.tag << std::endl;
       if (bt.key) outs << "key: " << *bt.key << std::endl;

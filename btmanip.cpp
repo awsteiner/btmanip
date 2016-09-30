@@ -728,7 +728,7 @@ protected:
       read_jlist(sv,false);
     }
 
-    bf.clean();
+    bf.clean(verbose);
     return 0;
   }
   
