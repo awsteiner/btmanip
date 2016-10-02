@@ -109,6 +109,10 @@ namespace btmanip {
 	(default false)
     */
     bool natbib_jours;
+    /** \brief If true, move letters from volumes for some journals
+	(default false)
+    */
+    bool remove_vol_letters;
     
     bib_file() {
       remove_extra_whitespace=false;
@@ -120,6 +124,7 @@ namespace btmanip {
       check_required=false;
       journals_read=false;
       natbib_jours=false;
+      remove_vol_letters=false;
 
       trans_latex.push_back("\\'{a}"); trans_html.push_back("&aacute;");
       trans_latex.push_back("\\'{e}"); trans_html.push_back("&eacute;");
@@ -437,83 +442,85 @@ namespace btmanip {
 
 	// If the journal letter is in the volume, move to
 	// the journal field
-	if (is_field_present(bt,"journal") && reformat_journal && 
-	    is_field_present(bt,"volume")) {
-	  std::string volume=get_field(bt,"volume");
-	  std::string journal=get_field(bt,"journal");
-	  if (journal==((std::string)"Phys. Rev.") &&
-	      (volume[0]=='A' || volume[0]=='a' ||
-	       volume[0]=='B' || volume[0]=='b' ||
-	       volume[0]=='C' || volume[0]=='c' ||
-	       volume[0]=='D' || volume[0]=='d' ||
-	       volume[0]=='E' || volume[0]=='e')) {
-	    if (verbose>1) {
-	      std::cout << "In entry with key " << *bt.key
-			<< " reformatting journal and volume from "
-			<< journal << ", " << volume << " to ";
+	if (remove_vol_letters) {
+	  if (is_field_present(bt,"journal") && reformat_journal && 
+	      is_field_present(bt,"volume")) {
+	    std::string volume=get_field(bt,"volume");
+	    std::string journal=get_field(bt,"journal");
+	    if (journal==((std::string)"Phys. Rev.") &&
+		(volume[0]=='A' || volume[0]=='a' ||
+		 volume[0]=='B' || volume[0]=='b' ||
+		 volume[0]=='C' || volume[0]=='c' ||
+		 volume[0]=='D' || volume[0]=='d' ||
+		 volume[0]=='E' || volume[0]=='e')) {
+	      if (verbose>1) {
+		std::cout << "In entry with key " << *bt.key
+			  << " reformatting journal and volume from "
+			  << journal << ", " << volume << " to ";
+	      }
+	      journal+=" ";
+	      journal+=std::toupper(volume[0]);
+	      volume=volume.substr(1,volume.length()-1);
+	      if (verbose>1) {
+		std::cout << journal << ", " << volume << std::endl;
+	      }
+	      get_field(bt,"journal")=journal;
+	      get_field(bt,"volume")=volume;
 	    }
-	    journal+=" ";
-	    journal+=std::toupper(volume[0]);
-	    volume=volume.substr(1,volume.length()-1);
-	    if (verbose>1) {
-	      std::cout << journal << ", " << volume << std::endl;
+	    if (journal==((std::string)"Eur. Phys. J.") &&
+		(volume[0]=='A' || volume[0]=='a' ||
+		 volume[0]=='B' || volume[0]=='b' ||
+		 volume[0]=='C' || volume[0]=='c' ||
+		 volume[0]=='D' || volume[0]=='d' ||
+		 volume[0]=='E' || volume[0]=='e')) {
+	      if (verbose>1) {
+		std::cout << "In entry with key " << *bt.key
+			  << " reformatting journal and volume from "
+			  << journal << ", " << volume << " to ";
+	      }
+	      journal+=" ";
+	      journal+=std::toupper(volume[0]);
+	      volume=volume.substr(1,volume.length()-1);
+	      if (verbose>1) {
+		std::cout << journal << ", " << volume << std::endl;
+	      }
+	      get_field(bt,"journal")=journal;
+	      get_field(bt,"volume")=volume;
 	    }
-	    get_field(bt,"journal")=journal;
-	    get_field(bt,"volume")=volume;
-	  }
-	  if (journal==((std::string)"Eur. Phys. J.") &&
-	      (volume[0]=='A' || volume[0]=='a' ||
-	       volume[0]=='B' || volume[0]=='b' ||
-	       volume[0]=='C' || volume[0]=='c' ||
-	       volume[0]=='D' || volume[0]=='d' ||
-	       volume[0]=='E' || volume[0]=='e')) {
-	    if (verbose>1) {
-	      std::cout << "In entry with key " << *bt.key
-			<< " reformatting journal and volume from "
-			<< journal << ", " << volume << " to ";
+	    if (journal==((std::string)"Nucl. Phys.") &&
+		(volume[0]=='A' || volume[0]=='a' ||
+		 volume[0]=='B' || volume[0]=='b')) {
+	      if (verbose>1) {
+		std::cout << "In entry with key " << *bt.key
+			  << " reformatting journal and volume from "
+			  << journal << ", " << volume << " to ";
+	      }
+	      journal+=" ";
+	      journal+=std::toupper(volume[0]);
+	      volume=volume.substr(1,volume.length()-1);
+	      if (verbose>1) {
+		std::cout << journal << ", " << volume << std::endl;
+	      }
+	      get_field(bt,"journal")=journal;
+	      get_field(bt,"volume")=volume;
 	    }
-	    journal+=" ";
-	    journal+=std::toupper(volume[0]);
-	    volume=volume.substr(1,volume.length()-1);
-	    if (verbose>1) {
-	      std::cout << journal << ", " << volume << std::endl;
+	    if (journal==((std::string)"Phys. Lett.") &&
+		(volume[0]=='A' || volume[0]=='a' ||
+		 volume[0]=='B' || volume[0]=='b')) {
+	      if (verbose>1) {
+		std::cout << "In entry with key " << *bt.key
+			  << " reformatting journal and volume from "
+			  << journal << ", " << volume << " to ";
+	      }
+	      journal+=" ";
+	      journal+=std::toupper(volume[0]);
+	      volume=volume.substr(1,volume.length()-1);
+	      if (verbose>1) {
+		std::cout << journal << ", " << volume << std::endl;
+	      }
+	      get_field(bt,"journal")=journal;
+	      get_field(bt,"volume")=volume;
 	    }
-	    get_field(bt,"journal")=journal;
-	    get_field(bt,"volume")=volume;
-	  }
-	  if (journal==((std::string)"Nucl. Phys.") &&
-	      (volume[0]=='A' || volume[0]=='a' ||
-	       volume[0]=='B' || volume[0]=='b')) {
-	    if (verbose>1) {
-	      std::cout << "In entry with key " << *bt.key
-			<< " reformatting journal and volume from "
-			<< journal << ", " << volume << " to ";
-	    }
-	    journal+=" ";
-	    journal+=std::toupper(volume[0]);
-	    volume=volume.substr(1,volume.length()-1);
-	    if (verbose>1) {
-	      std::cout << journal << ", " << volume << std::endl;
-	    }
-	    get_field(bt,"journal")=journal;
-	    get_field(bt,"volume")=volume;
-	  }
-	  if (journal==((std::string)"Phys. Lett.") &&
-	      (volume[0]=='A' || volume[0]=='a' ||
-	       volume[0]=='B' || volume[0]=='b')) {
-	    if (verbose>1) {
-	      std::cout << "In entry with key " << *bt.key
-			<< " reformatting journal and volume from "
-			<< journal << ", " << volume << " to ";
-	    }
-	    journal+=" ";
-	    journal+=std::toupper(volume[0]);
-	    volume=volume.substr(1,volume.length()-1);
-	    if (verbose>1) {
-	      std::cout << journal << ", " << volume << std::endl;
-	    }
-	    get_field(bt,"journal")=journal;
-	    get_field(bt,"volume")=volume;
 	  }
 	}
 

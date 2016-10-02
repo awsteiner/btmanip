@@ -47,6 +47,8 @@ protected:
   o2scl::cli::parameter_bool p_normalize_tags;
   o2scl::cli::parameter_bool p_normalize_fields;
   o2scl::cli::parameter_bool p_check_required;
+  o2scl::cli::parameter_bool p_natbib_jours;
+  o2scl::cli::parameter_bool p_remove_vol_letters;
   o2scl::cli::parameter_string p_jlist_fname;
   //@}
   
@@ -1013,6 +1015,16 @@ public:
     p_jlist_fname.str=&jlist_fname;
     p_jlist_fname.help="Journal list filename (default 'jlist_fname').";
     cl.par_list.insert(make_pair("jlist_fname",&p_jlist_fname));
+    
+    p_natbib_jours.b=&bf.natbib_jours;
+    p_natbib_jours.help=((string)"Prefer natbib journal ")+
+      "abbreviations (default false).";
+    cl.par_list.insert(make_pair("natbib_jours",&p_natbib_jours));
+    
+    p_remove_vol_letters.b=&bf.remove_vol_letters;
+    p_remove_vol_letters.help=((string)"Move letters in some volumes ")+
+      "(default false).";
+    cl.par_list.insert(make_pair("remove_vol_letters",&p_remove_vol_letters));
     
     cl.prompt="btmanip> ";
 
