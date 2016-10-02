@@ -907,7 +907,10 @@ namespace btmanip {
     void parse_bib(std::string fname, int verbose=1) {
 
       // Erase current entries
-      if (entries.size()>0) entries.clear();
+      if (entries.size()>0) {
+	entries.clear();
+	sort.clear();
+      }
       
       // Main parse call
       if (verbose>1) std::cout << "Main parse call." << std::endl;
