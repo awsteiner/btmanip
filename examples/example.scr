@@ -1,0 +1,16 @@
+parse test.bib
+list-keys
+get-key Epelbaum:2008ga
+sort
+bib output.bib
+!head -n 10 output.bib
+add test2.bib
+list-keys
+parse test3.bib
+list-keys
+sub test.bib
+bib
+text
+hay
+
+
