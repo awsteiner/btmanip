@@ -26,6 +26,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <fnmatch.h>
+
 #include <boost/algorithm/string.hpp>
 
 #include <bibtexentry.hpp>
@@ -111,6 +113,9 @@ namespace btmanip {
 	(default false)
     */
     bool remove_vol_letters;
+    /** \brief Verbosity parameter
+     */
+    int verbose;
     
     bib_file() {
       remove_extra_whitespace=false;
@@ -267,6 +272,104 @@ namespace btmanip {
       return pages2;
     }
 
+    /** \brief Desc
+     */
+    void search_or(std::vector<std::string> &args, int verbose) {
+
+      if (args.size()%2!=0) {
+	O2SCL_ERR("Need a set of field and pattern pairs in search_or().",
+		  o2scl::exc_einval);
+      }
+      
+      std::vector<bibtex::BibTeXEntry> entries2;
+      
+      for(size_t i=0;i<entries.size();i++) {
+
+	bool entry_matches=false;
+	bibtex::BibTeXEntry &bt=entries[i];
+
+	for(size_t k=0;k<args.size();k+=2) {
+	  std::string field=args[k];
+	  std::string pattern=args[k+1];
+	  for(size_t j=0;j<bt.fields.size();j++) {
+	    if (bt.fields[j].first==field &&
+		fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+	      entry_matches=true;
+	    }
+	  }
+	}
+	if (entry_matches) {
+	  entries2.push_back(bt);
+	}
+      }
+      if (entries2.size()>0) {
+	if (verbose>0) {
+	  if (entries2.size()==1) {
+	    std::cout << "1 record found." << std::endl;
+	  } else {
+	    std::cout << entries2.size() << " records found." << std::endl;
+	  }
+	}
+	std::swap(entries,entries2);
+      } else {
+	if (verbose>0) {
+	  std::cout << "No records found." << std::endl;
+	}
+      }
+      return;
+    }
+    
+    /** \brief Desc
+     */
+    void search_and(std::vector<std::string> &args, int verbose) {
+
+      if (args.size()%2!=0) {
+	O2SCL_ERR("Need a set of field and pattern pairs in search_and().",
+		  o2scl::exc_einval);
+      }
+      
+      for(size_t k=0;k<args.size();k+=2) {
+
+	std::string field=args[k];
+	std::string pattern=args[k+1];
+	
+	std::vector<bibtex::BibTeXEntry> entries2;
+
+	for(size_t i=0;i<entries.size();i++) {
+	  bool entry_matches=false;
+	  bibtex::BibTeXEntry &bt=entries[i];
+	  for(size_t j=0;j<bt.fields.size();j++) {
+	    if (bt.fields[j].first==field &&
+		fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+	      entry_matches=true;
+	    }
+	  }
+	  if (entry_matches) {
+	    entries2.push_back(bt);
+	  }
+	}
+
+	if (entries2.size()>0) {
+	  std::swap(entries,entries2);
+	} else {
+	  if (verbose>0) {
+	    std::cout << "No records found." << std::endl;
+	  }
+	  return;
+	}
+      }
+
+      if (verbose>0) {
+	if (entries.size()==1) {
+	  std::cout << "1 record found." << std::endl;
+	} else {
+	  std::cout << entries.size() << " records found." << std::endl;
+	}
+      }
+
+      return;
+    }
+    
     /** \brief Clean the current BibTeX entries
      */
     void clean(int verbose=1) {

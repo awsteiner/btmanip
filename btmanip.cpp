@@ -87,6 +87,32 @@ protected:
     }
     return 0;
   }
+
+  /** \brief Desc
+   */
+  virtual int search(std::vector<std::string> &sv, bool itive_com) {
+    if (sv.size()==3) {
+      std::vector<std::string>::iterator it=sv.begin();
+      sv.erase(it);
+      bf.search_or(sv,verbose);
+    } else if (sv[1]=="or") {
+      std::vector<std::string>::iterator it=sv.begin();
+      sv.erase(it);
+      it=sv.begin();
+      sv.erase(it);
+      bf.search_or(sv,verbose);
+    } else if (sv[1]=="and") {
+      std::vector<std::string>::iterator it=sv.begin();
+      sv.erase(it);
+      it=sv.begin();
+      sv.erase(it);
+      bf.search_and(sv,verbose);
+    } else {
+      cerr << "Failed in search." << endl;
+      return 1;
+    }
+    return 0;
+  }
   
   /** \brief Subtract the current entries from a .bib file
    */
@@ -923,7 +949,7 @@ public:
    */
   virtual int run(int argc, char *argv[]) {
     
-    static const int nopt=19;
+    static const int nopt=20;
     comm_option_s options[nopt]={
       {'p',"parse","Parse a specified .bib file.",1,1,"<file>","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
@@ -982,7 +1008,10 @@ public:
        (this,&btmanip_class::get_key),cli::comm_option_both},
       {0,"list-keys","List entry keys.",0,0,
        "","",new comm_option_mfptr<btmanip_class>
-       (this,&btmanip_class::list_keys),cli::comm_option_both}
+       (this,&btmanip_class::list_keys),cli::comm_option_both},
+      {0,"search","Search.",2,-1,
+       "","",new comm_option_mfptr<btmanip_class>
+       (this,&btmanip_class::search),cli::comm_option_both}
     };
     cl.set_comm_option_vec(nopt,options);    
     

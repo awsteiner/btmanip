@@ -1,4 +1,6 @@
 parse test.bib
+search and journal "Phys. Rev. Lett." author "*Teaney*"
+search or journal "Phys. Rev. Lett." author "*Teaney*"
 list-keys
 get-key Epelbaum:2008ga
 sort
