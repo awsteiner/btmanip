@@ -37,8 +37,6 @@
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
-      
-      \future Use the bibtex-spirit writer
   */
   class bib_file {
 
@@ -97,12 +95,12 @@ namespace btmanip {
     bool normalize_tags;
     /** \brief If true, convert fields to lowercase
      */
-    bool normalize_fields;
+    bool lowercase_fields;
     /** \brief If true, check to make sure all required fields are 
 	present
 
 	\note This only works if \ref normalize_tags and \ref
-	normalize_fields are both true.
+	lowercase_fields are both true.
     */
     bool check_required;
     /** \brief If true, prefer natbib journal abbreviations 
@@ -120,7 +118,7 @@ namespace btmanip {
       reformat_journal=true;
       trans_latex_html=true;
       normalize_tags=true;
-      normalize_fields=true;
+      lowercase_fields=true;
       check_required=false;
       journals_read=false;
       natbib_jours=false;
@@ -280,7 +278,7 @@ namespace btmanip {
       
       if (verbose>1) {
 	std::cout << "normalize_tags: " << normalize_tags << std::endl;
-	std::cout << "normalize_fields: " << normalize_fields << std::endl;
+	std::cout << "lowercase_fields: " << lowercase_fields << std::endl;
 	std::cout << "recase_tag: " << recase_tag << std::endl;
 	std::cout << "reformat_journal: " << reformat_journal << std::endl;
 	std::cout << "check_required: " << check_required << std::endl;
@@ -347,7 +345,7 @@ namespace btmanip {
 	  for(size_t j=0;j<bt.fields.size();j++) {
 	    
 	    // Ensure the field name is all lowercase
-	    if (normalize_fields) {
+	    if (lowercase_fields) {
 	      std::string fitemp=bt.fields[j].first, fitemp2=fitemp;
 	      for(size_t k=0;k<fitemp2.size();k++) {
 		fitemp2[k]=std::tolower(fitemp2[k]);
@@ -568,7 +566,7 @@ namespace btmanip {
 
 	// If requested, check that required fields are present
 	// for each entry
-	if (normalize_tags && normalize_fields && check_required) {
+	if (normalize_tags && lowercase_fields && check_required) {
 	  if (bt.tag==((std::string)"Article")) {
 	    if (!is_field_present(bt,"author")) {
 	      O2SCL_ERR("Article missing author field.",

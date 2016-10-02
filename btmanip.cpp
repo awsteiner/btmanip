@@ -30,6 +30,13 @@ using namespace o2scl;
 using namespace btmanip;
 
 /** \brief Main class for the command-line BibTeX manipulator
+
+    \todo Search function
+    \todo Move remove vol letters, reformat journal, recase_tag,
+    etc. to separate function in bib_file
+    \todo Example documentation
+
+    \future Use the bibtex-spirit writer
  */
 class btmanip_class {
 
@@ -45,7 +52,7 @@ protected:
   o2scl::cli::parameter_bool p_reformat_journal;
   o2scl::cli::parameter_bool p_trans_latex_html;
   o2scl::cli::parameter_bool p_normalize_tags;
-  o2scl::cli::parameter_bool p_normalize_fields;
+  o2scl::cli::parameter_bool p_lowercase_fields;
   o2scl::cli::parameter_bool p_check_required;
   o2scl::cli::parameter_bool p_natbib_jours;
   o2scl::cli::parameter_bool p_remove_vol_letters;
@@ -1002,10 +1009,10 @@ public:
       "to standard capitalization (default true).";
     cl.par_list.insert(make_pair("normalize_tags",&p_normalize_tags));
     
-    p_normalize_fields.b=&bf.normalize_fields;
-    p_normalize_fields.help=((string)"If true, convert fields to ")+
+    p_lowercase_fields.b=&bf.lowercase_fields;
+    p_lowercase_fields.help=((string)"If true, convert fields to ")+
       "lowercase (default true).";
-    cl.par_list.insert(make_pair("normalize_fields",&p_normalize_fields));
+    cl.par_list.insert(make_pair("lowercase_fields",&p_lowercase_fields));
     
     p_check_required.b=&bf.check_required;
     p_check_required.help=((string)"If true, check that all ")+
