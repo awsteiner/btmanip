@@ -39,7 +39,7 @@
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
-  */
+   */
   class bib_file {
 
   protected:
@@ -113,6 +113,12 @@ namespace btmanip {
 	(default false)
     */
     bool remove_vol_letters;
+    /** \brief If true, add and reformat URLs (default true)
+     */
+    bool autoformat_urls;
+    /** \brief Add empty titles (default true)
+     */
+    bool add_empty_titles;
     /** \brief Verbosity parameter
      */
     int verbose;
@@ -128,6 +134,9 @@ namespace btmanip {
       journals_read=false;
       natbib_jours=false;
       remove_vol_letters=false;
+      autoformat_urls=true;
+      add_empty_titles=true;
+      verbose=1;
 
       trans_latex.push_back("\\'{a}"); trans_html.push_back("&aacute;");
       trans_latex.push_back("\\'{e}"); trans_html.push_back("&eacute;");
@@ -155,7 +164,7 @@ namespace btmanip {
 	\note If a list was read previously, that list is
 	deleted before reading the new list
     */
-    int read_journals(std::string fname="", int verbose=1) {
+    int read_journals(std::string fname="") {
       if (journals_read) {
 	journals.clear();
       }
@@ -272,9 +281,9 @@ namespace btmanip {
       return pages2;
     }
 
-    /** \brief Desc
+    /** \brief Search for entries using 'or'
      */
-    void search_or(std::vector<std::string> &args, int verbose) {
+    void search_or(std::vector<std::string> &args) {
 
       if (args.size()%2!=0) {
 	O2SCL_ERR("Need a set of field and pattern pairs in search_or().",
@@ -319,9 +328,9 @@ namespace btmanip {
       return;
     }
     
-    /** \brief Desc
+    /** \brief Search for entries using 'and'
      */
-    void search_and(std::vector<std::string> &args, int verbose) {
+    void search_and(std::vector<std::string> &args) {
 
       if (args.size()%2!=0) {
 	O2SCL_ERR("Need a set of field and pattern pairs in search_and().",
@@ -369,15 +378,365 @@ namespace btmanip {
 
       return;
     }
+
+    /** \brief Check entry for required fields
+     */
+    void entry_check_required(bibtex::BibTeXEntry &bt) {
+      if (bt.tag==((std::string)"Article")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("Article missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Article missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"journal")) {
+	  O2SCL_ERR("Article missing journal field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("Article missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"Book")) {
+	if (!is_field_present(bt,"author","editor")) {
+	  O2SCL_ERR("Book missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Book missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"publisher")) {
+	  O2SCL_ERR("Book missing publisher field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("Book missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"Booklet")) {
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Booklet missing title field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"Conference")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("Conference missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Conference missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"booktitle")) {
+	  O2SCL_ERR("Conference missing booktitle field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("Conference missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"InBook")) {
+	if (!is_field_present(bt,"author","editor")) {
+	  O2SCL_ERR("InBook missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("InBook missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"chapter","pages")) {
+	  O2SCL_ERR("InBook missing chapter field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"publisher")) {
+	  O2SCL_ERR("InBook missing publisher field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("InBook missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"InCollection")) {
+	if (!is_field_present(bt,"author","editor")) {
+	  O2SCL_ERR("InCollection missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("InCollection missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"publisher")) {
+	  O2SCL_ERR("InCollection missing publisher field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("InCollection missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"InProceedings")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("InProceedings missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("InProceedings missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"booktitle")) {
+	  O2SCL_ERR("InProceedings missing booktitle field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("InProceedings missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"Manual")) {
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Manual missing title field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"MastersThesis")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("MastersThesis missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("MastersThesis missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"school")) {
+	  O2SCL_ERR("MastersThesis missing school field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("MastersThesis missing year field.",
+		    o2scl::exc_einval);
+	}
+	//} else if (bt.tag==((std::string)"Misc")) {
+	// Misc has no required fields
+      } else if (bt.tag==((std::string)"PhDThesis")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("PhDThesis missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("PhDThesis missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"school")) {
+	  O2SCL_ERR("PhDThesis missing school field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("PhDThesis missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"Proceedings")) {
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Proceedings missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("Proceedings missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"TechReport")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("TechReport missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("TechReport missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"institution")) {
+	  O2SCL_ERR("TechReport missing institution field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"year")) {
+	  O2SCL_ERR("TechReport missing year field.",
+		    o2scl::exc_einval);
+	}
+      } else if (bt.tag==((std::string)"Unpublished")) {
+	if (!is_field_present(bt,"author")) {
+	  O2SCL_ERR("Unpublished missing author field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"title")) {
+	  O2SCL_ERR("Unpublished missing title field.",
+		    o2scl::exc_einval);
+	}
+	if (!is_field_present(bt,"note")) {
+	  O2SCL_ERR("Unpublished missing note field.",
+		    o2scl::exc_einval);
+	}
+      }
+      return;
+    }
+
+    /** \brief If an 'article' or 'inproceedings' and no
+	title, add an empty title
+     */
+    size_t entry_add_empty_title(bibtex::BibTeXEntry &bt) {
+
+      size_t empty_titles_added=0;
+      if (bt.tag==((std::string)"Article") ||
+	  bt.tag==((std::string)"InProceedings")) {
+	if (!is_field_present(bt,"title")) {
+	  std::vector<std::string> val;
+	  val.push_back(" ");
+	  bt.fields.push_back(std::make_pair("title",val));
+	  empty_titles_added++;
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " added empty title." << std::endl;
+	  }
+	}
+      }
+      return empty_titles_added;
+    }
+    
+    /** \brief If DOI number is present, ensure URL matches
+     */
+    size_t entry_autoformat_url(bibtex::BibTeXEntry &bt) {
+      size_t urls_reformatted=0;
+      if (bt.tag==((std::string)"Article")) {
+	if (is_field_present(bt,"doi")) {
+	  if (is_field_present(bt,"url")) {
+	    std::string &url=get_field(bt,"url");
+	    if (url.substr(0,17)!=((std::string)"http://dx.doi.org")) {
+	      url=((std::string)"http://dx.doi.org/")+
+		get_field(bt,"doi");
+	      if (verbose>1) {
+		std::cout << "In entry with key " << *bt.key
+			  << " reformatted url to " << url << std::endl;
+	      }
+	    }
+	  } else {
+	    std::vector<std::string> val;
+	    val.push_back(((std::string)"http://dx.doi.org/")+
+			  get_field(bt,"doi"));
+	    bt.fields.push_back(std::make_pair("url",val));
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " added url field " << val[0] << std::endl;
+	    }
+	  }
+	  urls_reformatted++;
+	}
+      } else if (bt.tag==((std::string)"Book")) {
+	if (is_field_present(bt,"isbn") && !is_field_present(bt,"url")) {
+	    std::vector<std::string> val;
+	    val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
+			  get_field(bt,"isbn"));
+	    bt.fields.push_back(std::make_pair("url",val));
+	    if (verbose>1) {
+	      std::cout << "In entry with key " << *bt.key
+			<< " added url field " << val[0] << std::endl;
+	    }
+	}
+      }
+      return urls_reformatted;
+    }
+    
+    /** \brief Remove volume letters and move to journal names
+	for some journals
+     */
+    void entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
+      if (is_field_present(bt,"journal") &&
+	  is_field_present(bt,"volume")) {
+	std::string volume=get_field(bt,"volume");
+	std::string journal=get_field(bt,"journal");
+	if (journal==((std::string)"Phys. Rev.") &&
+	    (volume[0]=='A' || volume[0]=='a' ||
+	     volume[0]=='B' || volume[0]=='b' ||
+	     volume[0]=='C' || volume[0]=='c' ||
+	     volume[0]=='D' || volume[0]=='d' ||
+	     volume[0]=='E' || volume[0]=='e')) {
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " reformatting journal and volume from "
+		      << journal << ", " << volume << " to ";
+	  }
+	  journal+=" ";
+	  journal+=std::toupper(volume[0]);
+	  volume=volume.substr(1,volume.length()-1);
+	  if (verbose>1) {
+	    std::cout << journal << ", " << volume << std::endl;
+	  }
+	  get_field(bt,"journal")=journal;
+	  get_field(bt,"volume")=volume;
+	}
+	if (journal==((std::string)"Eur. Phys. J.") &&
+	    (volume[0]=='A' || volume[0]=='a' ||
+	     volume[0]=='B' || volume[0]=='b' ||
+	     volume[0]=='C' || volume[0]=='c' ||
+	     volume[0]=='D' || volume[0]=='d' ||
+	     volume[0]=='E' || volume[0]=='e')) {
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " reformatting journal and volume from "
+		      << journal << ", " << volume << " to ";
+	  }
+	  journal+=" ";
+	  journal+=std::toupper(volume[0]);
+	  volume=volume.substr(1,volume.length()-1);
+	  if (verbose>1) {
+	    std::cout << journal << ", " << volume << std::endl;
+	  }
+	  get_field(bt,"journal")=journal;
+	  get_field(bt,"volume")=volume;
+	}
+	if (journal==((std::string)"Nucl. Phys.") &&
+	    (volume[0]=='A' || volume[0]=='a' ||
+	     volume[0]=='B' || volume[0]=='b')) {
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " reformatting journal and volume from "
+		      << journal << ", " << volume << " to ";
+	  }
+	  journal+=" ";
+	  journal+=std::toupper(volume[0]);
+	  volume=volume.substr(1,volume.length()-1);
+	  if (verbose>1) {
+	    std::cout << journal << ", " << volume << std::endl;
+	  }
+	  get_field(bt,"journal")=journal;
+	  get_field(bt,"volume")=volume;
+	}
+	if (journal==((std::string)"Phys. Lett.") &&
+	    (volume[0]=='A' || volume[0]=='a' ||
+	     volume[0]=='B' || volume[0]=='b')) {
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " reformatting journal and volume from "
+		      << journal << ", " << volume << " to ";
+	  }
+	  journal+=" ";
+	  journal+=std::toupper(volume[0]);
+	  volume=volume.substr(1,volume.length()-1);
+	  if (verbose>1) {
+	    std::cout << journal << ", " << volume << std::endl;
+	  }
+	  get_field(bt,"journal")=journal;
+	  get_field(bt,"volume")=volume;
+	}
+      }
+      return;
+    }
     
     /** \brief Clean the current BibTeX entries
      */
-    void clean(int verbose=1) {
+    void clean() {
 
       size_t empty_titles_added=0;
       size_t duplicates_found=0;
       size_t entries_fields_removed=0;
       size_t journals_renamed=0;
+      size_t urls_reformatted=0;
       
       if (verbose>1) {
 	std::cout << "normalize_tags: " << normalize_tags << std::endl;
@@ -387,8 +746,20 @@ namespace btmanip {
 	std::cout << "check_required: " << check_required << std::endl;
 	std::cout << "remove_extra_whitespace: "
 		  << remove_extra_whitespace << std::endl;
+	std::cout << "remove_vol_letters: " << remove_vol_letters << std::endl;
+	std::cout << "natbib_jours: " << natbib_jours << std::endl;
+	std::cout << "autoformat_urls: " << autoformat_urls << std::endl;
+	std::cout << "add_empty_titles: " << add_empty_titles << std::endl;
       }
-    
+
+      if (journals.size()==0) {
+	std::cout << "No entries in journal name list." << std::endl;
+      }
+
+      if (entries.size()==0) {
+	std::cout << "No entries to clean." << std::endl;
+      }
+      
       // First loop to fix tags (must be done before looking
       // for duplicates)
       for(size_t i=0;i<entries.size();i++) {
@@ -544,324 +915,24 @@ namespace btmanip {
 	// If the journal letter is in the volume, move to
 	// the journal field
 	if (remove_vol_letters) {
-	  if (is_field_present(bt,"journal") && reformat_journal && 
-	      is_field_present(bt,"volume")) {
-	    std::string volume=get_field(bt,"volume");
-	    std::string journal=get_field(bt,"journal");
-	    if (journal==((std::string)"Phys. Rev.") &&
-		(volume[0]=='A' || volume[0]=='a' ||
-		 volume[0]=='B' || volume[0]=='b' ||
-		 volume[0]=='C' || volume[0]=='c' ||
-		 volume[0]=='D' || volume[0]=='d' ||
-		 volume[0]=='E' || volume[0]=='e')) {
-	      if (verbose>1) {
-		std::cout << "In entry with key " << *bt.key
-			  << " reformatting journal and volume from "
-			  << journal << ", " << volume << " to ";
-	      }
-	      journal+=" ";
-	      journal+=std::toupper(volume[0]);
-	      volume=volume.substr(1,volume.length()-1);
-	      if (verbose>1) {
-		std::cout << journal << ", " << volume << std::endl;
-	      }
-	      get_field(bt,"journal")=journal;
-	      get_field(bt,"volume")=volume;
-	    }
-	    if (journal==((std::string)"Eur. Phys. J.") &&
-		(volume[0]=='A' || volume[0]=='a' ||
-		 volume[0]=='B' || volume[0]=='b' ||
-		 volume[0]=='C' || volume[0]=='c' ||
-		 volume[0]=='D' || volume[0]=='d' ||
-		 volume[0]=='E' || volume[0]=='e')) {
-	      if (verbose>1) {
-		std::cout << "In entry with key " << *bt.key
-			  << " reformatting journal and volume from "
-			  << journal << ", " << volume << " to ";
-	      }
-	      journal+=" ";
-	      journal+=std::toupper(volume[0]);
-	      volume=volume.substr(1,volume.length()-1);
-	      if (verbose>1) {
-		std::cout << journal << ", " << volume << std::endl;
-	      }
-	      get_field(bt,"journal")=journal;
-	      get_field(bt,"volume")=volume;
-	    }
-	    if (journal==((std::string)"Nucl. Phys.") &&
-		(volume[0]=='A' || volume[0]=='a' ||
-		 volume[0]=='B' || volume[0]=='b')) {
-	      if (verbose>1) {
-		std::cout << "In entry with key " << *bt.key
-			  << " reformatting journal and volume from "
-			  << journal << ", " << volume << " to ";
-	      }
-	      journal+=" ";
-	      journal+=std::toupper(volume[0]);
-	      volume=volume.substr(1,volume.length()-1);
-	      if (verbose>1) {
-		std::cout << journal << ", " << volume << std::endl;
-	      }
-	      get_field(bt,"journal")=journal;
-	      get_field(bt,"volume")=volume;
-	    }
-	    if (journal==((std::string)"Phys. Lett.") &&
-		(volume[0]=='A' || volume[0]=='a' ||
-		 volume[0]=='B' || volume[0]=='b')) {
-	      if (verbose>1) {
-		std::cout << "In entry with key " << *bt.key
-			  << " reformatting journal and volume from "
-			  << journal << ", " << volume << " to ";
-	      }
-	      journal+=" ";
-	      journal+=std::toupper(volume[0]);
-	      volume=volume.substr(1,volume.length()-1);
-	      if (verbose>1) {
-		std::cout << journal << ", " << volume << std::endl;
-	      }
-	      get_field(bt,"journal")=journal;
-	      get_field(bt,"volume")=volume;
-	    }
-	  }
+	  entry_remove_vol_letters(bt);
 	}
 
 	// If necessary, create an article URL from the
 	// DOI entry
-	if (bt.tag==((std::string)"Article")) {
-	  if (is_field_present(bt,"doi")) {
-	    if (is_field_present(bt,"url")) {
-	      std::string &url=get_field(bt,"url");
-	      if (url.substr(0,17)!=((std::string)"http://dx.doi.org")) {
-		url=((std::string)"http://dx.doi.org/")+
-		  get_field(bt,"doi");
-		if (verbose>1) {
-		  std::cout << "In entry with key " << *bt.key
-			    << " reformatted url to " << url << std::endl;
-		}
-	      }
-	    } else {
-	      std::vector<std::string> val;
-	      val.push_back(((std::string)"http://dx.doi.org/")+
-			    get_field(bt,"doi"));
-	      bt.fields.push_back(std::make_pair("url",val));
-	      if (verbose>1) {
-		std::cout << "In entry with key " << *bt.key
-			  << " added url field " << val[0] << std::endl;
-	      }
-	    }
-	  }
+	if (autoformat_urls) {
+	  entry_autoformat_url(bt);
 	}
-	  
+		  
 	// Add empty title to an article if necessary
-	if (bt.tag==((std::string)"Article") ||
-	    bt.tag==((std::string)"InProceedings")) {
-	  if (!is_field_present(bt,"title")) {
-	    std::vector<std::string> val;
-	    val.push_back(" ");
-	    bt.fields.push_back(std::make_pair("title",val));
-	    empty_titles_added++;
-	    if (verbose>1) {
-	      std::cout << "In entry with key " << *bt.key
-			<< " added empty title." << std::endl;
-	    }
-	  }
+	if (add_empty_titles) {
+	  empty_titles_added=entry_add_empty_title(bt);
 	}
 
 	// If requested, check that required fields are present
 	// for each entry
 	if (normalize_tags && lowercase_fields && check_required) {
-	  if (bt.tag==((std::string)"Article")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("Article missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Article missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"journal")) {
-	      O2SCL_ERR("Article missing journal field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("Article missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"Book")) {
-	    if (!is_field_present(bt,"author","editor")) {
-	      O2SCL_ERR("Book missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Book missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"publisher")) {
-	      O2SCL_ERR("Book missing publisher field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("Book missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"Booklet")) {
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Booklet missing title field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"Conference")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("Conference missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Conference missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"booktitle")) {
-	      O2SCL_ERR("Conference missing booktitle field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("Conference missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"InBook")) {
-	    if (!is_field_present(bt,"author","editor")) {
-	      O2SCL_ERR("InBook missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("InBook missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"chapter","pages")) {
-	      O2SCL_ERR("InBook missing chapter field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"publisher")) {
-	      O2SCL_ERR("InBook missing publisher field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("InBook missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"InCollection")) {
-	    if (!is_field_present(bt,"author","editor")) {
-	      O2SCL_ERR("InCollection missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("InCollection missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"publisher")) {
-	      O2SCL_ERR("InCollection missing publisher field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("InCollection missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"InProceedings")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("InProceedings missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("InProceedings missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"booktitle")) {
-	      O2SCL_ERR("InProceedings missing booktitle field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("InProceedings missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"Manual")) {
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Manual missing title field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"MastersThesis")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("MastersThesis missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("MastersThesis missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"school")) {
-	      O2SCL_ERR("MastersThesis missing school field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("MastersThesis missing year field.",
-			o2scl::exc_einval);
-	    }
-	    //} else if (bt.tag==((std::string)"Misc")) {
-	    // Misc has no required fields
-	  } else if (bt.tag==((std::string)"PhDThesis")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("PhDThesis missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("PhDThesis missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"school")) {
-	      O2SCL_ERR("PhDThesis missing school field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("PhDThesis missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"Proceedings")) {
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Proceedings missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("Proceedings missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"TechReport")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("TechReport missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("TechReport missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"institution")) {
-	      O2SCL_ERR("TechReport missing institution field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"year")) {
-	      O2SCL_ERR("TechReport missing year field.",
-			o2scl::exc_einval);
-	    }
-	  } else if (bt.tag==((std::string)"Unpublished")) {
-	    if (!is_field_present(bt,"author")) {
-	      O2SCL_ERR("Unpublished missing author field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"title")) {
-	      O2SCL_ERR("Unpublished missing title field.",
-			o2scl::exc_einval);
-	    }
-	    if (!is_field_present(bt,"note")) {
-	      O2SCL_ERR("Unpublished missing note field.",
-			o2scl::exc_einval);
-	    }
-	  }
+	  entry_check_required(bt);
 	}
       
 	// End of loop over entries
@@ -874,6 +945,9 @@ namespace btmanip {
 		  << " entries with extra fields removed." << std::endl;
 	std::cout << journals_renamed << " journal names standardized."
 		  << std::endl;
+	std::cout <<  urls_reformatted << " URLs reformatted."
+		  << std::endl;
+	  
       }
       
       return;
@@ -904,7 +978,7 @@ namespace btmanip {
     
     /** \brief Parse a BibTeX file and perform some extra reformatting
      */
-    void parse_bib(std::string fname, int verbose=1) {
+    void parse_bib(std::string fname) {
 
       // Erase current entries
       if (entries.size()>0) {
@@ -1151,7 +1225,7 @@ namespace btmanip {
     
     /** \brief Parse a BibTeX file and perform some extra reformatting
      */
-    void add_bib(std::string fname, int verbose=1) {
+    void add_bib(std::string fname) {
 
       std::vector<bibtex::BibTeXEntry> entries2;
 

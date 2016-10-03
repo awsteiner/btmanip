@@ -21,6 +21,7 @@
   -------------------------------------------------------------------
 */
 #include "bib_file.h"
+#include "hdf_bibtex.h"
 
 #include <o2scl/cli_readline.h>
 #include <o2scl/string_conv.h>
@@ -30,11 +31,6 @@ using namespace o2scl;
 using namespace btmanip;
 
 /** \brief Main class for the command-line BibTeX manipulator
-
-    \todo Search function
-    \todo Move remove vol letters, reformat journal, recase_tag,
-    etc. to separate function in bib_file
-    \todo Example documentation
 
     \future Use the bibtex-spirit writer
  */
@@ -56,14 +52,14 @@ protected:
   o2scl::cli::parameter_bool p_check_required;
   o2scl::cli::parameter_bool p_natbib_jours;
   o2scl::cli::parameter_bool p_remove_vol_letters;
+  o2scl::cli::parameter_bool p_autoformat_urls;
+  o2scl::cli::parameter_bool p_add_empty_titles;
+
   o2scl::cli::parameter_string p_jlist_fname;
   //@}
   
   /// A file of BibTeX entries
   bib_file bf;
-
-  /// Verbosity parameter
-  int verbose;
 
   /// If true, the journal list has been read
   bool jlist_read;
@@ -90,23 +86,36 @@ protected:
 
   /** \brief Desc
    */
+  virtual int set_field(std::vector<std::string> &sv, bool itive_com) {
+    if (sv.size()==4) {
+      bf.set_field_value(sv[1],sv[2],sv[3]);
+    } else if (sv.size()==3) {
+      if (bf.entries.size()==1) {
+	bf.set_field_value(bf.entries[0],sv[1],sv[2]);
+      }
+    }
+    return 0;
+  }
+
+  /** \brief Search among current entries
+   */
   virtual int search(std::vector<std::string> &sv, bool itive_com) {
     if (sv.size()==3) {
       std::vector<std::string>::iterator it=sv.begin();
       sv.erase(it);
-      bf.search_or(sv,verbose);
+      bf.search_or(sv);
     } else if (sv[1]=="or") {
       std::vector<std::string>::iterator it=sv.begin();
       sv.erase(it);
       it=sv.begin();
       sv.erase(it);
-      bf.search_or(sv,verbose);
+      bf.search_or(sv);
     } else if (sv[1]=="and") {
       std::vector<std::string>::iterator it=sv.begin();
       sv.erase(it);
       it=sv.begin();
       sv.erase(it);
-      bf.search_and(sv,verbose);
+      bf.search_and(sv);
     } else {
       cerr << "Failed in search." << endl;
       return 1;
@@ -161,8 +170,6 @@ protected:
   }
 
   /** \brief Find duplicates between two .bib files
-      
-      \future Rewrite with faster search
   */
   virtual int sort(std::vector<std::string> &sv, bool itive_com) {
     bf.sort_bib();
@@ -170,8 +177,6 @@ protected:
   }
 
   /** \brief Find duplicates between two .bib files
-      
-      \future Rewrite with faster search
   */
   virtual int dup(std::vector<std::string> &sv, bool itive_com) {
 
@@ -212,7 +217,7 @@ protected:
 	}
       }
     } else {
-      if (verbose>0) {
+      if (bf.verbose>0) {
 	cout << "Looking for duplicates among current BibTeX entries."
 	     << endl;
       }
@@ -299,7 +304,7 @@ protected:
 	}
       }
     }
-    if (found==false && verbose>0) {
+    if (found==false && bf.verbose>0) {
       cout << "No duplicates found." << endl;
     }
     
@@ -315,7 +320,7 @@ protected:
       return 1;
     }
 
-    bf.parse_bib(sv[1],verbose);
+    bf.parse_bib(sv[1]);
     return 0;
   }
 
@@ -328,7 +333,7 @@ protected:
       return 1;
     }
 
-    bf.add_bib(sv[1],verbose);
+    bf.add_bib(sv[1]);
     return 0;
   }
 
@@ -763,7 +768,7 @@ protected:
       read_jlist(sv,false);
     }
 
-    bf.clean(verbose);
+    bf.clean();
     return 0;
   }
   
@@ -940,7 +945,6 @@ protected:
 public:
   
   btmanip_class() {
-    verbose=1;
     jlist_read=false;
     jlist_fname="btmanip_jlist";
   }
@@ -949,7 +953,7 @@ public:
    */
   virtual int run(int argc, char *argv[]) {
     
-    static const int nopt=20;
+    static const int nopt=21;
     comm_option_s options[nopt]={
       {'p',"parse","Parse a specified .bib file.",1,1,"<file>","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
@@ -1006,6 +1010,9 @@ public:
       {0,"get-key","Get entry by key.",1,1,
        "<key>","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::get_key),cli::comm_option_both},
+      {0,"set-field","Get entry by key.",2,3,
+       "<key>","",new comm_option_mfptr<btmanip_class>
+       (this,&btmanip_class::set_field),cli::comm_option_both},
       {0,"list-keys","List entry keys.",0,0,
        "","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::list_keys),cli::comm_option_both},
@@ -1015,7 +1022,7 @@ public:
     };
     cl.set_comm_option_vec(nopt,options);    
     
-    p_verbose.i=&verbose;
+    p_verbose.i=&bf.verbose;
     p_verbose.help=((string)"Verbosity parameter ")+
       "(default 1).";
     cl.par_list.insert(make_pair("verbose",&p_verbose));
@@ -1061,6 +1068,17 @@ public:
     p_remove_vol_letters.help=((string)"Move letters in some volumes ")+
       "(default false).";
     cl.par_list.insert(make_pair("remove_vol_letters",&p_remove_vol_letters));
+
+    p_autoformat_urls.b=&bf.autoformat_urls;
+    p_autoformat_urls.help=((string)"If DOI or ISBN is present, ")+
+      "autoformat URLs (default true).";
+    cl.par_list.insert(make_pair("autoformat_urls",&p_autoformat_urls));
+
+    p_add_empty_titles.b=&bf.add_empty_titles;
+    p_add_empty_titles.help=((string)"If article titles are not present, ")+
+      "add empty ones (default true).";
+    cl.par_list.insert(make_pair("add_empty_titles",&p_add_empty_titles));
+
     
     cl.prompt="btmanip> ";
 

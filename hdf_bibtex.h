@@ -25,8 +25,13 @@
 /** \file hdf_bibtex.h
     \brief File defining HDF I/O for selected \o2 objects
 */
+#include <sstream>
+
 #include <boost/numeric/ublas/vector.hpp>
+
 #include "bibtexentry.hpp"
+#include "bib_file.h"
+
 #include <o2scl/hdf_file.h>
 #include <o2scl/hdf_io.h>
 
@@ -43,26 +48,13 @@ namespace btmanip {
     hf.set_current_id(group);
 
     // Add typename
-    hf.sets_fixed("o2scl_type","BibTeXEntry");
-
-    // Add entry information
-    hf.sets("tag",ent.tag);
-    if (ent.key) hf.sets("key",*ent.key);
-    std::vector<std::string> fields;
-    for(size_t i=0;i<ent.fields.size();i++) {
-      fields.push_back(ent.fields[i].first);
-    }
-    hf.sets_vec("fields",fields);
-
-    for(size_t i=0;i<fields.size();i++) {
-      hid_t group2=hf.open_group(fields[i]);
-      hf.set_current_id(group2);
-
-      hf.sets_vec("value",ent.fields[i].second);
+    hf.sets_fixed("o2scl_type","vector<BibTeXEntry>");
     
-      hf.close_group(group2);
-      hf.set_current_id(group);
-    }
+    std::ostringstream strout;
+    bib_file bf;
+    bf.bib_output_one(strout,ent);
+    
+    hf.sets(name,strout.str());
 
     // Close group
     hf.close_group(group);
@@ -87,38 +79,14 @@ namespace btmanip {
     // Add typename
     hf.sets_fixed("o2scl_type","vector<BibTeXEntry>");
 
-    // Add size
-    hf.seti("n_entries",ents.size());
-  
-    // Not all entries have keys, so we can't organize by key. 
-    // We just file under e0, e1, e2, ...
-
+    std::ostringstream strout;
+    bib_file bf;
     for(size_t i=0;i<ents.size();i++) {
-      std::string gname=((std::string)"e")+std::to_string(i);
-      hid_t group2=hf.open_group(gname);
-      hf.set_current_id(group2);
-    
-      hf.sets("tag",ents[i].tag);
-      if (ents[i].key) hf.sets("key",*ents[i].key);
-      std::vector<std::string> fields;
-      for(size_t j=0;j<ents[i].fields.size();j++) {
-	fields.push_back(ents[i].fields[j].first);
-      }
-      hf.sets_vec("fields",fields);
-    
-      for(size_t j=0;j<fields.size();j++) {
-	hid_t group3=hf.open_group(ents[i].fields[j].first);
-	hf.set_current_id(group3);
-      
-	hf.sets_vec("value",ents[i].fields[j].second);
-      
-	hf.close_group(group3);
-	hf.set_current_id(group2);
-      }
-
-      hf.close_group(group2);
-      hf.set_current_id(group);
+      bf.bib_output_one(strout,ents[i]);
+      strout << std::endl;
     }
+    
+    hf.sets(name,strout.str());
 
     // Close group
     hf.close_group(group);
@@ -137,7 +105,7 @@ namespace btmanip {
 
     // If no name specified, find name of first group of specified type
     if (name.length()==0) {
-      hf.find_group_by_type(hf,"vector<BibTeXEntry>",name);
+      hf.find_group_by_type("vector<BibTeXEntry>",name);
       if (name.length()==0) {
 	O2SCL_ERR2("No object of type vector<BibTeXEntry> found in ",
 		   "hdf_input().",o2scl::exc_efailed);
@@ -148,31 +116,11 @@ namespace btmanip {
     hid_t top=hf.get_current_id();
     hid_t group=hf.open_group(name);
     hf.set_current_id(group);
-  
-    for(size_t i=0;i<ents.size();i++) {
-      std::string gname=((std::string)"e")+std::to_string(i);
-      hid_t group2=hf.open_group(gname);
-      hf.set_current_id(group2);
-    
-      hf.gets("tag",ents[i].tag);
-      hf.gets("key",*ents[i].key);
-      std::vector<std::string> fields;
-      hf.gets_vec("fields",fields);
-    
-      for(size_t j=0;j<fields.size();j++) {
-	hid_t group3=hf.open_group(fields[j]);
-	hf.set_current_id(group3);
 
-	std::vector<std::string> value;
-	hf.gets_vec("value",value);
-      
-	hf.close_group(group3);
-	hf.set_current_id(group2);
-      }
-
-      hf.close_group(group2);
-      hf.set_current_id(group);
-    }
+    std::string s;
+    hf.gets(name,s);
+    std::istringstream iss(s);
+    bibtex::read(iss,ents); 
 
     // Close group
     hf.close_group(group);
