@@ -1096,9 +1096,10 @@ namespace btmanip {
 	if (bt.fields[j].second.size()>0) {
 
 	  // Construct and output field string, including spaces to
-	  // make it 17 characters
+	  // make it 16 characters. This is the same as the default
+	  // emacs formatting.
 	  std::string field_s=((std::string)"  ")+bt.fields[j].first+" =";
-	  while (field_s.length()<17) field_s+=" ";
+	  while (field_s.length()<16) field_s+=" ";
 	  outs << field_s;
 
 	  // Determine if the field value needs extra braces
@@ -1116,6 +1117,7 @@ namespace btmanip {
 	       bt.fields[j].first=="numpages" ||
 	       bt.fields[j].first=="volume" ||
 	       bt.fields[j].first=="issue" ||
+	       bt.fields[j].first=="isbn" ||
 	       bt.fields[j].first=="citations" ||
 	       bt.fields[j].first=="adscites" ||
 	       bt.fields[j].first=="number") &&
@@ -1241,44 +1243,53 @@ namespace btmanip {
 
 	bibtex::BibTeXEntry &bt=entries2[i];
 
-	bool add_entry=true;
 	std::vector<size_t> list;
 	list_possible_duplicates(bt,list);
 	if (list.size()>0) {
 	  std::cout << "When adding entry:\n" << std::endl;
 	  bib_output_one(std::cout,bt);
-	  std::cout << "\n" << list.size() << " duplicates in the current "
-		    << "list were found:\n" << std::endl;
+	  std::cout << "\n" << list.size() << " possible duplicates in the "
+		    << "current list were found:\n" << std::endl;
 	  for(size_t j=0;j<list.size();j++) {
 	    bib_output_one(std::cout,entries[list[j]]);
 	  }
-	  std::cout << "\nAdd entry anyway (y/n)? " << std::flush;
+	  if (list.size()==1) {
+	    std::cout << "\nAdd entry anyway (y), replace (r), "
+		      << "stop add (s) or ignore (i)? " << std::flush;
+	  } else {
+	    std::cout << "\nAdd entry anyway (y), "
+		      << "stop add (s) or ignore (i)? " << std::flush;
+	  }
 	  char ch;
 	  std::cin >> ch;
-	  if (ch!='y' && ch!='Y') {
+	  if (ch=='y' || ch=='Y') {
+	    entries.push_back(bt);
+	    
+	    if (!bt.key) {
+	      O2SCL_ERR("This class does not support keyless entries.",
+			o2scl::exc_efailed);
+	    }
+	    
+	    // Insert to the map for sorting
+	    sort.insert(make_pair(*bt.key,entries.size()-1));
+	    
+	    if (verbose>1) {
+	      std::cout << "Entry " << i+1 << " of " << entries2.size();
+	      std::cout << ", tag: " << bt.tag;
+	      std::cout << ", key: " << *bt.key << std::endl;
+	    }
+	  } else if (list.size()==1 && (ch=='r' || ch=='R')) {
+	    std::cout << "Replacing " << *(entries[list[0]].key)
+		      << " with " << *bt.key << std::endl;
+	    entries[list[0]]=bt;
+	  } else if (ch=='s' || ch=='S') {
+	    std::cout << "Stopping add." << std::endl;
+	    i=entries2.size();
+	  } else {
 	    std::cout << "Ignoring " << *bt.key << std::endl;
-	    add_entry=false;
 	  }
 	}
 	
-	if (add_entry==true) {
-	  entries.push_back(bt);
-	  
-	  if (!bt.key) {
-	    O2SCL_ERR("This class does not support keyless entries.",
-		      o2scl::exc_efailed);
-	  }
-	  
-	  // Insert to the map for sorting
-	  sort.insert(make_pair(*bt.key,entries.size()-1));
-	  
-	  if (verbose>1) {
-	    std::cout << "Entry " << i+1 << " of " << entries2.size();
-	    std::cout << ", tag: " << bt.tag;
-	    std::cout << ", key: " << *bt.key << std::endl;
-	  }
-	}
-
 	// End of loop over entries
       }
       
