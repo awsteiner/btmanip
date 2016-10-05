@@ -1108,7 +1108,8 @@ namespace btmanip {
 	    with_braces=false;
 	  }
 	  if (bt.fields[j].second[0][0]=='{' &&
-	      bt.fields[j].second[0][bt.fields[j].second[0].size()-1]=='}') {
+	      bt.fields[j].second[0][bt.fields[j].second[0].size()-1]=='}' &&
+	      bt.fields[j].second[0].find('{',1)==std::string::npos) {
 	    with_braces=false;
 	  }
 	  // Don't surround purely numeric values with braces
