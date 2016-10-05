@@ -33,7 +33,7 @@ using namespace btmanip;
 /** \brief Main class for the command-line BibTeX manipulator
 
     \future Use the bibtex-spirit writer
- */
+*/
 class btmanip_class {
 
 protected:
@@ -169,15 +169,46 @@ protected:
     return 0;
   }
 
+  /** \brief Desc
+   */
+  virtual int hdf5(std::vector<std::string> &sv, bool itive_com) {
+
+    o2scl_hdf::hdf_file hf;
+    hf.compr_type=1;
+    hf.open_or_create(sv[1]);
+    hdf_output(hf,bf.entries,"btmanip");
+    hf.close();
+    
+    return 0;
+  }
+  
+  /** \brief Desc
+   */
+  virtual int parse_hdf5(std::vector<std::string> &sv, bool itive_com) {
+
+    bf.entries.clear();
+    bf.sort.clear();
+
+    o2scl_hdf::hdf_file hf;
+    hf.open(sv[1]);
+    std::string name;
+    hdf_input(hf,bf.entries,name);
+    hf.close();
+
+    bf.refresh_sort();
+    
+    return 0;
+  }
+  
   /** \brief Find duplicates between two .bib files
-  */
+   */
   virtual int sort(std::vector<std::string> &sv, bool itive_com) {
     bf.sort_bib();
     return 0;
   }
 
   /** \brief Find duplicates between two .bib files
-  */
+   */
   virtual int dup(std::vector<std::string> &sv, bool itive_com) {
 
     bool found=false;
@@ -830,7 +861,9 @@ protected:
 	(*outs) << "    \\anchor " << *bt.key << " " << *bt.key
 		<< ":" << endl;
       }
+
       if (bt.tag==((string)"Article")) {
+
 	if (bf.is_field_present(bt,"author")) {
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "    <a href=\""
@@ -840,7 +873,7 @@ protected:
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"doi")) {
 	    (*outs) << "    <a href=\"http://dx.doi.org"
-		    << bf.get_field(bt,"doi")[0] << "\">" << endl;
+		    << bf.get_field(bt,"doi") << "\">" << endl;
 	    (*outs) << "    "
 		    << bf.author_firstlast(bf.get_field(bt,"author"))
 		    << "</a>," << endl;
@@ -879,32 +912,69 @@ protected:
 	  (*outs) << "    \\endcomment" << endl;
 	}
 	(*outs) << endl;
+
       } else if (bt.tag==((string)"InBook")) {
-	if (bf.is_field_present(bt,"author")) {
-	  (*outs) << "    "
-		  << bf.author_firstlast(bf.get_field(bt,"author"))
-		  << "," << endl;
-	}
-	if (bf.is_field_present(bt,"url")) {
-	  (*outs) << "    <a href=\""
-		  << bf.get_field(bt,"url") << "\">" << endl;
-	  (*outs) << "    "
-		  << bf.get_field(bt,"title")
-		  << "</a>," << endl;
-	} else if (bf.is_field_present(bt,"isbn")) {
-	  (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
-		  << bf.get_field(bt,"isbn") << "\">" << endl;
-	  (*outs) << "    "
-		  << bf.get_field(bt,"title")
-		  << "</a>," << endl;
+
+	if (bf.is_field_present(bt,"crossref") &&
+	    bf.get_field(bt,"crossref").length()>0) {
+	  
+	  bibtex::BibTeXEntry &bt2=
+	    bf.get_entry_by_key(bf.get_field(bt,"crossref"));
+	  
+	  if (bf.is_field_present(bt,"author")) {
+	    (*outs) << "    "
+		    << bf.author_firstlast(bf.get_field(bt,"author"))
+		    << ", \"" << bf.get_field(bt2,"title")
+		    << "\" in" << endl;
+	  }
+	  if (bf.is_field_present(bt2,"url")) {
+	    (*outs) << "    <a href=\""
+		    << bf.get_field(bt2,"url") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt2,"title")
+		    << "</a>," << endl;
+	  } else if (bf.is_field_present(bt2,"isbn")) {
+	    (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+		    << bf.get_field(bt2,"isbn") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt2,"title")
+		    << "</a>," << endl;
+	  } else {
+	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	  }
+	  (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
+		  << bf.get_field(bt2,"publisher") << ", p. "
+		  << bf.get_field(bt,"pages") << "." << endl;
+	  (*outs) << endl;
 	} else {
-	  (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	  if (bf.is_field_present(bt,"author")) {
+	    (*outs) << "    "
+		    << bf.author_firstlast(bf.get_field(bt,"author"))
+		    << "," << endl;
+	  }
+	  if (bf.is_field_present(bt,"url")) {
+	    (*outs) << "    <a href=\""
+		    << bf.get_field(bt,"url") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else if (bf.is_field_present(bt,"isbn")) {
+	    (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+		    << bf.get_field(bt,"isbn") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else {
+	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	  }
+	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+		  << bf.get_field(bt,"publisher") << ", p. "
+		  << bf.get_field(bt,"pages") << "." << endl;
+	  (*outs) << endl;
 	}
-	(*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		<< bf.get_field(bt,"publisher") << ", p. "
-		<< bf.get_field(bt,"pages") << "." << endl;
-	(*outs) << endl;
+
       } else if (bt.tag==((string)"Book")) {
+
 	if (bf.is_field_present(bt,"author")) {
 	  (*outs) << "    "
 		  << bf.author_firstlast(bf.get_field(bt,"author"))
@@ -953,12 +1023,12 @@ public:
    */
   virtual int run(int argc, char *argv[]) {
     
-    static const int nopt=21;
+    static const int nopt=23;
     comm_option_s options[nopt]={
       {'p',"parse","Parse a specified .bib file.",1,1,"<file>","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
        cli::comm_option_both},
-      {0,"add","Add a specified .bib file.",1,1,"<file>","",
+      {'a',"add","Add a specified .bib file.",1,1,"<file>","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::add),
        cli::comm_option_both},
       {0,"prop","Output a proposal .bib file.",0,1,"[file]","",
@@ -983,7 +1053,7 @@ public:
       {'b',"bib","Output a .bib file.",0,1,"[file]","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::bib),
        cli::comm_option_both},
-      {'s',"sub","Subtract the current entries from a .bib file.",
+      {'u',"sub","Subtract the current entries from a .bib file.",
        1,1,"<file>","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::sub),cli::comm_option_both},
       {'d',"dup","Find duplicates between .bib files.",0,2,
@@ -1007,18 +1077,24 @@ public:
       {0,"sort","Sort.",0,0,
        "","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::sort),cli::comm_option_both},
-      {0,"get-key","Get entry by key.",1,1,
+      {'g',"get-key","Get entry by key.",1,1,
        "<key>","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::get_key),cli::comm_option_both},
-      {0,"set-field","Get entry by key.",2,3,
+      {'f',"set-field","Get entry by key.",2,3,
        "<key>","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::set_field),cli::comm_option_both},
-      {0,"list-keys","List entry keys.",0,0,
+      {'l',"list-keys","List entry keys.",0,0,
        "","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::list_keys),cli::comm_option_both},
-      {0,"search","Search.",2,-1,
+      {'s',"search","Search.",2,-1,
        "","",new comm_option_mfptr<btmanip_class>
-       (this,&btmanip_class::search),cli::comm_option_both}
+       (this,&btmanip_class::search),cli::comm_option_both},
+      {0,"hdf5","Output an HDF5 file.",1,1,
+       "","",new comm_option_mfptr<btmanip_class>
+       (this,&btmanip_class::hdf5),cli::comm_option_both},
+      {0,"parse-hdf5","Parse a bibliography in an HDF5 file.",1,1,
+       "","",new comm_option_mfptr<btmanip_class>
+       (this,&btmanip_class::parse_hdf5),cli::comm_option_both}
     };
     cl.set_comm_option_vec(nopt,options);    
     
