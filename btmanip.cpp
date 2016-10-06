@@ -872,7 +872,7 @@ protected:
 		    << bf.author_firstlast(bf.get_field(bt,"author"))
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"doi")) {
-	    (*outs) << "    <a href=\"http://dx.doi.org"
+	    (*outs) << "    <a href=\"http://dx.doi.org/"
 		    << bf.get_field(bt,"doi") << "\">" << endl;
 	    (*outs) << "    "
 		    << bf.author_firstlast(bf.get_field(bt,"author"))
