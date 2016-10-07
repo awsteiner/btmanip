@@ -123,6 +123,35 @@ protected:
     return 0;
   }
   
+  /** \brief Remove matching entries
+   */
+  virtual int remove(std::vector<std::string> &sv, bool itive_com) {
+    if (sv.size()==3) {
+      std::vector<std::string>::iterator it=sv.begin();
+      sv.erase(it);
+      cout << "Calling remove_or." << sv[0] << " " << sv[1] << endl;
+      bf.remove_or(sv);
+      cout << "Here." << endl;
+    } else if (sv[1]=="or") {
+      std::vector<std::string>::iterator it=sv.begin();
+      sv.erase(it);
+      it=sv.begin();
+      sv.erase(it);
+      bf.remove_or(sv);
+    } else if (sv[1]=="and") {
+      std::vector<std::string>::iterator it=sv.begin();
+      sv.erase(it);
+      it=sv.begin();
+      sv.erase(it);
+      exit(-1);
+      //bf.remove_and(sv);
+    } else {
+      cerr << "Failed in remove." << endl;
+      return 1;
+    }
+    return 0;
+  }
+  
   /** \brief Subtract the current entries from a .bib file
    */
   virtual int sub(std::vector<std::string> &sv, bool itive_com) {
@@ -1023,7 +1052,7 @@ public:
    */
   virtual int run(int argc, char *argv[]) {
     
-    static const int nopt=23;
+    static const int nopt=24;
     comm_option_s options[nopt]={
       {'p',"parse","Parse a specified .bib file.",1,1,"<file>","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
@@ -1089,6 +1118,9 @@ public:
       {'s',"search","Search.",2,-1,
        "","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::search),cli::comm_option_both},
+      {0,"remove","Remove.",2,-1,
+       "","",new comm_option_mfptr<btmanip_class>
+       (this,&btmanip_class::remove),cli::comm_option_both},
       {0,"hdf5","Output an HDF5 file.",1,1,
        "","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::hdf5),cli::comm_option_both},

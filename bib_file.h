@@ -328,6 +328,52 @@ namespace btmanip {
       return;
     }
     
+    /** \brief Remove matching entries using 'or'
+     */
+    void remove_or(std::vector<std::string> &args) {
+
+      if (args.size()%2!=0) {
+	O2SCL_ERR("Need a set of field and pattern pairs in remove_or().",
+		  o2scl::exc_einval);
+      }
+      
+      bool restart_loop=true;
+      while (restart_loop) {
+	restart_loop=false;
+	
+	for(std::vector<bibtex::BibTeXEntry>::iterator it=entries.begin();
+	    restart_loop==false && it!=entries.end();it++) {
+	  
+	  bibtex::BibTeXEntry &bt=*it;
+	  
+	  for(size_t k=0;restart_loop==false && k<args.size();k+=2) {
+	    std::string field=args[k];
+	    std::string pattern=args[k+1];
+	    for(size_t j=0;restart_loop==false && j<bt.fields.size();j++) {
+	      if (bt.fields[j].first==field &&
+		  fnmatch(pattern.c_str(),
+			  bt.fields[j].second[0].c_str(),0)==0) {
+		entries.erase(it);
+		// Reset the interator and restart the loops
+		restart_loop=true;
+	      }
+	    }
+	  }
+	}
+      }
+      
+      if (verbose>0) {
+	if (entries.size()==0) {
+	  std::cout << "No records remaining." << std::endl;
+	} else if (entries.size()==1) {
+	  std::cout << "1 record remaining." << std::endl;
+	} else {
+	  std::cout << entries.size() << " records remaining." << std::endl;
+	}
+      }
+      return;
+    }
+    
     /** \brief Search for entries using 'and'
      */
     void search_and(std::vector<std::string> &args) {
