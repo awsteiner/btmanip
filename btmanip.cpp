@@ -39,7 +39,7 @@ class btmanip_class {
 protected:
   
   /// Command-line interface
-  o2scl::cli_readline cl;
+  o2scl::cli_readline *cl;
 
   /// \name Parameters for 'set' command
   //@{
@@ -1046,6 +1046,19 @@ public:
   btmanip_class() {
     jlist_read=false;
     jlist_fname="btmanip_jlist";
+    std::string histfile;
+    char *hd=getenv("HOME");
+    if (hd) {
+      histfile=hd;
+      histfile+="/.btmanip_hist";
+    } else {
+      histfile=".btmanip_hist";
+    }
+    cl=new cli_readline(histfile);
+  }
+
+  ~btmanip_class() {
+    delete cl;
   }
 
   /** \brief Main class interface
@@ -1128,67 +1141,67 @@ public:
        "","",new comm_option_mfptr<btmanip_class>
        (this,&btmanip_class::parse_hdf5),cli::comm_option_both}
     };
-    cl.set_comm_option_vec(nopt,options);    
+    cl->set_comm_option_vec(nopt,options);    
     
     p_verbose.i=&bf.verbose;
     p_verbose.help=((string)"Verbosity parameter ")+
       "(default 1).";
-    cl.par_list.insert(make_pair("verbose",&p_verbose));
+    cl->par_list.insert(make_pair("verbose",&p_verbose));
 
     p_recase_tag.b=&bf.recase_tag;
     p_recase_tag.help="If true, unify the case of the tags (default true).";
-    cl.par_list.insert(make_pair("recase_tag",&p_recase_tag));
+    cl->par_list.insert(make_pair("recase_tag",&p_recase_tag));
     
     p_reformat_journal.b=&bf.reformat_journal;
     p_reformat_journal.help="If true, reformat journal names (default true).";
-    cl.par_list.insert(make_pair("reformat_journal",&p_reformat_journal));
+    cl->par_list.insert(make_pair("reformat_journal",&p_reformat_journal));
     
     p_trans_latex_html.b=&bf.trans_latex_html;
     p_trans_latex_html.help=((string)"Translate LaTeX symbols to ")+
       "HTML and vice versa (default true).";
-    cl.par_list.insert(make_pair("trans_latex_html",&p_trans_latex_html));
+    cl->par_list.insert(make_pair("trans_latex_html",&p_trans_latex_html));
     
     p_normalize_tags.b=&bf.normalize_tags;
     p_normalize_tags.help=((string)"If true, convert tag strings ")+
       "to standard capitalization (default true).";
-    cl.par_list.insert(make_pair("normalize_tags",&p_normalize_tags));
+    cl->par_list.insert(make_pair("normalize_tags",&p_normalize_tags));
     
     p_lowercase_fields.b=&bf.lowercase_fields;
     p_lowercase_fields.help=((string)"If true, convert fields to ")+
       "lowercase (default true).";
-    cl.par_list.insert(make_pair("lowercase_fields",&p_lowercase_fields));
+    cl->par_list.insert(make_pair("lowercase_fields",&p_lowercase_fields));
     
     p_check_required.b=&bf.check_required;
     p_check_required.help=((string)"If true, check that all ")+
       "required fields are present (default false).";
-    cl.par_list.insert(make_pair("check_required",&p_check_required));
+    cl->par_list.insert(make_pair("check_required",&p_check_required));
     
     p_jlist_fname.str=&jlist_fname;
     p_jlist_fname.help="Journal list filename (default 'jlist_fname').";
-    cl.par_list.insert(make_pair("jlist_fname",&p_jlist_fname));
+    cl->par_list.insert(make_pair("jlist_fname",&p_jlist_fname));
     
     p_natbib_jours.b=&bf.natbib_jours;
     p_natbib_jours.help=((string)"Prefer natbib journal ")+
       "abbreviations (default false).";
-    cl.par_list.insert(make_pair("natbib_jours",&p_natbib_jours));
+    cl->par_list.insert(make_pair("natbib_jours",&p_natbib_jours));
     
     p_remove_vol_letters.b=&bf.remove_vol_letters;
     p_remove_vol_letters.help=((string)"Move letters in some volumes ")+
       "(default false).";
-    cl.par_list.insert(make_pair("remove_vol_letters",&p_remove_vol_letters));
+    cl->par_list.insert(make_pair("remove_vol_letters",&p_remove_vol_letters));
 
     p_autoformat_urls.b=&bf.autoformat_urls;
     p_autoformat_urls.help=((string)"If DOI or ISBN is present, ")+
       "autoformat URLs (default true).";
-    cl.par_list.insert(make_pair("autoformat_urls",&p_autoformat_urls));
+    cl->par_list.insert(make_pair("autoformat_urls",&p_autoformat_urls));
 
     p_add_empty_titles.b=&bf.add_empty_titles;
     p_add_empty_titles.help=((string)"If article titles are not present, ")+
       "add empty ones (default true).";
-    cl.par_list.insert(make_pair("add_empty_titles",&p_add_empty_titles));
+    cl->par_list.insert(make_pair("add_empty_titles",&p_add_empty_titles));
 
     
-    cl.prompt="btmanip> ";
+    cl->prompt="btmanip> ";
 
     std::vector<cmd_line_arg> ca;
     
@@ -1196,14 +1209,14 @@ public:
     if (dc) {
       std::string def_args=dc;
       cout << "Using default arguments: " << def_args << endl;
-      cl.process_args(dc,ca);
+      cl->process_args(dc,ca);
     }
     
-    cl.process_args(argc,argv,ca);
+    cl->process_args(argc,argv,ca);
     if (argc<=1) {
-      cl.run_interactive();
+      cl->run_interactive();
     } else {
-      cl.call_args(ca);
+      cl->call_args(ca);
     }
     
     return 0;
