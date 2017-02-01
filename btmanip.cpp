@@ -883,11 +883,16 @@ protected:
       outs=&fout;
     }
 
+    std::string prefix="";
+    if (sv.size()>2) {
+      prefix=sv[2];
+    }
+
     for(size_t i=0;i<bf.entries.size();i++) {
       bibtex::BibTeXEntry &bt=bf.entries[i];
       
       if (bt.key) {
-	(*outs) << "    \\anchor " << *bt.key << " " << *bt.key
+	(*outs) << "    \\anchor " << prefix << *bt.key << " " << *bt.key
 		<< ":" << endl;
       }
 
@@ -1076,7 +1081,7 @@ public:
       {0,"prop","Output a proposal .bib file.",0,1,"[file]","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::proposal),
        cli::comm_option_both},
-      {0,"dox","Output a doxygen file for O2scl.",0,1,"[file]","",
+      {0,"dox","Output a doxygen file for O2scl.",0,2,"[file]","",
        new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
        cli::comm_option_both},
       {'t',"text","Output a text file.",0,1,"[file]","",
