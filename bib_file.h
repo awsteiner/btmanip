@@ -36,6 +36,10 @@
 
 #include <o2scl/err_hnd.h>
 
+/** \brief Main <tt>btmanip</tt> namespace
+    
+    This namespace is documented in \ref bib_file.h .
+ */
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
@@ -230,7 +234,7 @@ namespace btmanip {
     /** \brief Remove all whitespace and punctuation and
 	convert to upper case
     */
-    std::string journal_simplify(std::string &s) {
+    std::string journal_simplify(std::string s) {
       for(size_t i=0;i<s.size();i++) {
 	if (!isalpha(s[i])) {
 	  s=s.substr(0,i)+s.substr(i+1,s.length()-(i+1));
@@ -265,6 +269,38 @@ namespace btmanip {
 	    abbrev=jit->first;
 	    return 0;
 	  }
+	}
+      }
+      return 1;
+    }
+    
+    /** \brief Find the main abbreviation for a journal with
+	name \c jour
+    */
+    int find_abbrevs(std::string jour, std::vector<std::string> &list) {
+      if (journals.size()==0) {
+	O2SCL_ERR("No journal list read in bib_file::find_abbrevs().",
+		  o2scl::exc_einval);
+      }
+      jour=journal_simplify(jour);
+      for(journal_it jit=journals.begin();jit!=journals.end();jit++) {
+	bool match=false;
+	std::string stemp=journal_simplify(jit->first);
+	if (jour==stemp) {
+	  match=true;
+	}
+	for(size_t k=0;k<jit->second.size();k++) {
+	  stemp=journal_simplify(jit->second[k]);
+	  if (jour==stemp) {
+	    match=true;
+	  }
+	}
+	if (match==true) {
+	  list.push_back(jit->first);
+	  for(size_t k=0;k<jit->second.size();k++) {
+	    list.push_back(jit->second[k]);
+	  }
+	  return 0;
 	}
       }
       return 1;
@@ -835,7 +871,7 @@ namespace btmanip {
 	  }
 	}
       }
-
+      
       // Now look for duplicates. Use int rather than size_t
       // so we can reset to i=-1 when we erase an entry
       for(int i=0;i<((int)entries.size());i++) {
@@ -1100,20 +1136,23 @@ namespace btmanip {
       return;
     }
     
-    /** \brief Desc
+    /** \brief Refresh the \ref sort object which contains a set
+	of keys an indexes for the \ref entries array
      */
     void refresh_sort() {
       sort.clear();
+      // Go through all entries
       for(size_t i=0;i<entries.size();i++) {
 	bibtex::BibTeXEntry &bt=entries[i];
-	if ( sort.find(*bt.key)==sort.end()) {
+	// If the key is not already in the sort map, add it
+	if (sort.find(*bt.key)==sort.end()) {
 	  sort.insert(make_pair(*bt.key,i));
 	}
       }
       return;
     }
     
-    /** \brief Desc
+    /** \brief Sort the bibliography by key
      */
     void sort_bib() {
       std::vector<bibtex::BibTeXEntry> entries2;
