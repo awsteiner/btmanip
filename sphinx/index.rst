@@ -5,7 +5,10 @@ Welcome to btmanip's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. autodoxygenindex::
+.. doxygenclass:: btmanip::bib_file
+		  :members:
+		  :protected-members:
+		  :undoc-members:
 
 Indices and tables
 ==================
