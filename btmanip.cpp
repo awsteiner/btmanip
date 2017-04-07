@@ -36,9 +36,6 @@ using namespace btmanip;
 namespace btmanip {
 
   /** \brief Main class for the command-line BibTeX manipulator
-
-      \future Format doxygen or sphinx documentation?
-      \future Use the bibtex-spirit writer
   */
   class btmanip_class {
 

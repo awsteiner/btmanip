@@ -46,8 +46,6 @@
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
-      
-      \future Move code from header to source file.
    */
   class bib_file {
 
