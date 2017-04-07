@@ -58,9 +58,6 @@ namespace btmanip {
     o2scl::cli::parameter_bool p_autoformat_urls;
     o2scl::cli::parameter_bool p_add_empty_titles;
 
-    //o2scl::cli::parameter_string p_jlist_fname;
-    //@}
-  
     /// A file of BibTeX entries
     bib_file bf;
 
@@ -1081,7 +1078,6 @@ namespace btmanip {
   
     btmanip_class() {
       jlist_read=false;
-      //jlist_fname="btmanip_jlist";
       std::string histfile;
       char *hd=getenv("HOME");
       if (hd) {
@@ -1136,7 +1132,7 @@ namespace btmanip {
 	 "format to the screen, or if a file is specified, to the file.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::bib),
 	 cli::comm_option_both},
-	{'u',"sub","Subtract a .bib file from the current entries",
+	{'u',"sub","Subtract a .bib file from the current entries.",
 	 1,1,"<file>",((std::string)"This takes all entries in ")+
 	 "<file> and looks for them in the list of current entries. "+
 	 "If any duplicates are found, they are removed from the "+
@@ -1278,12 +1274,6 @@ namespace btmanip {
 	"required fields are present (default false).";
       cl->par_list.insert(make_pair("check_required",&p_check_required));
 
-      /*
-	p_jlist_fname.str=&jlist_fname;
-	p_jlist_fname.help="Journal list filename (default 'jlist_fname').";
-	cl->par_list.insert(make_pair("jlist_fname",&p_jlist_fname));
-      */
-    
       p_natbib_jours.b=&bf.natbib_jours;
       p_natbib_jours.help=((string)"Prefer natbib journal ")+
 	"abbreviations (default false).";
