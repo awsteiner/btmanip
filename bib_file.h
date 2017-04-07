@@ -20,6 +20,9 @@
 
   -------------------------------------------------------------------
 */
+/** \file bib_file.h
+    \brief File defining \ref bib_file
+*/
 #ifndef O2SCL_BIB_FILE_H
 #define O2SCL_BIB_FILE_H
 
@@ -43,6 +46,8 @@
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
+
+      \future Move code from header to source file.
    */
   class bib_file {
 

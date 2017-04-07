@@ -20,6 +20,9 @@
 
   -------------------------------------------------------------------
 */
+/** \file btmanip.cpp
+    \brief File defining \ref btmanip_class
+*/
 #include "bib_file.h"
 #include "hdf_bibtex.h"
 
@@ -1099,13 +1102,16 @@ namespace btmanip {
     
       static const int nopt=25;
       comm_option_s options[nopt]={
-	{'p',"parse","Parse a specified .bib file.",1,1,"<file>","",
+	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
+	 ((std::string)"This function parses a .bib file and ")+
+	 "loads it into the current BibTeX entry list. It does not "+
+	 "do any reformatting or checking for duplicate entries.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
 	 cli::comm_option_both},
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
-	 "the current list of entries, prompting the user whether or "+
-	 "not to add possible duplicate entries.",
+	 "the current list of entries, prompting the user how to "+
+	 "handle possible duplicate entries.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::add),
 	 cli::comm_option_both},
 	{0,"prop","Output a proposal .bib file.",0,1,"[file]","",

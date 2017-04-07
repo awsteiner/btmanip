@@ -3,8 +3,15 @@
 */
 /** \mainpage 
 
-    \section ug_section User's Guide
+    \section ug_section Table of Contents
     
+    \ref license_page \n
+    \ref example_section 
+
+    \section example_section Example
+
+    \verbinclude example.scr
+
     \page license_page Licensing
    
     All code is licensed under version 3 of the GPL as provided in the
