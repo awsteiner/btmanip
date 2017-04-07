@@ -1,0 +1,70 @@
+# ------------------------------------------------------------
+# This file documents the use of the 'btmanip' command.
+# Read a .bib file using 'parse'
+# ------------------------------------------------------------
+parse examples/ex1.bib
+# ------------------------------------------------------------
+# You can use 'search' to find entries in the .bib file,
+# which removes all entries but the ones that match.
+# ------------------------------------------------------------
+search and journal "Phys. Rev. Lett." author "*Teaney*"
+# ------------------------------------------------------------
+# Go back to the original file
+# ------------------------------------------------------------
+parse examples/ex1.bib
+# ------------------------------------------------------------
+# Use 'list-keys' to list all the keys in the current set 
+# of entries
+# ------------------------------------------------------------
+list-keys
+# ------------------------------------------------------------
+# 'get-key' returns the entry which matches a specified key
+# ------------------------------------------------------------
+get-key Epelbaum:2008ga
+# ------------------------------------------------------------
+# Sort by key
+# ------------------------------------------------------------
+sort
+# ------------------------------------------------------------
+# Output to a file named 'output.bib'
+# ------------------------------------------------------------
+bib output.bib
+# ------------------------------------------------------------
+# Shell commands are preceeded by a !
+# ------------------------------------------------------------
+!head -n 10 output.bib
+# ------------------------------------------------------------
+# The 'add' command adds entries from a .bib file to the
+# current set of entries, prompting if it finds possible
+# duplicates.
+# ------------------------------------------------------------
+add examples/ex2.bib
+# ------------------------------------------------------------
+# List the keys for the current set of entries again
+# ------------------------------------------------------------
+list-keys
+# ------------------------------------------------------------
+# Sometimes it's helpful to determine which entries in a
+# .bib file are already present in a master .bib file.
+# We first parse the file with additional entries:
+# ------------------------------------------------------------
+parse examples/ex3.bib
+# ------------------------------------------------------------
+# Then use 'sub' to subtract out all entries already present
+# in the master .bib file
+# ------------------------------------------------------------
+sub examples/ex1.bib
+# ------------------------------------------------------------
+# Now output in .bib format
+# ------------------------------------------------------------
+bib
+# ------------------------------------------------------------
+# Output in plain text format
+# ------------------------------------------------------------
+text
+# ------------------------------------------------------------
+# There is a generic help command
+# ------------------------------------------------------------
+help
+
+
