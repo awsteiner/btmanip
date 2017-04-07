@@ -46,7 +46,7 @@
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
-
+      
       \future Move code from header to source file.
    */
   class bib_file {
@@ -61,10 +61,6 @@ namespace btmanip {
      */
     std::vector<std::string> trans_html;
 
-    /** \brief A flag to indicate if the journal list has been read
-     */
-    bool journals_read;
-    
     /** \brief Journal name list
      */
     std::map<std::string,std::vector<std::string>,
@@ -131,7 +127,9 @@ namespace btmanip {
     /** \brief Verbosity parameter
      */
     int verbose;
-    
+
+    /** \brief Create a ``bib_file`` object
+     */
     bib_file() {
       remove_extra_whitespace=false;
       recase_tag=true;
@@ -140,7 +138,6 @@ namespace btmanip {
       normalize_tags=true;
       lowercase_fields=true;
       check_required=false;
-      journals_read=false;
       natbib_jours=false;
       remove_vol_letters=false;
       autoformat_urls=true;
@@ -174,7 +171,7 @@ namespace btmanip {
 	deleted before reading the new list
     */
     int read_journals(std::string fname="") {
-      if (journals_read) {
+      if (journals.size()>0) {
 	journals.clear();
       }
       

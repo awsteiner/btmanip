@@ -19,6 +19,7 @@ clean:
 
 doc: empty
 	cd doc; doxygen doxyfile
+	cd sphinx; make html
 
 empty: 
 

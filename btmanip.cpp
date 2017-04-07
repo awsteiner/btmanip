@@ -64,7 +64,7 @@ namespace btmanip {
     /// A file of BibTeX entries
     bib_file bf;
 
-    /// If true, the journal list has been read
+    /// If true, a journal list has been read
     bool jlist_read;
   
     /** \brief Read journal list file
@@ -84,7 +84,7 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Desc
+    /** \brief Set the value of one field in one entry
      */
     virtual int set_field(std::vector<std::string> &sv, bool itive_com) {
       if (sv.size()==4) {
@@ -227,7 +227,7 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Desc
+    /** \brief Output an HDF5 file
      */
     virtual int hdf5(std::vector<std::string> &sv, bool itive_com) {
 
@@ -240,7 +240,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Desc
+    /** \brief Parse an HDF5 file
      */
     virtual int parse_hdf5(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1078,7 +1078,9 @@ namespace btmanip {
     }
   
   public:
-  
+
+    /** \brief Create a ``btmanip_class`` object
+     */
     btmanip_class() {
       jlist_read=false;
       std::string histfile;
@@ -1091,7 +1093,9 @@ namespace btmanip {
       }
       cl=new cli_readline(histfile);
     }
-
+    
+    /** \brief Destroy a ``btmanip_class`` object
+     */
     ~btmanip_class() {
       delete cl;
     }
