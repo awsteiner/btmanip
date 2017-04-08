@@ -5,12 +5,13 @@ btmanip : Command-line BibTeX file manipulator
    :maxdepth: 2
    :caption: Contents:
 
+``btmanip`` is a tool for managing and processing BibTeX files.
 Of course, there are several other tools which do similar things,
 bibdesk, jabref, zotero, etc., but it was easier for me to construct a
 tool myself which was a bit easier to set up the way I wanted it.
-
-Based on bibtex-spirit by Sergiu Dotenco at
-https://bitbucket.org/sergiu/bibtex-spirit .
+The BibTeX parser is built upon
+`bibtex-spirit <https://bitbucket.org/sergiu/bibtex-spirit>`_
+by Sergiu Dotenco. 
 
 This documentation was developed with the
 use of `doxygen <http://www.doxygen.org>`_ ,
@@ -20,6 +21,8 @@ use of `doxygen <http://www.doxygen.org>`_ ,
 Installation
 ============
 
+The full source distribution can be obtained
+from `github <https://github.com/awsteiner/btmanip>`_ .
 ``btmanip`` requires that O\ :sub:`2`\ scl (see `link
 <http://web.utk.edu/~asteine1/o2scl>`_ ) has been installed (with HDF5
 support enabled). You will also have to manually edit the ``makefile``
@@ -50,7 +53,6 @@ Todo List
       
 .. todo:: Use the bibtex-spirit writer
 .. todo:: Move code from bib_file.h to source file
-
       
 Indices and tables
 ==================
