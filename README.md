@@ -1,4 +1,4 @@
-# btmanip Command-line BibTeX file manipulator
+# btmanip: Command-line BibTeX file manipulator
 
-Full documentation will eventually be posted at
+The documentation can be found at
 http://web.utk.edu/~asteine1/btmanip

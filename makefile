@@ -20,6 +20,8 @@ clean:
 doc: empty
 	cd doc; doxygen doxyfile
 	cd sphinx; make html
+	cd ~/wcs/int4/web/utk/btmanip; cp -r html/* .; \
+		rm -rf html
 
 empty: 
 
