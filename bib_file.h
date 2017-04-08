@@ -122,6 +122,10 @@ namespace btmanip {
     /** \brief Add empty titles (default true)
      */
     bool add_empty_titles;
+    /** \brief If true, remove LaTeX tildes from author names 
+	(default true)
+     */
+    bool remove_author_tildes;
     /** \brief Verbosity parameter
      */
     int verbose;
@@ -140,6 +144,7 @@ namespace btmanip {
       remove_vol_letters=false;
       autoformat_urls=true;
       add_empty_titles=true;
+      remove_author_tildes=true;
       verbose=1;
 
       trans_latex.push_back("\\'{a}"); trans_html.push_back("&aacute;");
@@ -727,7 +732,8 @@ namespace btmanip {
     /** \brief Remove volume letters and move to journal names
 	for some journals
      */
-    void entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
+    bool entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
+      bool changed=false;
       if (is_field_present(bt,"journal") &&
 	  is_field_present(bt,"volume")) {
 	std::string volume=get_field(bt,"volume");
@@ -743,6 +749,7 @@ namespace btmanip {
 		      << " reformatting journal and volume from "
 		      << journal << ", " << volume << " to ";
 	  }
+	  changed=true;
 	  journal+=" ";
 	  journal+=std::toupper(volume[0]);
 	  volume=volume.substr(1,volume.length()-1);
@@ -763,6 +770,7 @@ namespace btmanip {
 		      << " reformatting journal and volume from "
 		      << journal << ", " << volume << " to ";
 	  }
+	  changed=true;
 	  journal+=" ";
 	  journal+=std::toupper(volume[0]);
 	  volume=volume.substr(1,volume.length()-1);
@@ -780,6 +788,7 @@ namespace btmanip {
 		      << " reformatting journal and volume from "
 		      << journal << ", " << volume << " to ";
 	  }
+	  changed=true;
 	  journal+=" ";
 	  journal+=std::toupper(volume[0]);
 	  volume=volume.substr(1,volume.length()-1);
@@ -797,6 +806,7 @@ namespace btmanip {
 		      << " reformatting journal and volume from "
 		      << journal << ", " << volume << " to ";
 	  }
+	  changed=true;
 	  journal+=" ";
 	  journal+=std::toupper(volume[0]);
 	  volume=volume.substr(1,volume.length()-1);
@@ -807,7 +817,7 @@ namespace btmanip {
 	  get_field(bt,"volume")=volume;
 	}
       }
-      return;
+      return changed;
     }
     
     /** \brief Clean the current BibTeX entries
@@ -841,14 +851,17 @@ namespace btmanip {
       if (entries.size()==0) {
 	std::cout << "No entries to clean." << std::endl;
       }
+
+      std::vector<bool> entry_changed(entries.size());
       
       // First loop to fix tags (must be done before looking
       // for duplicates)
-      for(size_t i=0;i<entries.size();i++) {
-      
-	bibtex::BibTeXEntry &bt=entries[i];
-      
-	if (normalize_tags) {
+      if (normalize_tags) {
+	for(size_t i=0;i<entries.size();i++) {
+	  
+	  bibtex::BibTeXEntry &bt=entries[i];
+	  
+	  std::string old_tag=bt.tag;
 	  // Capitalize first letter and downcase all other letters
 	  bt.tag[0]=std::toupper(bt.tag[0]);
 	  for(size_t i=1;i<bt.tag.size();i++) {
@@ -869,6 +882,7 @@ namespace btmanip {
 	  } else if (bt.tag==((std::string)"Techreport")) {
 	    bt.tag="TechReport";
 	  }
+	  if (bt.tag!=old_tag) entry_changed[i]=true;
 	}
       }
       
@@ -880,11 +894,16 @@ namespace btmanip {
 	  std::string key2=*(entries[j].key);
 	  if (entries[i].tag==entries[j].tag && key1==key2) {
 	    entries.erase(entries.begin()+j);
+	    entry_changed.erase(entry_changed.begin()+j);
 	    j=entries.size();
 	    i=-1;
 	    duplicates_found++;
 	  }
 	}
+      }
+      
+      if (entries.size()!=entry_changed.size()) {
+	O2SCL_ERR("Size mismatch.",o2scl::exc_esanity);
       }
       
       // Reformat if necessary. This loop is over each entry
@@ -908,6 +927,7 @@ namespace btmanip {
 	      }
 	      if (fitemp2!=fitemp) {
 		bt.fields[j].first=fitemp2;
+		entry_changed[i]=true;
 	      }
 	    }
 
@@ -918,6 +938,7 @@ namespace btmanip {
 		   valtemp[1]=='{' && valtemp[valtemp.size()-1]=='}' &&
 		   valtemp[valtemp.size()-2]=='}') {
 	      valtemp=valtemp.substr(1,valtemp.size()-2);
+	      entry_changed[i]=true;
 	      if (removed_verb==false && verbose>1) {
 		std::cout << "Removing extra braces in entry with key "
 			  << *bt.key << " for field " << bt.fields[j].first
@@ -939,6 +960,7 @@ namespace btmanip {
 		restart_loop=true;
 		j=bt.fields.size();
 		field_removed=true;
+		entry_changed[i]=true;
 	      }
 	    }
 
@@ -960,7 +982,11 @@ namespace btmanip {
 	  
 	      if (remove_extra_whitespace) {
 		for(size_t k=0;k<bt.fields[j].second.size();k++) {
+		  std::string old=bt.fields[j].second[k];
 		  thin_whitespace(bt.fields[j].second[k]);
+		  if (bt.fields[j].second[k]!=old) {
+		    entry_changed[i]=true;
+		  }
 		}
 	      }
 
@@ -980,6 +1006,7 @@ namespace btmanip {
 		      }
 		      bt.fields[j].second[0]=abbrev;
 		      journals_renamed++;
+		      entry_changed[i]=true;
 		    }
 		  } else {
 		    std::cout << "Journal " << jour << " not found in key "
@@ -997,7 +1024,9 @@ namespace btmanip {
 	// If the journal letter is in the volume, move to
 	// the journal field
 	if (remove_vol_letters) {
-	  entry_remove_vol_letters(bt);
+	  if (entry_remove_vol_letters(bt)) {
+	    entry_changed[i]=true;
+	  }
 	}
 
 	// If necessary, create an article URL from the
@@ -1021,6 +1050,13 @@ namespace btmanip {
       }
 
       if (verbose>0) {
+	// Count entries that changed
+	size_t nch=0;
+	for(size_t k=0;k<entries.size();k++) {
+	  if (entry_changed[k]) nch++;
+	}
+	std::cout << nch << " entries changed out of " << entries.size()
+		  << std::endl;
 	std::cout << empty_titles_added << " emtpy titles added." << std::endl;
 	std::cout << duplicates_found << " duplicates found." << std::endl;
 	std::cout << entries_fields_removed
@@ -1247,27 +1283,51 @@ namespace btmanip {
     /** \brief Return a positive number if \c bt and \c bt2 are possible
 	duplicates
 
-	This function returns 1 if the tags and keys are identical and
-	2 if the tags are the same and the keys are different, but the
-	volume pages, and journal are the same. This function returns
-	zero otherwise.
+	This function returns 1 if the tags and keys are identical
+	(except for capitalization) and 2 if the tags are the same and
+	the keys are different, but the volume pages, and journal are
+	the same. This function returns zero otherwise.
     */
-    int possible_duplicate(bibtex::BibTeXEntry &bt, bibtex::BibTeXEntry &bt2) {
-      if (bt.tag==bt2.tag && (*bt.key)==(*bt2.key)) {
+    int possible_duplicate(bibtex::BibTeXEntry &bt,
+			   bibtex::BibTeXEntry &bt2) {
+      std::string lower_tag1=bt.tag, lower_tag2=bt2.tag;
+      std::string lower_key1=*bt.key, lower_key2=*bt2.key;
+      for (size_t k=0;k<lower_tag1.size();k++) {
+	lower_tag1[k]=std::tolower(lower_tag1[k]);
+      }
+      for (size_t k=0;k<lower_tag2.size();k++) {
+	lower_tag2[k]=std::tolower(lower_tag2[k]);
+      }
+      for (size_t k=0;k<lower_key1.size();k++) {
+	lower_key1[k]=std::tolower(lower_key1[k]);
+      }
+      for (size_t k=0;k<lower_key2.size();k++) {
+	lower_key2[k]=std::tolower(lower_key2[k]);
+      }
+      if (lower_tag1==lower_tag2 && lower_key1==lower_key2) {
 	return 1;
       }
-      if (bt.tag==bt2.tag &&
-	  is_field_present(bt,"volume") &&
-	  is_field_present(bt,"pages") &&
-	  is_field_present(bt,"journal") &&
-	  is_field_present(bt2,"volume") &&
-	  is_field_present(bt2,"pages") &&
-	  is_field_present(bt2,"journal") &&
-	  get_field(bt,"volume")== get_field(bt2,"volume") &&
-	  first_page(get_field(bt,"pages"))==
-	  first_page(get_field(bt2,"pages")) &&
-	  get_field(bt,"journal")== get_field(bt2,"journal")) {
-	return 2;
+      // First, check that journal fields are present
+      if (is_field_present(bt,"journal") &&
+	  is_field_present(bt2,"journal")) {
+	std::string j1=get_field(bt,"journal");
+	std::string j2=get_field(bt2,"journal");
+	// Then, if we can, get the standard abbreviation for each
+	if (journals.size()>0) {
+	  find_abbrev(j1,j1);
+	  find_abbrev(j2,j2);
+	}
+	// Then check to see if journal, volume and first page all match
+	if (bt.tag==bt2.tag &&
+	    is_field_present(bt,"volume") &&
+	    is_field_present(bt,"pages") &&
+	    is_field_present(bt2,"volume") &&
+	    is_field_present(bt2,"pages") &&
+	    get_field(bt,"volume")==get_field(bt2,"volume") &&
+	    first_page(get_field(bt,"pages"))==
+	    first_page(get_field(bt2,"pages")) && j1==j2) {
+	  return 2;
+	}
       }
       return 0;
     }
@@ -1374,6 +1434,10 @@ namespace btmanip {
 	  } else {
 	    std::cout << "Ignoring " << *bt.key << std::endl;
 	  }
+	} else {
+	  // If this entry is not marked as a possible duplicate,
+	  // add it.
+	  entries.push_back(bt);
 	}
 	
 	// End of loop over entries
@@ -1511,11 +1575,20 @@ namespace btmanip {
       return s_in;
     }
 
-    /** \brief Return true if field named \c field is present in entry \c bt
+    /** \brief Return true if field named \c field (ignoring
+	differences in field name capitalization) is present in entry
+	\c bt
      */
     bool is_field_present(bibtex::BibTeXEntry &bt, std::string field) {
       for(size_t j=0;j<bt.fields.size();j++) {
-	if (bt.fields[j].first==field && bt.fields[j].second.size()>0) {
+	std::string lower=bt.fields[j].first;
+	for(size_t k=0;k<lower.size();k++) {
+	  lower[k]=std::tolower(lower[k]);
+	}
+	for(size_t k=0;k<field.size();k++) {
+	  field[k]=std::tolower(field[k]);
+	}
+	if (lower==field && bt.fields[j].second.size()>0) {
 	  return true;
 	}
       } 
@@ -1528,10 +1601,20 @@ namespace btmanip {
     bool is_field_present(bibtex::BibTeXEntry &bt, std::string field1,
 			  std::string field2) {
       for(size_t j=0;j<bt.fields.size();j++) {
-	if (bt.fields[j].first==field1 || bt.fields[j].first==field2) {
+	std::string lower=bt.fields[j].first;
+	for(size_t k=0;k<lower.size();k++) {
+	  lower[k]=std::tolower(lower[k]);
+	}
+	for(size_t k=0;k<field1.size();k++) {
+	  field1[k]=std::tolower(field1[k]);
+	}
+	for(size_t k=0;k<field2.size();k++) {
+	  field2[k]=std::tolower(field2[k]);
+	}
+	if ((lower==field1 || lower==field2) && bt.fields[j].second.size()>0) {
 	  return true;
 	}
-      } 
+      }
       return false;
     }
   
@@ -1539,7 +1622,11 @@ namespace btmanip {
      */
     std::string &get_field(bibtex::BibTeXEntry &bt, std::string field) {
       for(size_t j=0;j<bt.fields.size();j++) {
-	if (bt.fields[j].first==field) {
+	std::string lower=bt.fields[j].first;
+	for(size_t k=0;k<lower.size();k++) {
+	  lower[k]=std::tolower(lower[k]);
+	}
+	if (lower==field) {
 	  if (bt.fields[j].second.size()>0) {
 	    return bt.fields[j].second[0];
 	  } else {

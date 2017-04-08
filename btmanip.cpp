@@ -361,12 +361,13 @@ namespace btmanip {
 	      } else if (dup_val==2) {
 		cout << "Possible duplicate between "
 		     << *bt.key << " and " << *bt2.key << endl;
-		cout << "  journal: " << bf.get_field(bt,"journal") << endl;
-		cout << "  volume:  " << bf.get_field(bt,"volume") << endl;
-		cout << "  page:    "
-		     << bf.first_page(bf.get_field(bt,"pages")) << endl;
 		cout << endl;
-		cout << "Keep first, second, or both (f,s,b)? ";
+		bf.text_output_one(cout,bt);
+		cout << endl;
+		bf.text_output_one(cout,bt2);
+		cout << endl;
+		cout << "Keep first (" << *bt.key << "), second ("
+		     << *bt2.key << "), or both (f,s,b)? ";
 		char ch;
 		cin >> ch;
 		if (ch=='f') {
@@ -376,6 +377,7 @@ namespace btmanip {
 		  restart=true;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
+		  cout << "Keeping " << *bt.key << " ." << endl;
 		} else if (ch=='s') {
 		  vector<bibtex::BibTeXEntry>::iterator it=bf.entries.begin();
 		  it+=i;
@@ -383,6 +385,9 @@ namespace btmanip {
 		  restart=true;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
+		  cout << "Keeping " << *bt2.key << " ." << endl;
+		} else {
+		  cout << "Keeping both." << endl;
 		}
 		found=true;
 	      }

@@ -51,8 +51,10 @@ Classes
 Todo List
 =========
       
-.. todo:: Use the bibtex-spirit writer
+.. todo:: Better documentation
 .. todo:: Move code from bib_file.h to source file
+.. todo:: In clean, remove tildes from author lists
+.. todo:: Use the bibtex-spirit writer?
       
 Indices and tables
 ==================
