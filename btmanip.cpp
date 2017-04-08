@@ -228,6 +228,11 @@ namespace btmanip {
      */
     virtual int hdf5(std::vector<std::string> &sv, bool itive_com) {
 
+      if (sv.size()<2) {
+	cerr << "Command 'hdf5' needs filename." << endl;
+	return 1;
+      }
+
       o2scl_hdf::hdf_file hf;
       hf.compr_type=1;
       hf.open_or_create(sv[1]);
@@ -240,6 +245,11 @@ namespace btmanip {
     /** \brief Parse an HDF5 file
      */
     virtual int parse_hdf5(std::vector<std::string> &sv, bool itive_com) {
+
+      if (sv.size()<2) {
+	cerr << "Command 'parse-hdf5' needs filename." << endl;
+	return 1;
+      }
 
       bf.entries.clear();
       bf.sort.clear();
@@ -316,11 +326,11 @@ namespace btmanip {
 	      bibtex::BibTeXEntry &bt2=bf.entries[j];
 	      int dup_val=bf.possible_duplicate(bt,bt2);
 	      if (dup_val==1) {
-		cout << "Duplicate key." << endl;
+		cout << "Duplicate tag and key." << endl;
 		bf.bib_output_one(cout,bt);
 		bf.bib_output_one(cout,bt2);
-		cout << "Keep first, second, both, or rename (f,s,b,r)? "
-		     << flush;
+		cout << "Keep first, second, both, rename, or quit "
+		     << "(f,s,b,r,q)? " << flush;
 		char ch;
 		cin >> ch;
 		if (ch=='f') {
@@ -356,6 +366,11 @@ namespace btmanip {
 		      bf.sort.insert(make_pair(*bt.key,i));
 		    }
 		  }
+		} else if (ch=='q') {
+		  i=bf.entries.size();
+		  j=bf.entries.size();
+		  restart=false;
+		  cout << "Quitting early." << endl;
 		}
 		found=true;
 	      } else if (dup_val==2) {
@@ -367,25 +382,30 @@ namespace btmanip {
 		bf.text_output_one(cout,bt2);
 		cout << endl;
 		cout << "Keep first (" << *bt.key << "), second ("
-		     << *bt2.key << "), or both (f,s,b)? ";
+		     << *bt2.key << "), both, or quit (f,s,b,q)? ";
 		char ch;
 		cin >> ch;
 		if (ch=='f') {
+		  cout << "Keeping " << *bt.key << " ." << endl;
 		  vector<bibtex::BibTeXEntry>::iterator it=bf.entries.begin();
 		  it+=j;
 		  bf.entries.erase(it);
 		  restart=true;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
-		  cout << "Keeping " << *bt.key << " ." << endl;
 		} else if (ch=='s') {
+		  cout << "Keeping " << *bt2.key << " ." << endl;
 		  vector<bibtex::BibTeXEntry>::iterator it=bf.entries.begin();
 		  it+=i;
 		  bf.entries.erase(it);
 		  restart=true;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
-		  cout << "Keeping " << *bt2.key << " ." << endl;
+		} else if (ch=='q') {
+		  restart=false;
+		  i=bf.entries.size();
+		  j=bf.entries.size();
+		  cout << "Quitting early." << endl;
 		} else {
 		  cout << "Keeping both." << endl;
 		}
@@ -395,6 +415,7 @@ namespace btmanip {
 	  }
 	}
       }
+
       if (found==false && bf.verbose>0) {
 	cout << "No duplicates found." << endl;
       }
@@ -414,7 +435,7 @@ namespace btmanip {
       bf.parse_bib(sv[1]);
       return 0;
     }
-
+    
     /** \brief Add a .bib file
      */
     virtual int add(std::vector<std::string> &sv, bool itive_com) {
@@ -710,6 +731,12 @@ namespace btmanip {
      */
     virtual int get_key(std::vector<std::string> &sv, bool itive_com) {
 
+      if (sv.size()<2) {
+	cerr << "Command 'get-key' requires a key to get." << endl;
+      }
+      if (bf.is_key_present(sv[1])==false) {
+	cerr << "Key " << sv[1] << " not found." << endl;
+      }
       bibtex::BibTeXEntry &bt=bf.get_entry_by_key(sv[1]);
       bf.bib_output_one(cout,bt);
     

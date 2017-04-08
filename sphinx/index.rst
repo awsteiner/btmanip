@@ -29,19 +29,55 @@ support enabled). You will also have to manually edit the ``makefile``
 in the top directory so that the appropriate header files and
 libraries can be found.
       
-Example
-=======
+Basic Operation
+===============
+
+Typical usage
+-------------
+
+Read a .bib file, look for duplicates, and save:
+
+``btmanip -parse my.bib -dup -bib my.bib``
+
+Read a bib file and output in a format useful for an
+NSF proposal:
+
+``btmanip -parse my.bib -nsf refs.txt``
+
+Get help on the ``parse`` command:
+
+``btmanip -h parse``
+
+Read a .bib file, add a second .bib file, clean, and sort:
+
+``btmanip -parse one.bib -add two.bib -clean -sort -bib all.bib``
+
+Default commands
+----------------
+
+If an environment variable ``BTMANIP_DEFAULTS`` is present, then
+it is assumed that it contins a list of commands to be run
+each time ``btmanip`` is run. 
+
+Long Example
+============
 
 .. include:: static/example.out
    :literal:
 
 Classes
 =======
-      
+
+Class btmanip_class
+-------------------
+
 .. doxygenclass:: btmanip::btmanip_class
    :members:
    :protected-members:
    :undoc-members:
+
+Class bib_file
+-------------------
 
 .. doxygenclass:: btmanip::bib_file
    :members:

@@ -70,7 +70,7 @@ namespace btmanip {
       std::greater<std::string> >::iterator journal_it;
 
   public:
-
+    
     /** \brief Fields automatically removed by parse()
      */
     std::vector<std::string> remove_fields;
@@ -123,7 +123,7 @@ namespace btmanip {
      */
     bool add_empty_titles;
     /** \brief If true, remove LaTeX tildes from author names 
-	(default true)
+	(default true; not working yet)
      */
     bool remove_author_tildes;
     /** \brief Verbosity parameter
@@ -168,10 +168,24 @@ namespace btmanip {
 		     "primaryclass","abstract"};
     }
 
+    /** \brief Convert all characters in a string to lower case
+     */
+    std::string lower_string(std::string s) {
+      for(size_t i=0;i<s.size();i++) {
+	s[i]=std::tolower(s[i]);
+      }
+      return s;
+    }
+    
     /** \brief Read a journal name list from file \c fname
 
 	\note If a list was read previously, that list is
-	deleted before reading the new list
+	deleted before reading the new list.
+
+	If \ref verbose is greater than 0, then this function outputs
+	the total number of journal lists read after reading the full
+	list. If \ref verbose is greater than 1, then every list of
+	synonyms is output to the screen.
     */
     int read_journals(std::string fname="") {
       if (journals.size()>0) {
@@ -218,7 +232,8 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Remove extra whitespace by parsing through a stringstream
+    /** \brief Remove extra whitespace by parsing through a 
+	``stringstream``
 	
 	This function ensures that each word is separated by one and
 	only one space, removing all other whitespace.
@@ -237,7 +252,7 @@ namespace btmanip {
     }
 
     /** \brief Remove all whitespace and punctuation and
-	convert to upper case
+	convert to lower case
     */
     std::string journal_simplify(std::string s) {
       for(size_t i=0;i<s.size();i++) {
@@ -246,14 +261,16 @@ namespace btmanip {
 	  i=0;
 	}
       }
-      for(size_t i=0;i<s.size();i++) {
-	s[i]=std::toupper(s[i]);
-      }
+      s=lower_string(s);
       return s;
     }
 
-    /** \brief Find the main abbreviation for a journal with
+    /** \brief Find the standard abbrevation for a journal with
 	name \c jour
+
+	If an abbreviation is found, then this function returns 0,
+	otherwise this function return 1. If no journal list has been
+	loaded, then this function calls the error handler.
     */
     int find_abbrev(std::string jour, std::string &abbrev) {
       if (journals.size()==0) {
@@ -279,8 +296,14 @@ namespace btmanip {
       return 1;
     }
     
-    /** \brief Find the main abbreviation for a journal with
+    /** \brief Find all synonyms for a journal with
 	name \c jour
+
+	If the journal is found in the list, then this function fills
+	``list`` with all the synonyms and returns 0. If the journal
+	is not found in the list, this function return 1. If no
+	journal list has been loaded, then this function calls the
+	error handler.
     */
     int find_abbrevs(std::string jour, std::vector<std::string> &list) {
       if (journals.size()==0) {
@@ -311,7 +334,7 @@ namespace btmanip {
       return 1;
     }
     
-    /** \brief Extract the first page from a list of pages
+    /** \brief Given a pages field, return only the first page
      */
     std::string first_page(std::string pages) {
       size_t loc=pages.find('-');
@@ -323,10 +346,13 @@ namespace btmanip {
     }
 
     /** \brief Search for entries using 'or'
-     */
+
+	If the number of arguments to this function is zero or
+	an odd number, then the error handler is called.
+    */
     void search_or(std::vector<std::string> &args) {
 
-      if (args.size()%2!=0) {
+      if (args.size()==0 || args.size()%2!=0) {
 	O2SCL_ERR("Need a set of field and pattern pairs in search_or().",
 		  o2scl::exc_einval);
       }
@@ -339,10 +365,11 @@ namespace btmanip {
 	bibtex::BibTeXEntry &bt=entries[i];
 
 	for(size_t k=0;k<args.size();k+=2) {
-	  std::string field=args[k];
+	  std::string field=lower_string(args[k]);
 	  std::string pattern=args[k+1];
 	  for(size_t j=0;j<bt.fields.size();j++) {
-	    if (bt.fields[j].first==field &&
+	    std::string tmp=lower_string(bt.fields[j].first);
+	    if (tmp==field &&
 		fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
 	      entry_matches=true;
 	    }
@@ -370,10 +397,13 @@ namespace btmanip {
     }
     
     /** \brief Remove matching entries using 'or'
+
+	If the number of arguments to this function is zero or
+	an odd number, then the error handler is called.
      */
     void remove_or(std::vector<std::string> &args) {
 
-      if (args.size()%2!=0) {
+      if (args.size()==0 || args.size()%2!=0) {
 	O2SCL_ERR("Need a set of field and pattern pairs in remove_or().",
 		  o2scl::exc_einval);
       }
@@ -388,10 +418,11 @@ namespace btmanip {
 	  bibtex::BibTeXEntry &bt=*it;
 	  
 	  for(size_t k=0;restart_loop==false && k<args.size();k+=2) {
-	    std::string field=args[k];
+	    std::string field=lower_string(args[k]);
 	    std::string pattern=args[k+1];
 	    for(size_t j=0;restart_loop==false && j<bt.fields.size();j++) {
-	      if (bt.fields[j].first==field &&
+	      std::string tmp=lower_string(bt.fields[j].first);
+	      if (tmp==field &&
 		  fnmatch(pattern.c_str(),
 			  bt.fields[j].second[0].c_str(),0)==0) {
 		entries.erase(it);
@@ -416,17 +447,20 @@ namespace btmanip {
     }
     
     /** \brief Search for entries using 'and'
+
+	If the number of arguments to this function is zero or
+	an odd number, then the error handler is called.
      */
     void search_and(std::vector<std::string> &args) {
 
-      if (args.size()%2!=0) {
+      if (args.size()==0 || args.size()%2!=0) {
 	O2SCL_ERR("Need a set of field and pattern pairs in search_and().",
 		  o2scl::exc_einval);
       }
       
       for(size_t k=0;k<args.size();k+=2) {
 
-	std::string field=args[k];
+	std::string field=lower_string(args[k]);
 	std::string pattern=args[k+1];
 	
 	std::vector<bibtex::BibTeXEntry> entries2;
@@ -435,7 +469,8 @@ namespace btmanip {
 	  bool entry_matches=false;
 	  bibtex::BibTeXEntry &bt=entries[i];
 	  for(size_t j=0;j<bt.fields.size();j++) {
-	    if (bt.fields[j].first==field &&
+	    std::string tmp=lower_string(bt.fields[j].first);
+	    if (tmp==field &&
 		fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
 	      entry_matches=true;
 	    }
@@ -469,7 +504,7 @@ namespace btmanip {
     /** \brief Check entry for required fields
      */
     void entry_check_required(bibtex::BibTeXEntry &bt) {
-      if (bt.tag==((std::string)"Article")) {
+      if (lower_string(bt.tag)==((std::string)"article")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("Article missing author field.",
 		    o2scl::exc_einval);
@@ -486,7 +521,7 @@ namespace btmanip {
 	  O2SCL_ERR("Article missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"Book")) {
+      } else if (lower_string(bt.tag)==((std::string)"book")) {
 	if (!is_field_present(bt,"author","editor")) {
 	  O2SCL_ERR("Book missing author field.",
 		    o2scl::exc_einval);
@@ -503,12 +538,12 @@ namespace btmanip {
 	  O2SCL_ERR("Book missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"Booklet")) {
+      } else if (lower_string(bt.tag)==((std::string)"booklet")) {
 	if (!is_field_present(bt,"title")) {
 	  O2SCL_ERR("Booklet missing title field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"Conference")) {
+      } else if (lower_string(bt.tag)==((std::string)"conference")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("Conference missing author field.",
 		    o2scl::exc_einval);
@@ -525,7 +560,7 @@ namespace btmanip {
 	  O2SCL_ERR("Conference missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"InBook")) {
+      } else if (lower_string(bt.tag)==((std::string)"inbook")) {
 	if (!is_field_present(bt,"author","editor")) {
 	  O2SCL_ERR("InBook missing author field.",
 		    o2scl::exc_einval);
@@ -546,7 +581,7 @@ namespace btmanip {
 	  O2SCL_ERR("InBook missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"InCollection")) {
+      } else if (lower_string(bt.tag)==((std::string)"incollection")) {
 	if (!is_field_present(bt,"author","editor")) {
 	  O2SCL_ERR("InCollection missing author field.",
 		    o2scl::exc_einval);
@@ -563,7 +598,7 @@ namespace btmanip {
 	  O2SCL_ERR("InCollection missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"InProceedings")) {
+      } else if (lower_string(bt.tag)==((std::string)"inproceedings")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("InProceedings missing author field.",
 		    o2scl::exc_einval);
@@ -580,12 +615,12 @@ namespace btmanip {
 	  O2SCL_ERR("InProceedings missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"Manual")) {
+      } else if (lower_string(bt.tag)==((std::string)"manual")) {
 	if (!is_field_present(bt,"title")) {
 	  O2SCL_ERR("Manual missing title field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"MastersThesis")) {
+      } else if (lower_string(bt.tag)==((std::string)"mastersthesis")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("MastersThesis missing author field.",
 		    o2scl::exc_einval);
@@ -602,9 +637,9 @@ namespace btmanip {
 	  O2SCL_ERR("MastersThesis missing year field.",
 		    o2scl::exc_einval);
 	}
-	//} else if (bt.tag==((std::string)"Misc")) {
+	//} else if (lower_string(bt.tag)==((std::string)"Misc")) {
 	// Misc has no required fields
-      } else if (bt.tag==((std::string)"PhDThesis")) {
+      } else if (lower_string(bt.tag)==((std::string)"phdthesis")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("PhDThesis missing author field.",
 		    o2scl::exc_einval);
@@ -621,7 +656,7 @@ namespace btmanip {
 	  O2SCL_ERR("PhDThesis missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"Proceedings")) {
+      } else if (lower_string(bt.tag)==((std::string)"proceedings")) {
 	if (!is_field_present(bt,"title")) {
 	  O2SCL_ERR("Proceedings missing title field.",
 		    o2scl::exc_einval);
@@ -630,7 +665,7 @@ namespace btmanip {
 	  O2SCL_ERR("Proceedings missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"TechReport")) {
+      } else if (lower_string(bt.tag)==((std::string)"techreport")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("TechReport missing author field.",
 		    o2scl::exc_einval);
@@ -647,7 +682,7 @@ namespace btmanip {
 	  O2SCL_ERR("TechReport missing year field.",
 		    o2scl::exc_einval);
 	}
-      } else if (bt.tag==((std::string)"Unpublished")) {
+      } else if (lower_string(bt.tag)==((std::string)"unpublished")) {
 	if (!is_field_present(bt,"author")) {
 	  O2SCL_ERR("Unpublished missing author field.",
 		    o2scl::exc_einval);
@@ -670,8 +705,8 @@ namespace btmanip {
     size_t entry_add_empty_title(bibtex::BibTeXEntry &bt) {
 
       size_t empty_titles_added=0;
-      if (bt.tag==((std::string)"Article") ||
-	  bt.tag==((std::string)"InProceedings")) {
+      if (lower_string(bt.tag)==((std::string)"article") ||
+	  lower_string(bt.tag)==((std::string)"inproceedings")) {
 	if (!is_field_present(bt,"title")) {
 	  std::vector<std::string> val;
 	  val.push_back(" ");
@@ -690,7 +725,7 @@ namespace btmanip {
      */
     size_t entry_autoformat_url(bibtex::BibTeXEntry &bt) {
       size_t urls_reformatted=0;
-      if (bt.tag==((std::string)"Article")) {
+      if (lower_string(bt.tag)==((std::string)"article")) {
 	if (is_field_present(bt,"doi")) {
 	  if (is_field_present(bt,"url")) {
 	    std::string &url=get_field(bt,"url");
@@ -714,7 +749,7 @@ namespace btmanip {
 	  }
 	  urls_reformatted++;
 	}
-      } else if (bt.tag==((std::string)"Book")) {
+      } else if (lower_string(bt.tag)==((std::string)"book")) {
 	if (is_field_present(bt,"isbn") && !is_field_present(bt,"url")) {
 	    std::vector<std::string> val;
 	    val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
@@ -1317,8 +1352,8 @@ namespace btmanip {
 	  find_abbrev(j1,j1);
 	  find_abbrev(j2,j2);
 	}
-	// Then check to see if journal, volume and first page all match
-	if (bt.tag==bt2.tag &&
+	// Then check to see if tag, journal, volume and first page all match
+	if (lower_string(bt.tag)==lower_string(bt2.tag) &&
 	    is_field_present(bt,"volume") &&
 	    is_field_present(bt,"pages") &&
 	    is_field_present(bt2,"volume") &&
@@ -1463,6 +1498,13 @@ namespace btmanip {
       }
 
       return;
+    }
+
+    /** \brief Get entry by key name
+     */
+    bool is_key_present(std::string key) {
+      if (sort.find(key)==sort.end()) return false;
+      return true;
     }
 
     /** \brief Get entry by key name
