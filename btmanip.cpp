@@ -1198,7 +1198,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=27;
+      static const int nopt=28;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1300,6 +1300,10 @@ namespace btmanip {
 	 "and output that key to the screen in .bib format. If no "+
 	 "keys match or more than one key matches, then an error "+
 	 "message is output and no keys are output to the screen.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::get_key),cli::comm_option_both},
+	{0,"gk","Get entry by key (alias for get-key).",1,1,"<key pattern>",
+	 "This command is an alias for 'get-key'.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::get_key),cli::comm_option_both},
 	{0,"change-key","Change an entry's key.",2,2,
