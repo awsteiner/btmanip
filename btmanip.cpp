@@ -727,7 +727,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Get one bibtex entry
+    /** \brief Get one bibtex entry by it's key
      */
     virtual int get_key(std::vector<std::string> &sv, bool itive_com) {
 
@@ -736,9 +736,40 @@ namespace btmanip {
       }
       if (bf.is_key_present(sv[1])==false) {
 	cerr << "Key " << sv[1] << " not found." << endl;
+	return 1;
       }
       bibtex::BibTeXEntry &bt=bf.get_entry_by_key(sv[1]);
       bf.bib_output_one(cout,bt);
+    
+      return 0;
+    }
+  
+    /** \brief Change the key of an entry
+     */
+    virtual int change_key(std::vector<std::string> &sv, bool itive_com) {
+
+      if (sv.size()==2 && bf.entries.size()==1) {
+	if (bf.is_key_present(sv[1])==true) {
+	  cerr << "Key " << sv[1] << " already present." << endl;
+	  return 2;
+	}
+	bf.change_key(*(bf.entries[0].key),sv[1]);
+	return 0;
+      }
+      
+      if (sv.size()<3) {
+	cerr << "Command 'change-key' requires a source and destination key."
+	     << endl;
+      }
+      if (bf.is_key_present(sv[1])==false) {
+	cerr << "Key " << sv[1] << " not found." << endl;
+	return 1;
+      }
+      if (bf.is_key_present(sv[2])==true) {
+	cerr << "Key " << sv[2] << " already present." << endl;
+	return 2;
+      }
+      bf.change_key(sv[1],sv[2]);
     
       return 0;
     }
@@ -1133,7 +1164,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=25;
+      static const int nopt=26;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1234,6 +1265,12 @@ namespace btmanip {
 	 "list of entries by its key",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::get_key),cli::comm_option_both},
+	{0,"change-key","Change an entry's key.",2,2,
+	 "<key before> <key after>",
+	 ((std::string)"Change the key of a BibTeX entry from the current")+
+	 "list of entries.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::change_key),cli::comm_option_both},
 	{'f',"set-field",
 	 "For entry <key> and field <field>, set its value to <value>.",2,3,
 	 "<entry> <field> <value> or if one entry, <field> <value>",

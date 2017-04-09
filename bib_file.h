@@ -1513,6 +1513,22 @@ namespace btmanip {
       return entries[sort.find(key)->second];
     }
 
+    /** \brief Change an entry's key
+     */
+    void change_key(std::string key1, std::string key2) {
+      size_t ix=sort.find(key1)->second;
+      if (sort.find(key2)!=sort.end()) {
+	O2SCL_ERR("Key 2 already present in change_key().",
+		  o2scl::exc_einval);
+      }
+      bibtex::BibTeXEntry bt=entries[ix];      
+      entries.erase(entries.begin()+ix);
+      *bt.key=key2;
+      entries.push_back(bt);
+      refresh_sort();
+      return;
+    }
+    
     /** \brief Get index of entry by key name
      */
     size_t get_index_by_key(std::string key) {
