@@ -1182,8 +1182,6 @@ namespace btmanip {
       if (hd) {
 	histfile=hd;
 	histfile+="/.btmanip_hist";
-      } else {
-	histfile=".btmanip_hist";
       }
       cl=new cli_readline(histfile);
     }

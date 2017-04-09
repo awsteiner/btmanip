@@ -35,7 +35,7 @@ Basic Operation
 Typical usage
 -------------
 
-Read a .bib file, look for duplicates, and save:
+Read a .bib file, look for duplicates, and overwrite:
 
 ``btmanip -parse my.bib -dup -bib my.bib``
 
@@ -48,7 +48,22 @@ Get help on the ``parse`` command:
 
 ``btmanip -h parse``
 
-Read a .bib file, add a second .bib file, clean, and sort:
+List all of the commands:
+
+``btmanip --commands``
+
+Read a .bib file, in entry Smith75, set the month field to April,
+then output to a new file:
+
+``btmanip -parse my.bib -set-field Smith75 month Apr -bib out.bib``
+
+Read a .bib file, list all the keys which begin with the
+letter S, and get the entry which starts with Smith
+
+``btmanip -parse my.bib -list-keys S* -get-key Smith*``
+
+Read a .bib file, add a second .bib file, clean, sort, and
+save in a new file:
 
 ``btmanip -parse one.bib -add two.bib -clean -sort -bib all.bib``
 
@@ -57,7 +72,14 @@ Default commands
 
 If an environment variable ``BTMANIP_DEFAULTS`` is present, then
 it is assumed that it contins a list of commands to be run
-each time ``btmanip`` is run. 
+each time ``btmanip`` is run.
+
+Readline history
+----------------
+
+``btmanip`` uses the environment variable ``HOME`` to put the readline
+history file ``.btmanip_hist``. If this environment variable does not
+exist (or is empty), then the readline history is not stored or used.
 
 Long Example
 ============

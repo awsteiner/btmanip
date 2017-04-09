@@ -1128,8 +1128,12 @@ namespace btmanip {
       for(size_t j=0;j<bt.fields.size();j++) {
 	if (bt.fields[j].first==field) {
 	  bt.fields[j].second[0]=value;
+	  return 0;
 	}
       }
+      std::vector<std::string> list={value};
+      // If the field is not found, then add it
+      bt.fields.push_back(std::make_pair(field,list));
       
       return 0;
     }
