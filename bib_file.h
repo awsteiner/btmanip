@@ -345,6 +345,20 @@ namespace btmanip {
       return pages2;
     }
 
+    /** \brief Desc
+     */
+    void search_keys(std::string pattern,
+		     std::vector<std::string> &list) {
+      list.clear();
+      for(size_t i=0;i<entries.size();i++) {
+	bibtex::BibTeXEntry &bt=entries[i];
+	if (fnmatch(pattern.c_str(),(*bt.key).c_str(),0)==0) {
+	  list.push_back(*bt.key);
+	}
+      }
+      return;
+    }
+    
     /** \brief Search for entries using 'or'
 
 	If the number of arguments to this function is zero or
