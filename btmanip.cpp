@@ -1294,15 +1294,21 @@ namespace btmanip {
 	 "","Sort current BibTeX entries by key.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::sort),cli::comm_option_both},
-	{'g',"get-key","Get entry by key.",1,1,
-	 "<key>",((std::string)"Get a BibTeX entry from the current ")+
-	 "list of entries by its key",
+	{'g',"get-key","Get entry by key.",1,1,"<key pattern>",
+	 ((std::string)"Get a single BibTeX entry from the current ")+
+	 "list of entries by matching keys to the specified pattern "+
+	 "and output that key to the screen in .bib format. If no "+
+	 "keys match or more than one key matches, then an error "+
+	 "message is output and no keys are output to the screen.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::get_key),cli::comm_option_both},
 	{0,"change-key","Change an entry's key.",2,2,
-	 "<key before> <key after>",
-	 ((std::string)"Change the key of a BibTeX entry from the current")+
-	 "list of entries.",
+	 "<key pattern> <new key>",
+	 ((std::string)"This command searches the current list of ")+
+	 "BibTeX entries for keys matching <key pattern>. If only "+
+	 "one key matches the pattern, then this key is renamed to "+
+	 "<new key>. Otherwise, an error message is output and no "+
+	 "keys are renamed.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::change_key),cli::comm_option_both},
 	{0,"ck","Change an entry's key (alias of change-key).",2,2,
@@ -1318,8 +1324,10 @@ namespace btmanip {
 	 "and only two arguments are given, set <field> to <value>.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::set_field),cli::comm_option_both},
-	{'l',"list-keys","List entry keys.",0,1,
-	 "[pattern]","List all entry keys from the current bibliography.",
+	{'l',"list-keys","List entry keys.",0,1,"[pattern]",
+	 ((std::string)"List all entry keys from the ")+
+	 "current bibliography, or if a pattern is specified, list "+
+	 "only the keys in the current list which patch that pattern.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::list_keys),cli::comm_option_both},
 	{'s',"search","Search current list for field and pattern pairs.",
