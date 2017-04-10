@@ -755,6 +755,42 @@ namespace btmanip {
       return 0;
     }
   
+    virtual int auto_key(std::vector<std::string> &sv, bool itive_com) {
+      
+      for(size_t i=0;i<bf.entries.size();i++) {
+	
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+
+	if (bf.is_field_present(bt,"title") &&
+	    bf.is_field_present(bt,"year") &&
+	    bf.is_field_present(bt,"author")) {
+	  
+	  std::vector<std::string> title_words;
+	  o2scl::split_string(bf.get_field(bt,"title"),title_words);
+	  if (bf.get_field(bt,"title").length()>5 && title_words.size()>1) {
+	    std::string auth2=bf.last_name_first_author(bt);
+	    std::string key2=auth2+
+	      bf.get_field(bt,"year").substr(2,2);
+	    char c1=std::tolower(title_words[0][0]);
+	    char c2=std::tolower(title_words[1][0]);
+	    key2+=c1;
+	    key2+=c2;
+	    if ((*bt.key).length()>key2.length()+2 && std::isalpha(c1) &&
+		std::isalpha(c2) && auth2.find('{')==std::string::npos &&
+		auth2.find(' ')==std::string::npos &&
+		auth2.find('-')==std::string::npos &&
+		auth2.find('\"')==std::string::npos &&
+		bf.sort.find(key2)==bf.sort.end()) {
+	      bf.change_key(*bt.key,key2);
+	      i=0;
+	    }
+	  }
+	  
+	}
+      }
+      return 0;
+    }
+  
     /** \brief Change the key of an entry
      */
     virtual int change_key(std::vector<std::string> &sv, bool itive_com) {
@@ -1196,7 +1232,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=28;
+      static const int nopt=29;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1318,6 +1354,9 @@ namespace btmanip {
 	 "This command is an alias for 'change-key'.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::change_key),cli::comm_option_both},
+	{0,"ak","",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::auto_key),cli::comm_option_both},
 	{'f',"set-field",
 	 "For entry <key> and field <field>, set its value to <value>.",2,3,
 	 "<entry> <field> <value> or if one entry, <field> <value>",

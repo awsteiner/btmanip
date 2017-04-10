@@ -1580,6 +1580,19 @@ namespace btmanip {
       return ret;
     }
     
+    /** \brief Return the last name of the first author
+    */
+    std::string last_name_first_author(bibtex::BibTeXEntry &bt) {
+      std::string auth=get_field(bt,"author");
+      std::vector<std::string> firstv, lastv;
+      parse_author(auth,firstv,lastv);
+      std::string ret=lastv[0];
+      if (ret[0]=='{' && ret[ret.length()-1]=='}') {
+	ret=ret.substr(1,ret.length()-2);
+      }
+      return ret;
+    }
+    
     /** \brief Reformat author string into first and last names
      */
     void parse_author(std::string s_in,

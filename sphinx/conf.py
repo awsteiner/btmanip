@@ -39,7 +39,7 @@ extensions = ['sphinx.ext.autodoc',
               'breathe']
 
 #
-breathe_projects = { "btmanip": "/Users/awsteiner/wcs/btmanip/doc/xml" }
+breathe_projects = { "btmanip": os.path.abspath('../doc/xml') }
 breathe_default_project = "btmanip"
 #
 
