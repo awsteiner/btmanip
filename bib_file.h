@@ -1360,26 +1360,29 @@ namespace btmanip {
       if (lower_tag1==lower_tag2 && lower_key1==lower_key2) {
 	return 1;
       }
-      // First, check that journal fields are present
-      if (is_field_present(bt,"journal") &&
-	  is_field_present(bt2,"journal")) {
-	std::string j1=get_field(bt,"journal");
-	std::string j2=get_field(bt2,"journal");
-	// Then, if we can, get the standard abbreviation for each
-	if (journals.size()>0) {
-	  find_abbrev(j1,j1);
-	  find_abbrev(j2,j2);
-	}
-	// Then check to see if tag, journal, volume and first page all match
-	if (lower_string(bt.tag)==lower_string(bt2.tag) &&
-	    is_field_present(bt,"volume") &&
-	    is_field_present(bt,"pages") &&
-	    is_field_present(bt2,"volume") &&
-	    is_field_present(bt2,"pages") &&
-	    get_field(bt,"volume")==get_field(bt2,"volume") &&
-	    first_page(get_field(bt,"pages"))==
-	    first_page(get_field(bt2,"pages")) && j1==j2) {
-	  return 2;
+      // First, check to see if tag, journal, volume and first page all match
+      if (lower_tag1==lower_tag2 &&
+	  is_field_present(bt,"volume") &&
+	  is_field_present(bt,"pages") &&
+	  is_field_present(bt2,"volume") &&
+	  is_field_present(bt2,"pages") &&
+	  get_field(bt,"volume")==get_field(bt2,"volume") &&
+	  first_page(get_field(bt,"pages"))==
+	  first_page(get_field(bt2,"pages"))) {
+	// Then, check that journal fields are present
+	if (is_field_present(bt,"journal") &&
+	    is_field_present(bt2,"journal")) {
+	  std::string j1=get_field(bt,"journal");
+	  std::string j2=get_field(bt2,"journal");
+	  // If we can, get the standard abbreviation for each
+	  if (journals.size()>0) {
+	    find_abbrev(j1,j1);
+	    find_abbrev(j2,j2);
+	  }
+	  // Finally, check journal
+	  if (j1==j2) {
+	    return 2;
+	  }
 	}
       }
       return 0;

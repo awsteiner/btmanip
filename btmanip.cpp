@@ -320,9 +320,10 @@ namespace btmanip {
 	       << endl;
 	}
 	bool restart=true;
+	size_t istart=0;
 	while (restart) {
 	  restart=false;
-	  for(size_t i=0;i<bf.entries.size();i++) {
+	  for(size_t i=istart;i<bf.entries.size();i++) {
 	    for(size_t j=i+1;j<bf.entries.size();j++) {
 	      bibtex::BibTeXEntry &bt=bf.entries[i];
 	      bibtex::BibTeXEntry &bt2=bf.entries[j];
@@ -340,6 +341,7 @@ namespace btmanip {
 		  it+=j;
 		  bf.entries.erase(it);
 		  restart=true;
+		  istart=i;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
 		} else if (ch=='s') {
@@ -347,6 +349,7 @@ namespace btmanip {
 		  it+=i;
 		  bf.entries.erase(it);
 		  restart=true;
+		  istart=i;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
 		} else if (ch=='r') {
@@ -393,6 +396,7 @@ namespace btmanip {
 		  it+=j;
 		  bf.entries.erase(it);
 		  restart=true;
+		  istart=i;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
 		} else if (ch=='s') {
@@ -401,6 +405,7 @@ namespace btmanip {
 		  it+=i;
 		  bf.entries.erase(it);
 		  restart=true;
+		  istart=i;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
 		} else if (ch=='q') {
@@ -414,8 +419,9 @@ namespace btmanip {
 		found=true;
 	      }
 	    }
-	    if (true || i%100==99) {
-	      std::cout << i+1 << " records processed." << std::endl;
+	    if (i%50==49) {
+	      std::cout << i+1 << "/" << bf.entries.size()
+			<< " records processed." << std::endl;
 	    }
 	  }
 	}
@@ -1466,20 +1472,21 @@ namespace btmanip {
     
       cl->prompt="btmanip> ";
 
-      std::vector<cmd_line_arg> ca;
-    
       char *dc=getenv("BTMANIP_DEFAULTS");
       if (dc) {
+	std::vector<cmd_line_arg> ca;
 	std::string def_args=dc;
 	cout << "Using default arguments: " << def_args << endl;
 	cl->process_args(dc,ca);
+	cl->call_args(ca);
       }
     
-      cl->process_args(argc,argv,ca);
       if (argc<=1) {
 	cl->run_interactive();
       } else {
-	cl->call_args(ca);
+	std::vector<cmd_line_arg> ca2;
+	cl->process_args(argc,argv,ca2);
+	cl->call_args(ca2);
       }
     
       return 0;
