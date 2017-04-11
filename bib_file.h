@@ -59,17 +59,17 @@ namespace btmanip {
      */
     std::vector<std::string> trans_html;
 
-    /** \brief Journal name list
-     */
-    std::map<std::string,std::vector<std::string>,
-      std::greater<std::string> > journals;
-    
     /** \brief Type for journal name list iterator
      */
     typedef std::map<std::string,std::vector<std::string>,
       std::greater<std::string> >::iterator journal_it;
 
   public:
+    
+    /** \brief Journal name list
+     */
+    std::map<std::string,std::vector<std::string>,
+      std::greater<std::string> > journals;
     
     /** \brief Fields automatically removed by parse()
      */

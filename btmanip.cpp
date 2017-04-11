@@ -278,6 +278,8 @@ namespace btmanip {
 
       bool found=false;
 
+      std::cout << "size: " << bf.journals.size() << endl;
+      
       if (sv.size()==2) {
 	if (bf.entries.size()==0) {
 	  cerr << "No BibTeX entries to compare to." << endl;
@@ -411,6 +413,9 @@ namespace btmanip {
 		}
 		found=true;
 	      }
+	    }
+	    if (true || i%100==99) {
+	      std::cout << i+1 << " records processed." << std::endl;
 	    }
 	  }
 	}
