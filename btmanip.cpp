@@ -753,15 +753,10 @@ namespace btmanip {
 	cerr << "No keys matching pattern " << sv[1] << " ." << endl;
 	return 1;
       }
-      if (list.size()>1) {
-	cerr << "More than one key matches " << sv[1] << " ." << endl;
-	for(size_t k=0;k<list.size();k++) {
-	  cout << k << ". " << list[k] << endl;
-	}
-	return 2;
+      for(size_t i=0;i<list.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.get_entry_by_key(list[i]);
+	bf.bib_output_one(cout,bt);
       }
-      bibtex::BibTeXEntry &bt=bf.get_entry_by_key(list[0]);
-      bf.bib_output_one(cout,bt);
     
       return 0;
     }
@@ -1243,7 +1238,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=29;
+      static const int nopt=30;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1343,8 +1338,8 @@ namespace btmanip {
 	 ((std::string)"Get a single BibTeX entry from the current ")+
 	 "list of entries by matching keys to the specified pattern "+
 	 "and output that key to the screen in .bib format. If no "+
-	 "keys match or more than one key matches, then an error "+
-	 "message is output and no keys are output to the screen.",
+	 "keys match then an error "+
+	 "message is output to the screen.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::get_key),cli::comm_option_both},
 	{0,"gk","Get entry by key (alias for get-key).",1,1,"<key pattern>",
@@ -1380,6 +1375,10 @@ namespace btmanip {
 	 ((std::string)"List all entry keys from the ")+
 	 "current bibliography, or if a pattern is specified, list "+
 	 "only the keys in the current list which patch that pattern.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::list_keys),cli::comm_option_both},
+	{0,"lk","List entry keys (alias of list-keys).",0,1,"[pattern]",
+	 "This command is an alias of 'list-keys'.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::list_keys),cli::comm_option_both},
 	{'s',"search","Search current list for field and pattern pairs.",
