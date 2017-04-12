@@ -40,7 +40,7 @@ Read a .bib file, look for duplicates, and overwrite:
 ``btmanip -parse my.bib -dup -bib my.bib``
 
 Read a bib file and output in a format useful for an
-NSF proposal:
+LaTeX NSF bio sketch (see :cpp:func:`btmanip::btmanip_class::nsf` )
 
 ``btmanip -parse my.bib -nsf refs.txt``
 
@@ -110,8 +110,9 @@ Todo List
 =========
       
 .. todo:: Better documentation
-.. todo:: Move code from bib_file.h to source file
-.. todo:: In clean, remove tildes from author lists
+.. todo:: Move code from bib_file.h to new source file bib_file.cpp
+.. todo:: In clean, remove tildes from author lists, and rework loop
+	  to operate one entry at a time.
 .. todo:: Use the bibtex-spirit writer?
       
 Indices and tables
