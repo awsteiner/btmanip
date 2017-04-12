@@ -66,7 +66,7 @@ namespace btmanip {
 
   public:
     
-    /** \brief Journal name list
+    /** \brief List of journal synonyms
      */
     std::map<std::string,std::vector<std::string>,
       std::greater<std::string> > journals;
@@ -75,7 +75,7 @@ namespace btmanip {
      */
     std::vector<std::string> remove_fields;
     
-    /** \brief The full list of entries
+    /** \brief The full list of BibTeX entries
      */
     std::vector<bibtex::BibTeXEntry> entries;
 
@@ -335,6 +335,9 @@ namespace btmanip {
     }
     
     /** \brief Given a pages field, return only the first page
+
+	This function just looks for the first hyphen and returns all
+	characters before it.
      */
     std::string first_page(std::string pages) {
       size_t loc=pages.find('-');
@@ -345,7 +348,8 @@ namespace btmanip {
       return pages2;
     }
 
-    /** \brief Desc
+    /** \brief Search for a pattern, setting ``list`` equal
+	to the set of keys which match
      */
     void search_keys(std::string pattern,
 		     std::vector<std::string> &list) {
@@ -713,8 +717,8 @@ namespace btmanip {
       return;
     }
 
-    /** \brief If an 'article' or 'inproceedings' and no
-	title, add an empty title
+    /** \brief If an 'article' or 'inproceedings' has no
+	title, set the title equal to one space
      */
     size_t entry_add_empty_title(bibtex::BibTeXEntry &bt) {
 
@@ -1242,8 +1246,20 @@ namespace btmanip {
     }
     
     /** \brief Sort the bibliography by key
+
+	Because the indexes for a sorted list are always maintained in
+	\ref sort, this is a \f${\cal O}(N)\f$ operation.
+
+	\note This will call the error handler if more than one
+	entry has the same key
      */
     void sort_bib() {
+
+      if (entries.size()!=sort.size()) {
+	O2SCL_ERR("Cannot sort when two entries have the same key.",
+		   o2scl::exc_efailed);
+      }
+      
       std::vector<bibtex::BibTeXEntry> entries2;
       for(std::map<std::string,size_t,
 	    std::greater<std::string> >::iterator it=sort.begin();
@@ -1252,6 +1268,7 @@ namespace btmanip {
       }
       std::swap(entries,entries2);
       refresh_sort();
+      
       return;
     }
     
@@ -1427,7 +1444,8 @@ namespace btmanip {
       return;
     }
     
-    /** \brief Parse a BibTeX file and perform some extra reformatting
+    /** \brief Add entries in a specified BibTeX file to the current
+	list, checking for duplicates and prompting if they're found
      */
     void add_bib(std::string fname) {
 
@@ -1504,12 +1522,6 @@ namespace btmanip {
 	 the same key. We currently allow this, thus this 
 	 test must be removed. 
       */
-      if (false && entries.size()!=sort.size()) {
-	std::cout << "Entries: " << entries.size() << " sort: "
-		  << sort.size() << std::endl;
-	O2SCL_ERR2("Entries and sort structures mismatched in ",
-		   "bib_file::parse_bib().",o2scl::exc_efailed);
-      }
       
       if (verbose>0) {
 	std::cout << "Read " << entries2.size() << " entries from file \""

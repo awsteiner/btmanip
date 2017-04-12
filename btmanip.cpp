@@ -651,8 +651,21 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data as .tex for input in a NSF bio sketch
-     */
+    /** \brief Output the BibTeX data as .tex for input in a 
+	NSF bio sketch
+
+	This command uses the format:
+
+	\verbatim
+	\item \href{URL}{\emph{title}} \\
+	First Last, First2 Last2 year, jour, \textbf{volume}, pages.
+	\endverbatim
+
+	The URL is set to ``http://dx.doi.org/`` plus 
+	the ``DOI`` field (if present) or ``http://www.arxiv.org/``
+	plus the ``eprint`` field if no ``DOI`` field is present.
+	The ``url`` field is ignored. 
+    */
     virtual int nsf(std::vector<std::string> &sv, bool itive_com) {
 
       ostream *outs=&cout;
@@ -760,35 +773,63 @@ namespace btmanip {
     
       return 0;
     }
-  
+    
+    /** \brief Loop over all entries and change keys 
+	to a standard key if possible
+    */
     virtual int auto_key(std::vector<std::string> &sv, bool itive_com) {
       
       for(size_t i=0;i<bf.entries.size();i++) {
 	
 	bibtex::BibTeXEntry &bt=bf.entries[i];
 
+	// Ensure title, year, and author are present
 	if (bf.is_field_present(bt,"title") &&
 	    bf.is_field_present(bt,"year") &&
 	    bf.is_field_present(bt,"author")) {
-	  
+
+	  // Separate the title into words
 	  std::vector<std::string> title_words;
 	  o2scl::split_string(bf.get_field(bt,"title"),title_words);
+	  
 	  if (bf.get_field(bt,"title").length()>5 && title_words.size()>1) {
+
+	    // Start with the last name of the first author
 	    std::string auth2=bf.last_name_first_author(bt);
+
+	    // Remove non-alphabetic characters
+	    for(size_t j=0;j<auth2.length();j++) {
+	      if (!std::isalpha(auth2[j])) {
+		std::string tmp=auth2.substr(0,j)+
+		  auth2.substr(j+1,auth2.length()-j-1);
+		auth2=tmp;
+		j=0;
+	      }
+	    }
+
+	    // Add the year
 	    std::string key2=auth2+
 	      bf.get_field(bt,"year").substr(2,2);
-	    char c1=std::tolower(title_words[0][0]);
-	    char c2=std::tolower(title_words[1][0]);
-	    key2+=c1;
-	    key2+=c2;
-	    if ((*bt.key).length()>key2.length()+2 && std::isalpha(c1) &&
-		std::isalpha(c2) && auth2.find('{')==std::string::npos &&
-		auth2.find(' ')==std::string::npos &&
-		auth2.find('-')==std::string::npos &&
-		auth2.find('\"')==std::string::npos &&
-		bf.sort.find(key2)==bf.sort.end()) {
+
+	    // Add the first characters of the first two
+	    // title words which begin with alphabetic characters
+	    int nadd=0;
+	    for(size_t j=0;j<title_words.size() && nadd<2;j++) {
+	      if (std::isalpha(title_words[j][0])) {
+		char c=std::tolower(title_words[j][0]);
+		key2+=c;
+		nadd++;
+	      }
+	    }
+
+	    // Ensure the new key is not already present
+	    if (bf.sort.find(key2)==bf.sort.end()) {
+	      
+	      std::cout << "Proposing change " << *bt.key << " to " << key2
+			<< std::endl;
 	      bf.change_key(*bt.key,key2);
-	      i=0;
+	      
+	      if (i>0) i--;
 	    }
 	  }
 	  
