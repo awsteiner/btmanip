@@ -664,7 +664,9 @@ namespace btmanip {
 	The URL is set to ``http://dx.doi.org/`` plus 
 	the ``DOI`` field (if present) or ``http://www.arxiv.org/``
 	plus the ``eprint`` field if no ``DOI`` field is present.
-	The ``url`` field is ignored. 
+	The ``url`` field is ignored. If a field called 
+	``title_latex`` is present, it is used instead of the
+	``title`` field.
     */
     virtual int nsf(std::vector<std::string> &sv, bool itive_com) {
 

@@ -27,7 +27,8 @@ from `github <https://github.com/awsteiner/btmanip>`_ .
 <http://web.utk.edu/~asteine1/o2scl>`_ ) has been installed (with HDF5
 support enabled). You will also have to manually edit the ``makefile``
 in the top directory so that the appropriate header files and
-libraries can be found.
+libraries can be found. On OSX, you can use homebrew, so
+``brew install --HEAD awsteiner/science/btmanip`` may work.
       
 Basic Operation
 ===============
