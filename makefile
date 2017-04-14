@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------
 # Below are variables which may need to be modified for your system.
 # After they are specified, you should be able to just type 'make' to
-# compile btmanip and install it to a directory on your path.
+# compile btmanip and 'make install' it to a directory on your path.
 # -------------------------------------------------------------------
 
 FLAGS = -std=c++0x -O3
@@ -63,6 +63,8 @@ endif
 
 btmanip: btmanip.o
 	$(CXX) $(FLAGS) -o btmanip btmanip.o $(LIBS)
+
+install:
 	sudo cp btmanip $(BIN_DIR)
 
 btmanip.o: btmanip.cpp bib_file.h hdf_bibtex.h
