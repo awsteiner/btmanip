@@ -1256,6 +1256,166 @@ namespace btmanip {
       return 0;
     }
   
+    /** \brief Output the BibTeX data as a file in
+	reStructured Text format for Sphinx
+    */
+    virtual int rst(std::vector<std::string> &sv, bool itive_com) {
+    
+      ostream *outs=&cout;
+      ofstream fout;
+      if (sv.size()>1) {
+	std::string fname=sv[1];
+	fout.open(fname);
+	outs=&fout;
+      }
+
+      std::string prefix="";
+      if (sv.size()>2) {
+	prefix=sv[2];
+      }
+
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+      
+	if (bt.key) {
+	  (*outs) << ".. [" << *bt.key << "] ";
+	}
+
+	if (bt.tag==((string)"Article")) {
+
+	  if (bf.is_field_present(bt,"author")) {
+	    if (bf.is_field_present(bt,"url")) {
+	      (*outs) << "`"
+		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << endl;
+	      (*outs) << "   <" << bf.get_field(bt,"url") 
+		      << ">`_," << endl;
+	    } else if (bf.is_field_present(bt,"doi")) {
+	      (*outs) << "`"
+		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << endl;
+	      (*outs) << "   <" << bf.get_field(bt,"doi") 
+		      << ">`_," << endl;
+	    } else {
+	      (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << "," << endl;
+	    }
+	  }
+	  if (bf.is_field_present(bt,"journal")) {
+	    (*outs) << "   " << bf.get_field(bt,"journal") << " **";
+	  }
+	  if (bf.is_field_present(bt,"volume")) {
+	    (*outs) << bf.get_field(bt,"volume") << "** ";
+	  }
+	  if (bf.is_field_present(bt,"year")) {
+	    (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+	  }
+	  if (bf.is_field_present(bt,"pages")) {
+	    (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	  } else {
+	    (*outs) << "." << endl;
+	  }
+	  (*outs) << endl;
+
+	} else if (bt.tag==((string)"InBook")) {
+
+	  if (bf.is_field_present(bt,"crossref") &&
+	      bf.get_field(bt,"crossref").length()>0) {
+	  
+	    bibtex::BibTeXEntry &bt2=
+	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
+	  
+	    if (bf.is_field_present(bt,"author")) {
+	      (*outs) << "    "
+		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << ", \"" << bf.get_field(bt2,"title")
+		      << "\" in" << endl;
+	    }
+	    if (bf.is_field_present(bt2,"url")) {
+	      (*outs) << "    <a href=\""
+		      << bf.get_field(bt2,"url") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt2,"title")
+		      << "</a>," << endl;
+	    } else if (bf.is_field_present(bt2,"isbn")) {
+	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+		      << bf.get_field(bt2,"isbn") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt2,"title")
+		      << "</a>," << endl;
+	    } else {
+	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    }
+	    (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
+		    << bf.get_field(bt2,"publisher") << ", p. "
+		    << bf.get_field(bt,"pages") << "." << endl;
+	    (*outs) << endl;
+	  } else {
+	    if (bf.is_field_present(bt,"author")) {
+	      (*outs) << "    "
+		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << "," << endl;
+	    }
+	    if (bf.is_field_present(bt,"url")) {
+	      (*outs) << "    <a href=\""
+		      << bf.get_field(bt,"url") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt,"title")
+		      << "</a>," << endl;
+	    } else if (bf.is_field_present(bt,"isbn")) {
+	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+		      << bf.get_field(bt,"isbn") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt,"title")
+		      << "</a>," << endl;
+	    } else {
+	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    }
+	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+		    << bf.get_field(bt,"publisher") << ", p. "
+		    << bf.get_field(bt,"pages") << "." << endl;
+	    (*outs) << endl;
+	  }
+
+	} else if (bt.tag==((string)"Book")) {
+
+	  if (bf.is_field_present(bt,"author")) {
+	    (*outs) << "    "
+		    << bf.author_firstlast(bf.get_field(bt,"author"))
+		    << "," << endl;
+	  }
+	  if (bf.is_field_present(bt,"url")) {
+	    (*outs) << "    <a href=\""
+		    << bf.get_field(bt,"url") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else if (bf.is_field_present(bt,"isbn")) {
+	    (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+		    << bf.get_field(bt,"isbn") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else {
+	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	  }
+	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+		  << bf.get_field(bt,"publisher");
+	  if (bf.is_field_present(bt,"note") &&
+	      bf.get_field(bt,"note").length()>0) {
+	    (*outs) << "\n    (" << bf.get_field(bt,"note") << ")";
+	  }
+	  (*outs) << ".\n" << endl;
+	}
+      }
+
+      if (sv.size()>1) {
+	fout.close();
+      }
+
+      return 0;
+    }
+  
   public:
 
     /** \brief Create a ``btmanip_class`` object
@@ -1281,7 +1441,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=30;
+      static const int nopt=31;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1298,8 +1458,11 @@ namespace btmanip {
 	{0,"prop","Output a proposal .bib file.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::proposal),
 	 cli::comm_option_both},
-	{0,"dox","Output a doxygen file for O2scl.",0,2,"[file]","",
+	{0,"dox","Output a doxygen file.",0,2,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
+	 cli::comm_option_both},
+	{0,"rst","Output a rst file.",0,2,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::rst),
 	 cli::comm_option_both},
 	{'t',"text","Output a text file.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text),

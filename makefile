@@ -42,9 +42,10 @@ else
 
 # The values I typically use
 
-INCS = -I$(EIGEN_INC) -I$(O2SCL_INC) -I$(HDF5_INC) -I$(GSL_INC)
+INCS = -I$(EIGEN_INC) -I$(O2SCL_INC) -I$(HDF5_INC) -I$(GSL_INC) \
+	-I$(BOOST_INC)
 
-LIBS = -L$(GSL_LIB) -L$(O2SCL_LIB) -L$(HDF5_LIB) \
+LIBS = -L$(GSL_LIB) -L$(O2SCL_LIB) -L$(HDF5_LIB) -L$(BOOST_LIB) \
 	-lo2scl_hdf -lo2scl_eos -lo2scl_part \
 	-lo2scl -lgsl -lgslcblas -lhdf5_hl -lhdf5 -lz -lreadline \
 	-lncurses -lm
