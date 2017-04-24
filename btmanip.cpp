@@ -1517,7 +1517,7 @@ namespace btmanip {
 	{0,"hay","Create a simple HTML author-year list.",0,1,
 	 "[file]","",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::hay),cli::comm_option_both},
-	{0,"clean","Clean up the bibliography.",0,0,"",
+	{0,"clean","Clean up the bibliography.",0,1,"",
 	 ((std::string)"This command cleans up the bibliography ")+
 	 "in several ways. First, if 'normalize_tags' is true, "+
 	 "it ensures all of the tags have the standard capitalization "+

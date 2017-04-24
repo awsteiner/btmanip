@@ -883,10 +883,12 @@ namespace btmanip {
     void clean(bool prompt=true) {
 
       size_t empty_titles_added=0;
-      size_t duplicates_found=0;
       size_t entries_fields_removed=0;
       size_t journals_renamed=0;
       size_t urls_reformatted=0;
+      size_t vol_letters_moved=0;
+      size_t tags_normalized=0;
+      size_t author_fields_notilde=0;
       
       if (verbose>1) {
 	std::cout << "normalize_tags: " << normalize_tags << std::endl;
@@ -912,6 +914,7 @@ namespace btmanip {
       
       // Reformat if necessary. This loop is over each entry
       for(size_t i=0;i<entries.size();i++) {
+	entry_changed[i]=false;
 
 	// Make a copy
 	bibtex::BibTeXEntry bt=entries[i];
@@ -939,7 +942,10 @@ namespace btmanip {
 	  } else if (bt.tag==((std::string)"Techreport")) {
 	    bt.tag="TechReport";
 	  }
-	  if (bt.tag!=old_tag) entry_changed[i]=true;
+	  if (bt.tag!=old_tag) {
+	    entry_changed[i]=true;
+	    tags_normalized++;
+	  }
 	}
 
 	if (remove_author_tildes && is_field_present(bt,"author")) {
@@ -948,6 +954,7 @@ namespace btmanip {
 	  if (auth!=old_auth) {
 	    set_field_value(bt,"author",auth);
 	    entry_changed[i]=true;
+	    author_fields_notilde++;
 	  }
 	}
 	
@@ -1066,6 +1073,7 @@ namespace btmanip {
 	if (remove_vol_letters) {
 	  if (entry_remove_vol_letters(bt)) {
 	    entry_changed[i]=true;
+	    vol_letters_moved++;
 	  }
 	}
 
@@ -1074,6 +1082,7 @@ namespace btmanip {
 	if (autoformat_urls) {
 	  if (entry_autoformat_url(bt)) {
 	    entry_changed[i]=true;
+	    urls_reformatted++;
 	  }
 	}
 		  
@@ -1081,6 +1090,7 @@ namespace btmanip {
 	if (add_empty_titles) {
 	  if (entry_add_empty_title(bt)) {
 	    entry_changed[i]=true;
+	    empty_titles_added++;
 	  }
 	}
 
@@ -1103,7 +1113,12 @@ namespace btmanip {
 	      entries[i]=bt;
 	    }
 	    if (ch=='Y') prompt=false;
-	    if (ch=='N') i=entries.size();
+	    if (ch=='n' || ch=='N') {
+	      entry_changed[i]=false;
+	    }
+	    if (ch=='N') {
+	      i=entries.size();
+	    }
 	  } else {
 	    entries[i]=bt;
 	  }
@@ -1120,15 +1135,32 @@ namespace btmanip {
 	}
 	std::cout << nch << " entries changed out of " << entries.size()
 		  << std::endl;
-	std::cout << empty_titles_added << " emtpy titles added." << std::endl;
-	std::cout << duplicates_found << " duplicates found." << std::endl;
+	if (normalize_tags) {
+	  std::cout << tags_normalized << " tags normalized."
+		    << std::endl;
+	}
+	if (add_empty_titles) {
+	  std::cout << empty_titles_added << " emtpy titles added."
+		    << std::endl;
+	}
 	std::cout << entries_fields_removed
 		  << " entries with extra fields removed." << std::endl;
-	std::cout << journals_renamed << " journal names standardized."
-		  << std::endl;
-	std::cout <<  urls_reformatted << " URLs reformatted."
-		  << std::endl;
-	  
+	if (reformat_journal) {
+	  std::cout << journals_renamed << " journal names standardized."
+		    << std::endl;
+	}
+	if (autoformat_urls) {
+	  std::cout << urls_reformatted << " URLs reformatted."
+		    << std::endl;
+	}
+	if (remove_vol_letters) {
+	  std::cout << vol_letters_moved << " volume letters moved."
+		    << std::endl;
+	}
+	if (remove_author_tildes) {
+	  std::cout << author_fields_notilde << " author fields cleaned "
+		    << "of tildes." << std::endl;
+	}
       }
       
       return;
@@ -1770,8 +1802,8 @@ namespace btmanip {
     /** \brief Convert tildes to spaces
      */
     void tilde_to_space(std::string &s) {
-      for(size_t i=0;i<s.length();i++) {
-	if (s[i]=='~') s[i]=' ';
+      for(size_t i=0;i<s.length()-1;i++) {
+	if (s[i]=='.' && s[i+1]=='~') s[i+1]=' ';
       }
       return;
     }
