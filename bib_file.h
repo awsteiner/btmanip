@@ -719,30 +719,33 @@ namespace btmanip {
 
     /** \brief If an 'article' or 'inproceedings' has no
 	title, set the title equal to one space
-     */
-    size_t entry_add_empty_title(bibtex::BibTeXEntry &bt) {
-
-      size_t empty_titles_added=0;
+    */
+    bool entry_add_empty_title(bibtex::BibTeXEntry &bt) {
+      
+      bool changed=false;
       if (lower_string(bt.tag)==((std::string)"article") ||
 	  lower_string(bt.tag)==((std::string)"inproceedings")) {
 	if (!is_field_present(bt,"title")) {
 	  std::vector<std::string> val;
 	  val.push_back(" ");
 	  bt.fields.push_back(std::make_pair("title",val));
-	  empty_titles_added++;
+	  changed=true;
 	  if (verbose>1) {
 	    std::cout << "In entry with key " << *bt.key
 		      << " added empty title." << std::endl;
 	  }
 	}
       }
-      return empty_titles_added;
+      return changed;
     }
     
     /** \brief If DOI number is present, ensure URL matches
+
+	This function returns true if any change has been
+	made to the entry.
      */
-    size_t entry_autoformat_url(bibtex::BibTeXEntry &bt) {
-      size_t urls_reformatted=0;
+    bool entry_autoformat_url(bibtex::BibTeXEntry &bt) {
+      bool changed=false;
       if (lower_string(bt.tag)==((std::string)"article")) {
 	if (is_field_present(bt,"doi")) {
 	  if (is_field_present(bt,"url")) {
@@ -750,6 +753,7 @@ namespace btmanip {
 	    if (url.substr(0,17)!=((std::string)"http://dx.doi.org")) {
 	      url=((std::string)"http://dx.doi.org/")+
 		get_field(bt,"doi");
+	      changed=true;
 	      if (verbose>1) {
 		std::cout << "In entry with key " << *bt.key
 			  << " reformatted url to " << url << std::endl;
@@ -760,12 +764,12 @@ namespace btmanip {
 	    val.push_back(((std::string)"http://dx.doi.org/")+
 			  get_field(bt,"doi"));
 	    bt.fields.push_back(std::make_pair("url",val));
+	    changed=true;
 	    if (verbose>1) {
 	      std::cout << "In entry with key " << *bt.key
 			<< " added url field " << val[0] << std::endl;
 	    }
 	  }
-	  urls_reformatted++;
 	}
       } else if (lower_string(bt.tag)==((std::string)"book")) {
 	if (is_field_present(bt,"isbn") && !is_field_present(bt,"url")) {
@@ -773,13 +777,14 @@ namespace btmanip {
 	    val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
 			  get_field(bt,"isbn"));
 	    bt.fields.push_back(std::make_pair("url",val));
+	    changed=true;
 	    if (verbose>1) {
 	      std::cout << "In entry with key " << *bt.key
 			<< " added url field " << val[0] << std::endl;
 	    }
 	}
       }
-      return urls_reformatted;
+      return changed;
     }
     
     /** \brief Remove volume letters and move to journal names
@@ -875,7 +880,7 @@ namespace btmanip {
     
     /** \brief Clean the current BibTeX entries
      */
-    void clean() {
+    void clean(bool prompt=true) {
 
       size_t empty_titles_added=0;
       size_t duplicates_found=0;
@@ -895,10 +900,8 @@ namespace btmanip {
 	std::cout << "natbib_jours: " << natbib_jours << std::endl;
 	std::cout << "autoformat_urls: " << autoformat_urls << std::endl;
 	std::cout << "add_empty_titles: " << add_empty_titles << std::endl;
-      }
-
-      if (journals.size()==0) {
-	std::cout << "No entries in journal name list." << std::endl;
+	std::cout << "remove_author_tildes: " << remove_author_tildes
+		  << std::endl;
       }
 
       if (entries.size()==0) {
@@ -907,12 +910,13 @@ namespace btmanip {
 
       std::vector<bool> entry_changed(entries.size());
       
-      // First loop to fix tags (must be done before looking
-      // for duplicates)
-      if (normalize_tags) {
-	for(size_t i=0;i<entries.size();i++) {
-	  
-	  bibtex::BibTeXEntry &bt=entries[i];
+      // Reformat if necessary. This loop is over each entry
+      for(size_t i=0;i<entries.size();i++) {
+
+	// Make a copy
+	bibtex::BibTeXEntry bt=entries[i];
+
+	if (normalize_tags) {
 	  
 	  std::string old_tag=bt.tag;
 	  // Capitalize first letter and downcase all other letters
@@ -937,33 +941,16 @@ namespace btmanip {
 	  }
 	  if (bt.tag!=old_tag) entry_changed[i]=true;
 	}
-      }
-      
-      // Now look for duplicates. Use int rather than size_t
-      // so we can reset to i=-1 when we erase an entry
-      for(int i=0;i<((int)entries.size());i++) {
-	for(int j=i+1;j<((int)entries.size());j++) {
-	  std::string key1=*(entries[i].key);
-	  std::string key2=*(entries[j].key);
-	  if (entries[i].tag==entries[j].tag && key1==key2) {
-	    entries.erase(entries.begin()+j);
-	    entry_changed.erase(entry_changed.begin()+j);
-	    j=entries.size();
-	    i=-1;
-	    duplicates_found++;
+
+	if (remove_author_tildes && is_field_present(bt,"author")) {
+	  std::string old_auth=get_field(bt,"author"), auth=old_auth;
+	  tilde_to_space(auth);
+	  if (auth!=old_auth) {
+	    set_field_value(bt,"author",auth);
+	    entry_changed[i]=true;
 	  }
 	}
-      }
-      
-      if (entries.size()!=entry_changed.size()) {
-	O2SCL_ERR("Size mismatch.",o2scl::exc_esanity);
-      }
-      
-      // Reformat if necessary. This loop is over each entry
-      for(size_t i=0;i<entries.size();i++) {
-      
-	bibtex::BibTeXEntry &bt=entries[i];
-
+	
 	// Loop over each field
 
 	bool restart_loop=true;
@@ -1085,12 +1072,16 @@ namespace btmanip {
 	// If necessary, create an article URL from the
 	// DOI entry
 	if (autoformat_urls) {
-	  entry_autoformat_url(bt);
+	  if (entry_autoformat_url(bt)) {
+	    entry_changed[i]=true;
+	  }
 	}
 		  
 	// Add empty title to an article if necessary
 	if (add_empty_titles) {
-	  empty_titles_added=entry_add_empty_title(bt);
+	  if (entry_add_empty_title(bt)) {
+	    entry_changed[i]=true;
+	  }
 	}
 
 	// If requested, check that required fields are present
@@ -1098,7 +1089,26 @@ namespace btmanip {
 	if (normalize_tags && lowercase_fields && check_required) {
 	  entry_check_required(bt);
 	}
-      
+
+	if (entry_changed[i]==true) {
+	  if (prompt) {
+	    std::cout << "Changing:\n" << std::endl;
+	    bib_output_one(std::cout,entries[i]);
+	    std::cout << "\nto\n" << std::endl;
+	    bib_output_one(std::cout,bt);
+	    std::cout << "\nYes, no, yes to all (Y), no to all (N)? ";
+	    char ch;
+	    std::cin >> ch;
+	    if (ch=='y') {
+	      entries[i]=bt;
+	    }
+	    if (ch=='Y') prompt=false;
+	    if (ch=='N') i=entries.size();
+	  } else {
+	    entries[i]=bt;
+	  }
+	}
+	
 	// End of loop over entries
       }
 
