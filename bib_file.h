@@ -915,8 +915,16 @@ namespace btmanip {
       // Reformat if necessary. This loop is over each entry
       for(size_t i=0;i<entries.size();i++) {
 	entry_changed[i]=false;
+	
+	bool this_empty_titles_added=false;
+	bool this_entries_fields_removed=false;
+	bool this_journals_renamed=false;
+	bool this_urls_reformatted=false;
+	bool this_vol_letters_moved=false;
+	bool this_tags_normalized=false;
+	bool this_author_fields_notilde=false;
 
-	// Make a copy
+      // Make a copy
 	bibtex::BibTeXEntry bt=entries[i];
 
 	if (normalize_tags) {
@@ -944,7 +952,7 @@ namespace btmanip {
 	  }
 	  if (bt.tag!=old_tag) {
 	    entry_changed[i]=true;
-	    tags_normalized++;
+	    this_tags_normalized=true;
 	  }
 	}
 
@@ -954,7 +962,7 @@ namespace btmanip {
 	  if (auth!=old_auth) {
 	    set_field_value(bt,"author",auth);
 	    entry_changed[i]=true;
-	    author_fields_notilde++;
+	    this_author_fields_notilde=true;
 	  }
 	}
 	
@@ -1012,7 +1020,7 @@ namespace btmanip {
 	    }
 
 	    if (field_removed) {
-	      entries_fields_removed++;
+	      this_entries_fields_removed=true;
 	    }
 	  
 	    if (field_removed==false) {
@@ -1052,7 +1060,7 @@ namespace btmanip {
 				  << abbrev << std::endl;
 		      }
 		      bt.fields[j].second[0]=abbrev;
-		      journals_renamed++;
+		      this_journals_renamed=true;
 		      entry_changed[i]=true;
 		    }
 		  } else {
@@ -1073,7 +1081,7 @@ namespace btmanip {
 	if (remove_vol_letters) {
 	  if (entry_remove_vol_letters(bt)) {
 	    entry_changed[i]=true;
-	    vol_letters_moved++;
+	    this_vol_letters_moved=true;
 	  }
 	}
 
@@ -1082,7 +1090,7 @@ namespace btmanip {
 	if (autoformat_urls) {
 	  if (entry_autoformat_url(bt)) {
 	    entry_changed[i]=true;
-	    urls_reformatted++;
+	    this_urls_reformatted=true;
 	  }
 	}
 		  
@@ -1090,7 +1098,7 @@ namespace btmanip {
 	if (add_empty_titles) {
 	  if (entry_add_empty_title(bt)) {
 	    entry_changed[i]=true;
-	    empty_titles_added++;
+	    this_empty_titles_added=true;
 	  }
 	}
 
@@ -1101,26 +1109,56 @@ namespace btmanip {
 	}
 
 	if (entry_changed[i]==true) {
+	  bool accept=false;
 	  if (prompt) {
-	    std::cout << "Changing:\n" << std::endl;
-	    bib_output_one(std::cout,entries[i]);
-	    std::cout << "\nto\n" << std::endl;
-	    bib_output_one(std::cout,bt);
-	    std::cout << "\nYes, no, yes to all (Y), no to all (N)? ";
 	    char ch;
-	    std::cin >> ch;
-	    if (ch=='y') {
-	      entries[i]=bt;
-	    }
-	    if (ch=='Y') prompt=false;
-	    if (ch=='n' || ch=='N') {
-	      entry_changed[i]=false;
-	    }
-	    if (ch=='N') {
-	      i=entries.size();
-	    }
+	    do {
+	      std::cout << "Changing:\n" << std::endl;
+	      bib_output_one(std::cout,entries[i]);
+	      std::cout << "\nto\n" << std::endl;
+	      bib_output_one(std::cout,bt);
+	      std::cout << "\nYes, no, yes to all (Y), no to all (N)? ";
+	      std::cin >> ch;
+	      if (ch=='y') {
+		accept=true;
+	      }
+	      if (ch=='Y') prompt=false;
+	      if (ch=='n' || ch=='N') {
+		entry_changed[i]=false;
+	      }
+	      if (ch=='N') {
+		i=entries.size();
+	      }
+	    } while (ch!='n' && ch!='N' && ch!='y' && ch!='Y');
 	  } else {
+	    accept=true;
+	  }
+	  if (accept) {
 	    entries[i]=bt;
+	    if (this_empty_titles_added) {
+	      empty_titles_added++;
+	    }
+	    if (this_empty_titles_added) {
+	      empty_titles_added++;
+	    }
+	    if (this_entries_fields_removed) {
+	      entries_fields_removed++;
+	    }
+	    if (this_journals_renamed) {
+	      journals_renamed++;
+	    }
+	    if (this_urls_reformatted) {
+	      urls_reformatted++;
+	    }
+	    if (this_vol_letters_moved) {
+	      vol_letters_moved++;
+	    }
+	    if (this_tags_normalized) {
+	      tags_normalized++;
+	    }
+	    if (this_author_fields_notilde) {
+	      author_fields_notilde++;
+	    }
 	  }
 	}
 	

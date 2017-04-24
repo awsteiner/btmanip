@@ -57,6 +57,7 @@ namespace btmanip {
     o2scl::cli::parameter_bool p_remove_vol_letters;
     o2scl::cli::parameter_bool p_autoformat_urls;
     o2scl::cli::parameter_bool p_add_empty_titles;
+    o2scl::cli::parameter_bool p_remove_author_tildes;
 
     /// A file of BibTeX entries
     bib_file bf;
@@ -1038,7 +1039,11 @@ namespace btmanip {
     /** \brief Clean the bibliography
      */
     virtual int clean(std::vector<std::string> &sv, bool itive_com) {
-      bf.clean();
+      if (sv.size()>1 && sv[1]==((std::string)"fast")) {
+	bf.clean(false);
+      } else {
+	bf.clean();
+      }
       return 0;
     }
   
@@ -1517,7 +1522,7 @@ namespace btmanip {
 	{0,"hay","Create a simple HTML author-year list.",0,1,
 	 "[file]","",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::hay),cli::comm_option_both},
-	{0,"clean","Clean up the bibliography.",0,1,"",
+	{0,"clean","Clean up the bibliography.",0,1,"[\"fast\"]",
 	 ((std::string)"This command cleans up the bibliography ")+
 	 "in several ways. First, if 'normalize_tags' is true, "+
 	 "it ensures all of the tags have the standard capitalization "+
@@ -1664,6 +1669,12 @@ namespace btmanip {
 	"journal names (default false).";
       cl->par_list.insert(make_pair("remove_vol_letters",
 				    &p_remove_vol_letters));
+
+      p_remove_author_tildes.b=&bf.remove_author_tildes;
+      p_remove_author_tildes.help=((string)"Remove tildes from ")+
+	"author fields (default true).";
+      cl->par_list.insert(make_pair("remove_author_tildes",
+				    &p_remove_author_tildes));
 
       p_autoformat_urls.b=&bf.autoformat_urls;
       p_autoformat_urls.help=((string)"If DOI or ISBN is present, ")+
