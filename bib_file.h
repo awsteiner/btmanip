@@ -1840,8 +1840,8 @@ namespace btmanip {
     /** \brief Convert tildes to spaces
      */
     void tilde_to_space(std::string &s) {
-      for(size_t i=0;i<s.length()-1;i++) {
-	if (s[i]=='.' && s[i+1]=='~') s[i+1]=' ';
+      for(size_t i=0;i<s.length();i++) {
+	if (s[i]=='~') s[i]=' ';
       }
       return;
     }
