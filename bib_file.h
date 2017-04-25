@@ -1113,10 +1113,32 @@ namespace btmanip {
 	  if (prompt) {
 	    char ch;
 	    do {
-	      std::cout << "Changing:\n" << std::endl;
+	      std::cout << "\nChanging:\n" << std::endl;
 	      bib_output_one(std::cout,entries[i]);
 	      std::cout << "\nto\n" << std::endl;
 	      bib_output_one(std::cout,bt);
+	      std::cout << std::endl;
+	      if (this_empty_titles_added) {
+		std::cout << "Empty title added." << std::endl;
+	      }
+	      if (this_entries_fields_removed) {
+		std::cout << "Some fields removed." << std::endl;
+	      }
+	      if (this_journals_renamed) {
+		std::cout << "Journal renamed." << std::endl;
+	      }
+	      if (this_urls_reformatted) {
+		std::cout << "URL reformatted." << std::endl;
+	      }
+	      if (this_vol_letters_moved) {
+		std::cout << "Volume letter moved." << std::endl;
+	      }
+	      if (this_tags_normalized) {
+		std::cout << "Tag name recapitalized." << std::endl;
+	      }
+	      if (this_author_fields_notilde) {
+		std::cout << "Removed tildes from author names." << std::endl;
+	      }
 	      std::cout << "\nYes, no, yes to all (Y), no to all (N)? ";
 	      std::cin >> ch;
 	      if (ch=='y') {
@@ -1135,9 +1157,6 @@ namespace btmanip {
 	  }
 	  if (accept) {
 	    entries[i]=bt;
-	    if (this_empty_titles_added) {
-	      empty_titles_added++;
-	    }
 	    if (this_empty_titles_added) {
 	      empty_titles_added++;
 	    }
