@@ -133,9 +133,7 @@ namespace btmanip {
       if (sv.size()==3) {
 	std::vector<std::string>::iterator it=sv.begin();
 	sv.erase(it);
-	cout << "Calling remove_or." << sv[0] << " " << sv[1] << endl;
 	bf.remove_or(sv);
-	cout << "Here." << endl;
       } else if (sv[1]=="or") {
 	std::vector<std::string>::iterator it=sv.begin();
 	sv.erase(it);
@@ -147,7 +145,7 @@ namespace btmanip {
 	sv.erase(it);
 	it=sv.begin();
 	sv.erase(it);
-	exit(-1);
+	O2SCL_ERR("Remove 'and' unimplemented.",exc_eunimpl);
 	//bf.remove_and(sv);
       } else {
 	cerr << "Failed in remove." << endl;
