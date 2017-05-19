@@ -123,7 +123,7 @@ namespace btmanip {
      */
     bool add_empty_titles;
     /** \brief If true, remove LaTeX tildes from author names 
-	(default true; not working yet)
+	(default true)
      */
     bool remove_author_tildes;
     /** \brief Verbosity parameter
@@ -924,7 +924,7 @@ namespace btmanip {
 	bool this_tags_normalized=false;
 	bool this_author_fields_notilde=false;
 
-      // Make a copy
+	// Make a copy
 	bibtex::BibTeXEntry bt=entries[i];
 
 	if (normalize_tags) {
@@ -1157,6 +1157,9 @@ namespace btmanip {
 	  }
 	  if (accept) {
 	    entries[i]=bt;
+	    std::cout << "Tag: " << entries[i].tag << std::endl;
+	    std::cout << "Author: " << get_field(entries[i],"author")
+		      << std::endl;
 	    if (this_empty_titles_added) {
 	      empty_titles_added++;
 	    }
@@ -1756,11 +1759,19 @@ namespace btmanip {
     /** \brief Reformat author string into a list with commas and
 	the word <tt>"and"</tt> before the last author
     */
-    std::string author_firstlast(std::string s_in) {
+    std::string author_firstlast(std::string s_in, 
+				 bool remove_braces=true) {
 
       std::vector<std::string> firstv, lastv;
 
       parse_author(s_in,firstv,lastv);
+      if (remove_braces) {
+	for(size_t k=0;k<firstv.size();k++) {
+	  if (lastv[k][0]=='{' and lastv[k][lastv[k].length()-1]=='}') {
+	    lastv[k]=lastv[k].substr(1,lastv[k].length()-2);
+	  }
+	}
+      }
 
       // Now construct s_out from the firstv and lastv objects
       if (firstv.size()==1) {
@@ -1777,7 +1788,7 @@ namespace btmanip {
       }
       return s_in;
     }
-
+    
     /** \brief Return true if field named \c field (ignoring
 	differences in field name capitalization) is present in entry
 	\c bt
