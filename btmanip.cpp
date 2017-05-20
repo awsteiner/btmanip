@@ -516,7 +516,8 @@ namespace btmanip {
 	}
 
 	// Authors
-	stmp=bf.author_firstlast(bf.get_field(bt,"author"))+", \\\\";
+	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+				 false,false)+", \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  (*outs) << slist[k] << std::endl;
@@ -704,7 +705,8 @@ namespace btmanip {
 	}
       
 	// Authors
-	stmp=bf.author_firstlast(bf.get_field(bt,"author"))+", \\\\";
+	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+				 false,false)+", \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  if (k!=slist.size()-1) {
