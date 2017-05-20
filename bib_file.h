@@ -1760,15 +1760,62 @@ namespace btmanip {
 	the word <tt>"and"</tt> before the last author
     */
     std::string author_firstlast(std::string s_in, 
-				 bool remove_braces=true) {
+				 bool remove_braces=true,
+				 bool first_initial=true) {
 
       std::vector<std::string> firstv, lastv;
 
       parse_author(s_in,firstv,lastv);
+
+      // Remove curly braces from all last names
       if (remove_braces) {
-	for(size_t k=0;k<firstv.size();k++) {
+	for(size_t k=0;k<lastv.size();k++) {
 	  if (lastv[k][0]=='{' and lastv[k][lastv[k].length()-1]=='}') {
 	    lastv[k]=lastv[k].substr(1,lastv[k].length()-2);
+	  }
+	}
+      }
+
+      // Convert first (and middle) names to first initials
+      if (first_initial) {
+
+	// Go through all of the first names in the list
+	for(size_t k=0;k<firstv.size();k++) {
+	  // Go through each character in the name
+	  for(size_t j=0;j<firstv[k].length();j++) {
+	    // Look for an upper case character
+	    if (isupper(firstv[k][j])) {
+
+	      // Count lowercase characters immediately after
+	      size_t lower_count=0;
+	      for(size_t jj=j+1;jj<firstv[k].length();jj++) {
+		if (islower(firstv[k][jj])) {
+		  lower_count++;
+		} else {
+		  jj=firstv[k].length();
+		}
+	      }
+
+	      // If there is at least one, then remove them
+	      if (lower_count>0) {
+		std::string temp;
+		// Look for a dot, and add one if not already present
+		if (firstv[k][j+lower_count+1]=='.') {
+		  temp=firstv[k].substr(0,j+1)+
+		    firstv[k].substr(j+1+lower_count,
+				     firstv[k].length()-j-1-lower_count);
+		} else {
+		  temp=firstv[k].substr(0,j+1)+'.'+
+		    firstv[k].substr(j+1+lower_count,
+				     firstv[k].length()-j-1-lower_count);
+		}
+		firstv[k]=temp;
+
+		// Start over at the beginning of the first name
+		// string looking for lower case letters to remove
+		j=0;
+	      }
+	    }
 	  }
 	}
       }
