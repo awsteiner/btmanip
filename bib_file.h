@@ -162,6 +162,54 @@ namespace btmanip {
       trans_latex.push_back("\\\"{i}"); trans_html.push_back("&iuml;");
       trans_latex.push_back("\\\"{o}"); trans_html.push_back("&ouml;");
       trans_latex.push_back("\\\"{u}"); trans_html.push_back("&uuml;");
+
+      trans_latex.push_back("{\\'a}"); trans_html.push_back("&aacute;");
+      trans_latex.push_back("{\\'e}"); trans_html.push_back("&eacute;");
+      trans_latex.push_back("{\\'i}"); trans_html.push_back("&iacute;");
+      trans_latex.push_back("{\\'o}"); trans_html.push_back("&oacute;");
+      trans_latex.push_back("{\\'u}"); trans_html.push_back("&uacute;");
+      trans_latex.push_back("{\\`a}"); trans_html.push_back("&agrave;");
+      trans_latex.push_back("{\\`e}"); trans_html.push_back("&egrave;");
+      trans_latex.push_back("{\\`i}"); trans_html.push_back("&igrave;");
+      trans_latex.push_back("{\\`o}"); trans_html.push_back("&ograve;");
+      trans_latex.push_back("{\\`u}"); trans_html.push_back("&ugrave;");
+      trans_latex.push_back("{\\\"a}"); trans_html.push_back("&auml;");
+      trans_latex.push_back("{\\\"e}"); trans_html.push_back("&euml;");
+      trans_latex.push_back("{\\\"i}"); trans_html.push_back("&iuml;");
+      trans_latex.push_back("{\\\"o}"); trans_html.push_back("&ouml;");
+      trans_latex.push_back("{\\\"u}"); trans_html.push_back("&uuml;");
+      
+      trans_latex.push_back("\\'{A}"); trans_html.push_back("&Aacute;");
+      trans_latex.push_back("\\'{E}"); trans_html.push_back("&Eacute;");
+      trans_latex.push_back("\\'{I}"); trans_html.push_back("&Iacute;");
+      trans_latex.push_back("\\'{O}"); trans_html.push_back("&Oacute;");
+      trans_latex.push_back("\\'{U}"); trans_html.push_back("&Uacute;");
+      trans_latex.push_back("\\`{A}"); trans_html.push_back("&Agrave;");
+      trans_latex.push_back("\\`{E}"); trans_html.push_back("&Egrave;");
+      trans_latex.push_back("\\`{I}"); trans_html.push_back("&Igrave;");
+      trans_latex.push_back("\\`{O}"); trans_html.push_back("&Ograve;");
+      trans_latex.push_back("\\`{U}"); trans_html.push_back("&Ugrave;");
+      trans_latex.push_back("\\\"{A}"); trans_html.push_back("&Auml;");
+      trans_latex.push_back("\\\"{E}"); trans_html.push_back("&Euml;");
+      trans_latex.push_back("\\\"{I}"); trans_html.push_back("&Iuml;");
+      trans_latex.push_back("\\\"{O}"); trans_html.push_back("&Ouml;");
+      trans_latex.push_back("\\\"{U}"); trans_html.push_back("&Uuml;");
+      
+      trans_latex.push_back("{\\'A}"); trans_html.push_back("&Aacute;");
+      trans_latex.push_back("{\\'E}"); trans_html.push_back("&Eacute;");
+      trans_latex.push_back("{\\'I}"); trans_html.push_back("&Iacute;");
+      trans_latex.push_back("{\\'O}"); trans_html.push_back("&Oacute;");
+      trans_latex.push_back("{\\'U}"); trans_html.push_back("&Uacute;");
+      trans_latex.push_back("{\\`A}"); trans_html.push_back("&Agrave;");
+      trans_latex.push_back("{\\`E}"); trans_html.push_back("&Egrave;");
+      trans_latex.push_back("{\\`I}"); trans_html.push_back("&Igrave;");
+      trans_latex.push_back("{\\`O}"); trans_html.push_back("&Ograve;");
+      trans_latex.push_back("{\\`U}"); trans_html.push_back("&Ugrave;");
+      trans_latex.push_back("{\\\"A}"); trans_html.push_back("&Auml;");
+      trans_latex.push_back("{\\\"E}"); trans_html.push_back("&Euml;");
+      trans_latex.push_back("{\\\"I}"); trans_html.push_back("&Iuml;");
+      trans_latex.push_back("{\\\"O}"); trans_html.push_back("&Ouml;");
+      trans_latex.push_back("{\\\"U}"); trans_html.push_back("&Uuml;");
       
       remove_fields={"adsnote","date-added","annote","bdsk-url-1",
 		     "bdsk-url-2","date-modified","archiveprefix",
@@ -1761,11 +1809,17 @@ namespace btmanip {
     */
     std::string author_firstlast(std::string s_in, 
 				 bool remove_braces=true,
-				 bool first_initial=true) {
+				 bool first_initial=true,
+				 bool convert_special_html=true) {
 
       std::vector<std::string> firstv, lastv;
 
       parse_author(s_in,firstv,lastv);
+
+      for(size_t k=0;k<lastv.size();k++) {
+	firstv[k]=reformat_latex_html(firstv[k]);
+	lastv[k]=reformat_latex_html(lastv[k]);
+      }
 
       // Remove curly braces from all last names
       if (remove_braces) {
