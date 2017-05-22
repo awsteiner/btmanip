@@ -1344,7 +1344,8 @@ namespace btmanip {
 	  if (prompt) {
 	    char ch;
 	    do {
-	      std::cout << "\nChanging:\n" << std::endl;
+	      std::cout << "\nChanging " << i << " of " << entries.size()
+			<< "\n" << std::endl;
 	      bib_output_one(std::cout,entries[i]);
 	      std::cout << "\nto\n" << std::endl;
 	      bib_output_one(std::cout,bt);
