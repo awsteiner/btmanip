@@ -59,6 +59,10 @@ namespace btmanip {
      */
     std::vector<std::string> trans_html;
 
+    /** \brief Unicode strings for translation
+     */
+    std::vector<std::string> trans_uni;
+
     /** \brief Type for journal name list iterator
      */
     typedef std::map<std::string,std::vector<std::string>,
@@ -147,69 +151,248 @@ namespace btmanip {
       remove_author_tildes=true;
       verbose=1;
 
-      trans_latex.push_back("\\'{a}"); trans_html.push_back("&aacute;");
-      trans_latex.push_back("\\'{e}"); trans_html.push_back("&eacute;");
-      trans_latex.push_back("\\'{i}"); trans_html.push_back("&iacute;");
-      trans_latex.push_back("\\'{o}"); trans_html.push_back("&oacute;");
-      trans_latex.push_back("\\'{u}"); trans_html.push_back("&uacute;");
-      trans_latex.push_back("\\`{a}"); trans_html.push_back("&agrave;");
-      trans_latex.push_back("\\`{e}"); trans_html.push_back("&egrave;");
-      trans_latex.push_back("\\`{i}"); trans_html.push_back("&igrave;");
-      trans_latex.push_back("\\`{o}"); trans_html.push_back("&ograve;");
-      trans_latex.push_back("\\`{u}"); trans_html.push_back("&ugrave;");
-      trans_latex.push_back("\\\"{a}"); trans_html.push_back("&auml;");
-      trans_latex.push_back("\\\"{e}"); trans_html.push_back("&euml;");
-      trans_latex.push_back("\\\"{i}"); trans_html.push_back("&iuml;");
-      trans_latex.push_back("\\\"{o}"); trans_html.push_back("&ouml;");
-      trans_latex.push_back("\\\"{u}"); trans_html.push_back("&uuml;");
+      trans_latex.push_back("\\'{a}");
+      trans_html.push_back("&aacute;");
+      trans_uni.push_back("á");
+      
+      trans_latex.push_back("\\'{e}");
+      trans_html.push_back("&eacute;");
+      trans_uni.push_back("é");
+      
+      trans_latex.push_back("\\'{i}");
+      trans_html.push_back("&iacute;");
+      trans_uni.push_back("í");
+      
+      trans_latex.push_back("\\'{o}");
+      trans_html.push_back("&oacute;");
+      trans_uni.push_back("ó");
+      
+      trans_latex.push_back("\\'{u}");
+      trans_html.push_back("&uacute;");
+      trans_uni.push_back("ú");
+      
+      trans_latex.push_back("\\`{a}");
+      trans_html.push_back("&agrave;");
+      trans_uni.push_back("à");
+      
+      trans_latex.push_back("\\`{e}");
+      trans_html.push_back("&egrave;");
+      trans_uni.push_back("è");
+      
+      trans_latex.push_back("\\`{i}");
+      trans_html.push_back("&igrave;");
+      trans_uni.push_back("ì");
+      
+      trans_latex.push_back("\\`{o}");
+      trans_html.push_back("&ograve;");
+      trans_uni.push_back("ò");
+      
+      trans_latex.push_back("\\`{u}");
+      trans_html.push_back("&ugrave;");
+      trans_uni.push_back("ù");
+      
+      trans_latex.push_back("\\\"{a}");
+      trans_html.push_back("&auml;");
+      trans_uni.push_back("ä");
+      
+      trans_latex.push_back("\\\"{e}");
+      trans_html.push_back("&euml;");
+      trans_uni.push_back("ë");
+      
+      trans_latex.push_back("\\\"{i}");
+      trans_html.push_back("&iuml;");
+      trans_uni.push_back("ï");
+      
+      trans_latex.push_back("\\\"{o}");
+      trans_html.push_back("&ouml;");
+      trans_uni.push_back("ö");
+      
+      trans_latex.push_back("\\\"{u}");
+      trans_html.push_back("&uuml;");
+      trans_uni.push_back("ü");
+      
 
-      trans_latex.push_back("{\\'a}"); trans_html.push_back("&aacute;");
-      trans_latex.push_back("{\\'e}"); trans_html.push_back("&eacute;");
-      trans_latex.push_back("{\\'i}"); trans_html.push_back("&iacute;");
-      trans_latex.push_back("{\\'o}"); trans_html.push_back("&oacute;");
-      trans_latex.push_back("{\\'u}"); trans_html.push_back("&uacute;");
-      trans_latex.push_back("{\\`a}"); trans_html.push_back("&agrave;");
-      trans_latex.push_back("{\\`e}"); trans_html.push_back("&egrave;");
-      trans_latex.push_back("{\\`i}"); trans_html.push_back("&igrave;");
-      trans_latex.push_back("{\\`o}"); trans_html.push_back("&ograve;");
-      trans_latex.push_back("{\\`u}"); trans_html.push_back("&ugrave;");
-      trans_latex.push_back("{\\\"a}"); trans_html.push_back("&auml;");
-      trans_latex.push_back("{\\\"e}"); trans_html.push_back("&euml;");
-      trans_latex.push_back("{\\\"i}"); trans_html.push_back("&iuml;");
-      trans_latex.push_back("{\\\"o}"); trans_html.push_back("&ouml;");
-      trans_latex.push_back("{\\\"u}"); trans_html.push_back("&uuml;");
+      trans_latex.push_back("{\\'a}");
+      trans_html.push_back("&aacute;");
+      trans_uni.push_back("á");
       
-      trans_latex.push_back("\\'{A}"); trans_html.push_back("&Aacute;");
-      trans_latex.push_back("\\'{E}"); trans_html.push_back("&Eacute;");
-      trans_latex.push_back("\\'{I}"); trans_html.push_back("&Iacute;");
-      trans_latex.push_back("\\'{O}"); trans_html.push_back("&Oacute;");
-      trans_latex.push_back("\\'{U}"); trans_html.push_back("&Uacute;");
-      trans_latex.push_back("\\`{A}"); trans_html.push_back("&Agrave;");
-      trans_latex.push_back("\\`{E}"); trans_html.push_back("&Egrave;");
-      trans_latex.push_back("\\`{I}"); trans_html.push_back("&Igrave;");
-      trans_latex.push_back("\\`{O}"); trans_html.push_back("&Ograve;");
-      trans_latex.push_back("\\`{U}"); trans_html.push_back("&Ugrave;");
-      trans_latex.push_back("\\\"{A}"); trans_html.push_back("&Auml;");
-      trans_latex.push_back("\\\"{E}"); trans_html.push_back("&Euml;");
-      trans_latex.push_back("\\\"{I}"); trans_html.push_back("&Iuml;");
-      trans_latex.push_back("\\\"{O}"); trans_html.push_back("&Ouml;");
-      trans_latex.push_back("\\\"{U}"); trans_html.push_back("&Uuml;");
+      trans_latex.push_back("{\\'e}");
+      trans_html.push_back("&eacute;");
+      trans_uni.push_back("é");
       
-      trans_latex.push_back("{\\'A}"); trans_html.push_back("&Aacute;");
-      trans_latex.push_back("{\\'E}"); trans_html.push_back("&Eacute;");
-      trans_latex.push_back("{\\'I}"); trans_html.push_back("&Iacute;");
-      trans_latex.push_back("{\\'O}"); trans_html.push_back("&Oacute;");
-      trans_latex.push_back("{\\'U}"); trans_html.push_back("&Uacute;");
-      trans_latex.push_back("{\\`A}"); trans_html.push_back("&Agrave;");
-      trans_latex.push_back("{\\`E}"); trans_html.push_back("&Egrave;");
-      trans_latex.push_back("{\\`I}"); trans_html.push_back("&Igrave;");
-      trans_latex.push_back("{\\`O}"); trans_html.push_back("&Ograve;");
-      trans_latex.push_back("{\\`U}"); trans_html.push_back("&Ugrave;");
-      trans_latex.push_back("{\\\"A}"); trans_html.push_back("&Auml;");
-      trans_latex.push_back("{\\\"E}"); trans_html.push_back("&Euml;");
-      trans_latex.push_back("{\\\"I}"); trans_html.push_back("&Iuml;");
-      trans_latex.push_back("{\\\"O}"); trans_html.push_back("&Ouml;");
-      trans_latex.push_back("{\\\"U}"); trans_html.push_back("&Uuml;");
+      trans_latex.push_back("{\\'i}");
+      trans_html.push_back("&iacute;");
+      trans_uni.push_back("í");
+      
+      trans_latex.push_back("{\\'o}");
+      trans_html.push_back("&oacute;");
+      trans_uni.push_back("ó");
+      
+      trans_latex.push_back("{\\'u}");
+      trans_html.push_back("&uacute;");
+      trans_uni.push_back("ú");
+      
+      trans_latex.push_back("{\\`a}");
+      trans_html.push_back("&agrave;");
+      trans_uni.push_back("à");
+      
+      trans_latex.push_back("{\\`e}");
+      trans_html.push_back("&egrave;");
+      trans_uni.push_back("è");
+      
+      trans_latex.push_back("{\\`i}");
+      trans_html.push_back("&igrave;");
+      trans_uni.push_back("ì");
+      
+      trans_latex.push_back("{\\`o}");
+      trans_html.push_back("&ograve;");
+      trans_uni.push_back("ò");
+ 
+      trans_latex.push_back("{\\`u}");
+      trans_html.push_back("&ugrave;");
+      trans_uni.push_back("ù");
+      
+      trans_latex.push_back("{\\\"a}");
+      trans_html.push_back("&auml;");
+      trans_uni.push_back("ä");
+      
+      trans_latex.push_back("{\\\"e}");
+      trans_html.push_back("&euml;");
+      trans_uni.push_back("ë");
+      
+      trans_latex.push_back("{\\\"i}");
+      trans_html.push_back("&iuml;");
+      trans_uni.push_back("ï");
+      
+      trans_latex.push_back("{\\\"o}");
+      trans_html.push_back("&ouml;");
+      trans_uni.push_back("ö");
+      
+      trans_latex.push_back("{\\\"u}");
+      trans_html.push_back("&uuml;");
+      trans_uni.push_back("ü");
+      
+      
+      trans_latex.push_back("\\'{A}");
+      trans_html.push_back("&Aacute;");
+      trans_uni.push_back("Á");
+      
+      trans_latex.push_back("\\'{E}");
+      trans_html.push_back("&Eacute;");
+      trans_uni.push_back("É");
+      
+      trans_latex.push_back("\\'{I}");
+      trans_html.push_back("&Iacute;");
+      trans_uni.push_back("Í");
+      
+      trans_latex.push_back("\\'{O}");
+      trans_html.push_back("&Oacute;");
+      trans_uni.push_back("Ó");
+      
+      trans_latex.push_back("\\'{U}");
+      trans_html.push_back("&Uacute;");
+      trans_uni.push_back("Ú");
+      
+      trans_latex.push_back("\\`{A}");
+      trans_html.push_back("&Agrave;");
+      trans_uni.push_back("À");
+      
+      trans_latex.push_back("\\`{E}");
+      trans_html.push_back("&Egrave;");
+      trans_uni.push_back("È");
+      
+      trans_latex.push_back("\\`{I}");
+      trans_html.push_back("&Igrave;");
+      trans_uni.push_back("Ì");
+      
+      trans_latex.push_back("\\`{O}");
+      trans_html.push_back("&Ograve;");
+      trans_uni.push_back("Ò");
+      
+      trans_latex.push_back("\\`{U}");
+      trans_html.push_back("&Ugrave;");
+      trans_uni.push_back("Ù");
+      
+      trans_latex.push_back("\\\"{A}");
+      trans_html.push_back("&Auml;");
+      trans_uni.push_back("Ä");
+      
+      trans_latex.push_back("\\\"{E}");
+      trans_html.push_back("&Euml;");
+      trans_uni.push_back("Ë");
+      
+      trans_latex.push_back("\\\"{I}");
+      trans_html.push_back("&Iuml;");
+      trans_uni.push_back("Ï");
+      
+      trans_latex.push_back("\\\"{O}");
+      trans_html.push_back("&Ouml;");
+      trans_uni.push_back("Ö");
+      
+      trans_latex.push_back("\\\"{U}");
+      trans_html.push_back("&Uuml;");
+      trans_uni.push_back("Ü");
+      
+      
+      trans_latex.push_back("{\\'A}");
+      trans_html.push_back("&Aacute;");
+      trans_uni.push_back("Á");
+      
+      trans_latex.push_back("{\\'E}");
+      trans_html.push_back("&Eacute;");
+      trans_uni.push_back("É");
+      
+      trans_latex.push_back("{\\'I}");
+      trans_html.push_back("&Iacute;");
+      trans_uni.push_back("Í");
+      
+      trans_latex.push_back("{\\'O}");
+      trans_html.push_back("&Oacute;");
+      trans_uni.push_back("Ó");
+      
+      trans_latex.push_back("{\\'U}");
+      trans_html.push_back("&Uacute;");
+      trans_uni.push_back("Ú");
+      
+      trans_latex.push_back("{\\`A}");
+      trans_html.push_back("&Agrave;");
+      trans_uni.push_back("À");
+      
+      trans_latex.push_back("{\\`E}");
+      trans_html.push_back("&Egrave;");
+      trans_uni.push_back("È");
+      
+      trans_latex.push_back("{\\`I}");
+      trans_html.push_back("&Igrave;");
+      trans_uni.push_back("Ì");
+      
+      trans_latex.push_back("{\\`O}");
+      trans_html.push_back("&Ograve;");
+      trans_uni.push_back("Ò");
+      
+      trans_latex.push_back("{\\`U}");
+      trans_html.push_back("&Ugrave;");
+      trans_uni.push_back("Ù");
+      
+      trans_latex.push_back("{\\\"A}");
+      trans_html.push_back("&Auml;");
+      trans_uni.push_back("Ä");
+      
+      trans_latex.push_back("{\\\"E}");
+      trans_html.push_back("&Euml;");
+      trans_uni.push_back("Ë");
+      
+      trans_latex.push_back("{\\\"I}");
+      trans_html.push_back("&Iuml;");
+      trans_uni.push_back("Ï");
+      
+      trans_latex.push_back("{\\\"O}");
+      trans_html.push_back("&Ouml;");
+      trans_uni.push_back("Ö");
+      
+      trans_latex.push_back("{\\\"U}");
+      trans_html.push_back("&Uuml;");
+      trans_uni.push_back("Ü");
       
       remove_fields={"adsnote","date-added","annote","bdsk-url-1",
 		     "bdsk-url-2","date-modified","archiveprefix",
@@ -1729,6 +1912,17 @@ namespace btmanip {
       return s_in;
     }
 
+    /** \brief Translate LaTeX sequences to HTML
+     */
+    std::string reformat_latex_uni(std::string s_in) {
+      for(size_t i=0;i<trans_latex.size();i++) {
+	if (s_in.find(trans_latex[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_latex[i],trans_uni[i]);
+	}
+      }
+      return s_in;
+    }
+
     /** \brief Return the last name of the first author,
 	and "et al." if there is more than one author
     */
@@ -1810,15 +2004,20 @@ namespace btmanip {
     std::string author_firstlast(std::string s_in, 
 				 bool remove_braces=true,
 				 bool first_initial=true,
-				 bool convert_special_html=true) {
+				 int convert_special=1) {
 
       std::vector<std::string> firstv, lastv;
 
       parse_author(s_in,firstv,lastv);
 
       for(size_t k=0;k<lastv.size();k++) {
-	firstv[k]=reformat_latex_html(firstv[k]);
-	lastv[k]=reformat_latex_html(lastv[k]);
+	if (convert_special==1) {
+	  firstv[k]=reformat_latex_html(firstv[k]);
+	  lastv[k]=reformat_latex_html(lastv[k]);
+	} else if (convert_special==2) {
+	  firstv[k]=reformat_latex_uni(firstv[k]);
+	  lastv[k]=reformat_latex_uni(lastv[k]);
+	}
       }
 
       // Remove curly braces from all last names

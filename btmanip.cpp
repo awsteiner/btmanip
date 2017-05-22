@@ -1291,7 +1291,7 @@ namespace btmanip {
 	  if (bf.is_field_present(bt,"author")) {
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "`"
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
 		      << endl;
 	      (*outs) << "   <" << bf.get_field(bt,"url") 
 		      << ">`_," << endl;
@@ -1332,7 +1332,7 @@ namespace btmanip {
 	  
 	    if (bf.is_field_present(bt,"author")) {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
 		      << ", \"" << bf.get_field(bt2,"title")
 		      << "\" in" << endl;
 	    }
@@ -1358,7 +1358,7 @@ namespace btmanip {
 	  } else {
 	    if (bf.is_field_present(bt,"author")) {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
 		      << "," << endl;
 	    }
 	    if (bf.is_field_present(bt,"url")) {
@@ -1386,7 +1386,7 @@ namespace btmanip {
 
 	  if (bf.is_field_present(bt,"author")) {
 	    (*outs) << "    "
-		    << bf.author_firstlast(bf.get_field(bt,"author"))
+		    << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
 		    << "," << endl;
 	  }
 	  if (bf.is_field_present(bt,"url")) {
