@@ -55,6 +55,10 @@ namespace btmanip {
      */
     std::vector<std::string> trans_latex;
 
+    /** \brief LaTeX strings for translation
+     */
+    std::vector<std::string> trans_latex_alt;
+
     /** \brief HTML strings for translation
      */
     std::vector<std::string> trans_html;
@@ -86,6 +90,15 @@ namespace btmanip {
     /** \brief A sorted list of keys and indexes
      */
     std::map<std::string,size_t,std::less<std::string> > sort;
+
+    /// \name Special character handling
+    //@{
+    int spec_chars;
+    static const int sc_allow_all=0;
+    static const int sc_force_unicode=1;
+    static const int sc_force_html=2;
+    static const int sc_force_latex=3;
+    //@}
     
     /** \brief Remove extra whitespace inside entries (default false)
      */
@@ -150,247 +163,154 @@ namespace btmanip {
       add_empty_titles=true;
       remove_author_tildes=true;
       verbose=1;
-
-      trans_latex.push_back("\\'{a}");
-      trans_html.push_back("&aacute;");
-      trans_uni.push_back("á");
       
-      trans_latex.push_back("\\'{e}");
-      trans_html.push_back("&eacute;");
-      trans_uni.push_back("é");
-      
-      trans_latex.push_back("\\'{i}");
-      trans_html.push_back("&iacute;");
-      trans_uni.push_back("í");
-      
-      trans_latex.push_back("\\'{o}");
-      trans_html.push_back("&oacute;");
-      trans_uni.push_back("ó");
-      
-      trans_latex.push_back("\\'{u}");
-      trans_html.push_back("&uacute;");
-      trans_uni.push_back("ú");
-      
-      trans_latex.push_back("\\`{a}");
-      trans_html.push_back("&agrave;");
-      trans_uni.push_back("à");
-      
-      trans_latex.push_back("\\`{e}");
-      trans_html.push_back("&egrave;");
-      trans_uni.push_back("è");
-      
-      trans_latex.push_back("\\`{i}");
-      trans_html.push_back("&igrave;");
-      trans_uni.push_back("ì");
-      
-      trans_latex.push_back("\\`{o}");
-      trans_html.push_back("&ograve;");
-      trans_uni.push_back("ò");
-      
-      trans_latex.push_back("\\`{u}");
-      trans_html.push_back("&ugrave;");
-      trans_uni.push_back("ù");
-      
-      trans_latex.push_back("\\\"{a}");
-      trans_html.push_back("&auml;");
-      trans_uni.push_back("ä");
-      
-      trans_latex.push_back("\\\"{e}");
-      trans_html.push_back("&euml;");
-      trans_uni.push_back("ë");
-      
-      trans_latex.push_back("\\\"{i}");
-      trans_html.push_back("&iuml;");
-      trans_uni.push_back("ï");
-      
-      trans_latex.push_back("\\\"{o}");
-      trans_html.push_back("&ouml;");
-      trans_uni.push_back("ö");
-      
-      trans_latex.push_back("\\\"{u}");
-      trans_html.push_back("&uuml;");
-      trans_uni.push_back("ü");
-      
-
       trans_latex.push_back("{\\'a}");
+      trans_latex_alt.push_back("\\'{a}");
       trans_html.push_back("&aacute;");
       trans_uni.push_back("á");
       
       trans_latex.push_back("{\\'e}");
+      trans_latex_alt.push_back("\\'{e}");
       trans_html.push_back("&eacute;");
       trans_uni.push_back("é");
       
       trans_latex.push_back("{\\'i}");
+      trans_latex_alt.push_back("\\'{i}");
       trans_html.push_back("&iacute;");
       trans_uni.push_back("í");
       
       trans_latex.push_back("{\\'o}");
+      trans_latex_alt.push_back("\\'{o}");
       trans_html.push_back("&oacute;");
       trans_uni.push_back("ó");
       
       trans_latex.push_back("{\\'u}");
+      trans_latex_alt.push_back("\\'{u}");
       trans_html.push_back("&uacute;");
       trans_uni.push_back("ú");
       
       trans_latex.push_back("{\\`a}");
+      trans_latex_alt.push_back("\\`{a}");
       trans_html.push_back("&agrave;");
       trans_uni.push_back("à");
       
       trans_latex.push_back("{\\`e}");
+      trans_latex_alt.push_back("\\`{e}");
       trans_html.push_back("&egrave;");
       trans_uni.push_back("è");
       
       trans_latex.push_back("{\\`i}");
+      trans_latex_alt.push_back("\\`{i}");
       trans_html.push_back("&igrave;");
       trans_uni.push_back("ì");
       
       trans_latex.push_back("{\\`o}");
+      trans_latex_alt.push_back("\\`{o}");
       trans_html.push_back("&ograve;");
       trans_uni.push_back("ò");
- 
+      
       trans_latex.push_back("{\\`u}");
+      trans_latex_alt.push_back("\\`{u}");
       trans_html.push_back("&ugrave;");
       trans_uni.push_back("ù");
       
       trans_latex.push_back("{\\\"a}");
+      trans_latex_alt.push_back("\\\"{a}");
       trans_html.push_back("&auml;");
       trans_uni.push_back("ä");
       
       trans_latex.push_back("{\\\"e}");
+      trans_latex_alt.push_back("\\\"{e}");
       trans_html.push_back("&euml;");
       trans_uni.push_back("ë");
       
       trans_latex.push_back("{\\\"i}");
+      trans_latex_alt.push_back("\\\"{i}");
       trans_html.push_back("&iuml;");
       trans_uni.push_back("ï");
       
       trans_latex.push_back("{\\\"o}");
+      trans_latex_alt.push_back("\\\"{o}");
       trans_html.push_back("&ouml;");
       trans_uni.push_back("ö");
       
       trans_latex.push_back("{\\\"u}");
+      trans_latex_alt.push_back("\\\"{u}");
       trans_html.push_back("&uuml;");
       trans_uni.push_back("ü");
       
-      
-      trans_latex.push_back("\\'{A}");
-      trans_html.push_back("&Aacute;");
-      trans_uni.push_back("Á");
-      
-      trans_latex.push_back("\\'{E}");
-      trans_html.push_back("&Eacute;");
-      trans_uni.push_back("É");
-      
-      trans_latex.push_back("\\'{I}");
-      trans_html.push_back("&Iacute;");
-      trans_uni.push_back("Í");
-      
-      trans_latex.push_back("\\'{O}");
-      trans_html.push_back("&Oacute;");
-      trans_uni.push_back("Ó");
-      
-      trans_latex.push_back("\\'{U}");
-      trans_html.push_back("&Uacute;");
-      trans_uni.push_back("Ú");
-      
-      trans_latex.push_back("\\`{A}");
-      trans_html.push_back("&Agrave;");
-      trans_uni.push_back("À");
-      
-      trans_latex.push_back("\\`{E}");
-      trans_html.push_back("&Egrave;");
-      trans_uni.push_back("È");
-      
-      trans_latex.push_back("\\`{I}");
-      trans_html.push_back("&Igrave;");
-      trans_uni.push_back("Ì");
-      
-      trans_latex.push_back("\\`{O}");
-      trans_html.push_back("&Ograve;");
-      trans_uni.push_back("Ò");
-      
-      trans_latex.push_back("\\`{U}");
-      trans_html.push_back("&Ugrave;");
-      trans_uni.push_back("Ù");
-      
-      trans_latex.push_back("\\\"{A}");
-      trans_html.push_back("&Auml;");
-      trans_uni.push_back("Ä");
-      
-      trans_latex.push_back("\\\"{E}");
-      trans_html.push_back("&Euml;");
-      trans_uni.push_back("Ë");
-      
-      trans_latex.push_back("\\\"{I}");
-      trans_html.push_back("&Iuml;");
-      trans_uni.push_back("Ï");
-      
-      trans_latex.push_back("\\\"{O}");
-      trans_html.push_back("&Ouml;");
-      trans_uni.push_back("Ö");
-      
-      trans_latex.push_back("\\\"{U}");
-      trans_html.push_back("&Uuml;");
-      trans_uni.push_back("Ü");
-      
-      
       trans_latex.push_back("{\\'A}");
+      trans_latex_alt.push_back("\\'{A}");
       trans_html.push_back("&Aacute;");
       trans_uni.push_back("Á");
       
       trans_latex.push_back("{\\'E}");
+      trans_latex_alt.push_back("\\'{E}");
       trans_html.push_back("&Eacute;");
       trans_uni.push_back("É");
       
       trans_latex.push_back("{\\'I}");
+      trans_latex_alt.push_back("\\'{I}");
       trans_html.push_back("&Iacute;");
       trans_uni.push_back("Í");
       
       trans_latex.push_back("{\\'O}");
+      trans_latex_alt.push_back("\\'{O}");
       trans_html.push_back("&Oacute;");
       trans_uni.push_back("Ó");
       
       trans_latex.push_back("{\\'U}");
+      trans_latex_alt.push_back("\\'{U}");
       trans_html.push_back("&Uacute;");
       trans_uni.push_back("Ú");
       
       trans_latex.push_back("{\\`A}");
+      trans_latex_alt.push_back("\\`{A}");
       trans_html.push_back("&Agrave;");
       trans_uni.push_back("À");
       
       trans_latex.push_back("{\\`E}");
+      trans_latex_alt.push_back("\\`{E}");
       trans_html.push_back("&Egrave;");
       trans_uni.push_back("È");
       
       trans_latex.push_back("{\\`I}");
+      trans_latex_alt.push_back("\\`{I}");
       trans_html.push_back("&Igrave;");
       trans_uni.push_back("Ì");
       
       trans_latex.push_back("{\\`O}");
+      trans_latex_alt.push_back("\\`{O}");
       trans_html.push_back("&Ograve;");
       trans_uni.push_back("Ò");
       
       trans_latex.push_back("{\\`U}");
+      trans_latex_alt.push_back("\\`{U}");
       trans_html.push_back("&Ugrave;");
       trans_uni.push_back("Ù");
       
       trans_latex.push_back("{\\\"A}");
+      trans_latex_alt.push_back("\\\"{A}");
       trans_html.push_back("&Auml;");
       trans_uni.push_back("Ä");
       
       trans_latex.push_back("{\\\"E}");
+      trans_latex_alt.push_back("\\\"{E}");
       trans_html.push_back("&Euml;");
       trans_uni.push_back("Ë");
       
       trans_latex.push_back("{\\\"I}");
+      trans_latex_alt.push_back("\\\"{I}");
       trans_html.push_back("&Iuml;");
       trans_uni.push_back("Ï");
       
       trans_latex.push_back("{\\\"O}");
+      trans_latex_alt.push_back("\\\"{O}");
       trans_html.push_back("&Ouml;");
       trans_uni.push_back("Ö");
       
       trans_latex.push_back("{\\\"U}");
+      trans_latex_alt.push_back("\\\"{U}");
       trans_html.push_back("&Uuml;");
       trans_uni.push_back("Ü");
       
@@ -1900,6 +1820,57 @@ namespace btmanip {
      */
     size_t get_index_by_key(std::string key) {
       return sort.find(key)->second;
+    }
+
+    /** \brief Reformat special characters to latex
+     */
+    std::string spec_char_to_latex(std::string s_in) {
+      for(size_t i=0;i<trans_latex.size();i++) {
+	if (s_in.find(trans_html[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_html[i],trans_latex[i]);
+	}
+	if (s_in.find(trans_uni[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_uni[i],trans_latex[i]);
+	}
+	if (s_in.find(trans_latex_alt[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_latex_alt[i],trans_latex[i]);
+	}
+      }
+      return s_in;
+    }
+
+    /** \brief Reformat special characters to html
+     */
+    std::string spec_char_to_html(std::string s_in) {
+      for(size_t i=0;i<trans_latex.size();i++) {
+	if (s_in.find(trans_latex[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_latex[i],trans_html[i]);
+	}
+	if (s_in.find(trans_uni[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_uni[i],trans_html[i]);
+	}
+	if (s_in.find(trans_latex_alt[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_latex_alt[i],trans_html[i]);
+	}
+      }
+      return s_in;
+    }
+
+    /** \brief Reformat special characters to unicode
+     */
+    std::string spec_char_to_uni(std::string s_in) {
+      for(size_t i=0;i<trans_latex.size();i++) {
+	if (s_in.find(trans_latex[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_latex[i],trans_uni[i]);
+	}
+	if (s_in.find(trans_html[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_html[i],trans_uni[i]);
+	}
+	if (s_in.find(trans_latex_alt[i])!=std::string::npos) {
+	  boost::replace_all(s_in,trans_latex_alt[i],trans_uni[i]);
+	}
+      }
+      return s_in;
     }
 
     /** \brief Translate LaTeX sequences to HTML
