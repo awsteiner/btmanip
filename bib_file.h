@@ -91,7 +91,7 @@ namespace btmanip {
      */
     std::map<std::string,size_t,std::less<std::string> > sort;
 
-    /// \name Special character handling
+    /// \name Special character handling (default is <tt>sc_allow_all</tt>)
     //@{
     int spec_chars;
     static const int sc_allow_all=0;
@@ -313,6 +313,8 @@ namespace btmanip {
       trans_latex_alt.push_back("\\\"{U}");
       trans_html.push_back("&Uuml;");
       trans_uni.push_back("Ü");
+
+      spec_chars=sc_allow_all;
       
       remove_fields={"adsnote","date-added","annote","bdsk-url-1",
 		     "bdsk-url-2","date-modified","archiveprefix",
@@ -1873,28 +1875,19 @@ namespace btmanip {
       return s_in;
     }
 
-    /** \brief Translate LaTeX sequences to HTML
+    /** \brief Reformat special characters based on <tt>spec_chars</tt>
      */
-    std::string reformat_latex_html(std::string s_in) {
-      for(size_t i=0;i<trans_latex.size();i++) {
-	if (s_in.find(trans_latex[i])!=std::string::npos) {
-	  boost::replace_all(s_in,trans_latex[i],trans_html[i]);
-	}
+    std::string spec_char_auto(std::string s_in) {
+      if (spec_chars==sc_force_unicode) {
+	return spec_char_to_uni(s_in);
+      } else if (spec_chars==sc_force_html) {
+	return spec_char_to_html(s_in);
+      } else if (spec_chars==sc_force_latex) {
+	return spec_char_to_latex(s_in);
       }
       return s_in;
     }
-
-    /** \brief Translate LaTeX sequences to HTML
-     */
-    std::string reformat_latex_uni(std::string s_in) {
-      for(size_t i=0;i<trans_latex.size();i++) {
-	if (s_in.find(trans_latex[i])!=std::string::npos) {
-	  boost::replace_all(s_in,trans_latex[i],trans_uni[i]);
-	}
-      }
-      return s_in;
-    }
-
+    
     /** \brief Return the last name of the first author,
 	and "et al." if there is more than one author
     */
@@ -1975,22 +1968,18 @@ namespace btmanip {
     */
     std::string author_firstlast(std::string s_in, 
 				 bool remove_braces=true,
-				 bool first_initial=true,
-				 int convert_special=1) {
+				 bool first_initial=true) {
 
       std::vector<std::string> firstv, lastv;
 
       parse_author(s_in,firstv,lastv);
 
-      for(size_t k=0;k<lastv.size();k++) {
-	if (convert_special==1) {
-	  firstv[k]=reformat_latex_html(firstv[k]);
-	  lastv[k]=reformat_latex_html(lastv[k]);
-	} else if (convert_special==2) {
-	  firstv[k]=reformat_latex_uni(firstv[k]);
-	  lastv[k]=reformat_latex_uni(lastv[k]);
+      /*
+	for(size_t k=0;k<lastv.size();k++) {
+	firstv[k]=spec_char_auto(firstv[k]);
+	lastv[k]=spec_char_auto(lastv[k]);
 	}
-      }
+      */
 
       // Remove curly braces from all last names
       if (remove_braces) {

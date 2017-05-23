@@ -517,7 +517,7 @@ namespace btmanip {
 
 	// Authors
 	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false,false)+", \\\\";
+				 false,false)+", \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  (*outs) << slist[k] << std::endl;
@@ -706,7 +706,7 @@ namespace btmanip {
       
 	// Authors
 	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false,false)+", \\\\";
+				 false,false)+", \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  if (k!=slist.size()-1) {
@@ -1065,15 +1065,15 @@ namespace btmanip {
 	if (bf.is_field_present(bt,"url") &&
 	    bf.get_field(bt,"url").length()>0) {
 	  (*outs) << "<a href=\"" << bf.get_field(bt,"url")
-		  << "\">" << bf.reformat_latex_html(bf.short_author(bt))
+		  << "\">" << bf.spec_char_to_html(bf.short_author(bt))
 		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
 	} else if (bf.is_field_present(bt,"doi") &&
 		   bf.get_field(bt,"doi").length()>0) {
 	  (*outs) << "<a href=\"http://dx.doi.org/" << bf.get_field(bt,"url")
-		  << "\">" << bf.reformat_latex_html(bf.short_author(bt))
+		  << "\">" << bf.spec_char_to_html(bf.short_author(bt))
 		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
 	} else {
-	  (*outs) << bf.reformat_latex_html(bf.short_author(bt)) << " ("
+	  (*outs) << bf.spec_char_to_html(bf.short_author(bt)) << " ("
 		  << bf.get_field(bt,"year") << ")<br>" << endl;
 	}
       }
@@ -1265,7 +1265,7 @@ namespace btmanip {
 	reStructured Text format for Sphinx
     */
     virtual int rst(std::vector<std::string> &sv, bool itive_com) {
-    
+
       ostream *outs=&cout;
       ofstream fout;
       if (sv.size()>1) {
@@ -1289,25 +1289,25 @@ namespace btmanip {
 	if (bt.tag==((string)"Article")) {
 
 	  if (bf.is_field_present(bt,"author")) {
+	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+					    true,true);
+	    auth=bf.spec_char_to_uni(auth);
 	    if (bf.is_field_present(bt,"url")) {
-	      (*outs) << "`"
-		      << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
-		      << endl;
+	      (*outs) << "`" << auth << endl;
 	      (*outs) << "   <" << bf.get_field(bt,"url") 
 		      << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
-	      (*outs) << "`"
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
-		      << endl;
+	      (*outs) << "`" << auth << endl;
 	      (*outs) << "   <" << bf.get_field(bt,"doi") 
 		      << ">`_," << endl;
 	    } else {
-	      (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
-		      << "," << endl;
+	      (*outs) << auth << "," << endl;
 	    }
 	  }
 	  if (bf.is_field_present(bt,"journal")) {
-	    (*outs) << "   " << bf.get_field(bt,"journal") << " **";
+	    (*outs) << "   "
+		    << bf.spec_char_to_uni(bf.get_field(bt,"journal"))
+		    << " **";
 	  }
 	  if (bf.is_field_present(bt,"volume")) {
 	    (*outs) << bf.get_field(bt,"volume") << "** ";
@@ -1331,53 +1331,61 @@ namespace btmanip {
 	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
 	  
 	    if (bf.is_field_present(bt,"author")) {
-	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
-		      << ", \"" << bf.get_field(bt2,"title")
+	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+					      true,true);
+	      auth=bf.spec_char_to_uni(auth);
+	      (*outs) << "    " << auth << ", \""
+		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
 		      << "\" in" << endl;
 	    }
 	    if (bf.is_field_present(bt2,"url")) {
 	      (*outs) << "    <a href=\""
 		      << bf.get_field(bt2,"url") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt2,"title")
+		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
 	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
 		      << bf.get_field(bt2,"isbn") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt2,"title")
+		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	      (*outs) << "    "
+		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+		      << "," << endl;
 	    }
 	    (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
-		    << bf.get_field(bt2,"publisher") << ", p. "
-		    << bf.get_field(bt,"pages") << "." << endl;
+		    << bf.spec_char_to_uni(bf.get_field(bt2,"publisher"))
+		    << ", p. " << bf.get_field(bt,"pages") << "." << endl;
 	    (*outs) << endl;
 	  } else {
 	    if (bf.is_field_present(bt,"author")) {
-	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
-		      << "," << endl;
+	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+					      true,true);
+	      auth=bf.spec_char_to_uni(auth);
+	      (*outs) << "    " << auth << "," << endl;
 	    }
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "    <a href=\""
 		      << bf.get_field(bt,"url") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt,"title")
+		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt,"title")
+		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	      (*outs) << "    "
+		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+		      << "," << endl;
 	    }
 	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		    << bf.get_field(bt,"publisher") << ", p. "
+		    << bf.spec_char_to_uni(bf.get_field(bt,"publisher"))
+		    << ", p. "
 		    << bf.get_field(bt,"pages") << "." << endl;
 	    (*outs) << endl;
 	  }
@@ -1385,9 +1393,10 @@ namespace btmanip {
 	} else if (bt.tag==((string)"Book")) {
 
 	  if (bf.is_field_present(bt,"author")) {
-	    (*outs) << "    "
-		    << bf.author_firstlast(bf.get_field(bt,"author"),1,1,2)
-		    << "," << endl;
+	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+					    true,true);
+	    auth=bf.spec_char_to_uni(auth);
+	    (*outs) << "    " << auth << "," << endl;
 	  }
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "    <a href=\""
@@ -1399,16 +1408,20 @@ namespace btmanip {
 	    (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
 		    << bf.get_field(bt,"isbn") << "\">" << endl;
 	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
+		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
 		    << "</a>," << endl;
 	  } else {
-	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    (*outs) << "    "
+		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+		    << "," << endl;
 	  }
 	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		  << bf.get_field(bt,"publisher");
+		  << bf.spec_char_to_uni(bf.get_field(bt,"publisher"));
 	  if (bf.is_field_present(bt,"note") &&
 	      bf.get_field(bt,"note").length()>0) {
-	    (*outs) << "\n    (" << bf.get_field(bt,"note") << ")";
+	    (*outs) << "\n    ("
+		    << bf.spec_char_to_uni(bf.get_field(bt,"note"))
+		    << ")";
 	  }
 	  (*outs) << ".\n" << endl;
 	}
