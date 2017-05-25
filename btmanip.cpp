@@ -525,7 +525,7 @@ namespace btmanip {
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
-	  (*outs) << "\\href{http://dx.doi.org/"
+	  (*outs) << "\\href{https://dx.doi.org/"
 		  << bf.get_field(bt,"doi") << "}" << endl;
 	  (*outs) << "{{\\it " << bf.get_field(bt,"journal")
 		  << "} {\\bf " << bf.get_field(bt,"volume")
@@ -538,7 +538,7 @@ namespace btmanip {
 	}
       
 	if (bf.is_field_present(bt,"eprint")) {
-	  (*outs) << "(\\href{http://www.arxiv.org/abs/"
+	  (*outs) << "(\\href{https://www.arxiv.org/abs/"
 		  << bf.get_field(bt,"eprint") << "}{arXiv:"
 		  << bf.get_field(bt,"eprint") << "}";
 	  if (bf.is_field_present(bt,"citations")
@@ -661,8 +661,8 @@ namespace btmanip {
 	First Last, First2 Last2 year, jour, \textbf{volume}, pages.
 	\endverbatim
 
-	The URL is set to ``http://dx.doi.org/`` plus 
-	the ``DOI`` field (if present) or ``http://www.arxiv.org/``
+	The URL is set to ``https://dx.doi.org/`` plus 
+	the ``DOI`` field (if present) or ``https://www.arxiv.org/``
 	plus the ``eprint`` field if no ``DOI`` field is present.
 	The ``url`` field is ignored. If a field called 
 	``title_latex`` is present, it is used instead of the
@@ -685,10 +685,10 @@ namespace btmanip {
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
-	  (*outs) << "\\item \\href{http://dx.doi.org/"
+	  (*outs) << "\\item \\href{https://dx.doi.org/"
 		  << bf.get_field(bt,"doi") << "}" << endl;
 	} else {
-	  (*outs) << "\\item \\href{http://www.arxiv.org/abs/"
+	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
 		  << bf.get_field(bt,"eprint") << "}{arXiv:"
 		  << bf.get_field(bt,"eprint") << "}" << endl;
 	}
@@ -1069,7 +1069,7 @@ namespace btmanip {
 		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
 	} else if (bf.is_field_present(bt,"doi") &&
 		   bf.get_field(bt,"doi").length()>0) {
-	  (*outs) << "<a href=\"http://dx.doi.org/" << bf.get_field(bt,"url")
+	  (*outs) << "<a href=\"https://dx.doi.org/" << bf.get_field(bt,"url")
 		  << "\">" << bf.spec_char_to_html(bf.short_author(bt))
 		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
 	} else {
@@ -1121,7 +1121,7 @@ namespace btmanip {
 		      << bf.author_firstlast(bf.get_field(bt,"author"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
-	      (*outs) << "    <a href=\"http://dx.doi.org/"
+	      (*outs) << "    <a href=\"https://dx.doi.org/"
 		      << bf.get_field(bt,"doi") << "\">" << endl;
 	      (*outs) << "    "
 		      << bf.author_firstlast(bf.get_field(bt,"author"))
@@ -1183,7 +1183,7 @@ namespace btmanip {
 		      << bf.get_field(bt2,"title")
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
-	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt2,"isbn") << "\">" << endl;
 	      (*outs) << "    "
 		      << bf.get_field(bt2,"title")
@@ -1208,7 +1208,7 @@ namespace btmanip {
 		      << bf.get_field(bt,"title")
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
-	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << "\">" << endl;
 	      (*outs) << "    "
 		      << bf.get_field(bt,"title")
@@ -1236,7 +1236,7 @@ namespace btmanip {
 		    << bf.get_field(bt,"title")
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
-	    (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+	    (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		    << bf.get_field(bt,"isbn") << "\">" << endl;
 	    (*outs) << "    "
 		    << bf.get_field(bt,"title")
@@ -1345,7 +1345,7 @@ namespace btmanip {
 		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
-	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt2,"isbn") << "\">" << endl;
 	      (*outs) << "    "
 		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
@@ -1373,7 +1373,7 @@ namespace btmanip {
 		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
-	      (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << "\">" << endl;
 	      (*outs) << "    "
 		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
@@ -1405,7 +1405,7 @@ namespace btmanip {
 		    << bf.get_field(bt,"title")
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
-	    (*outs) << "    <a href=\"http://www.worldcat.org/isbn/"
+	    (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		    << bf.get_field(bt,"isbn") << "\">" << endl;
 	    (*outs) << "    "
 		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
