@@ -903,8 +903,8 @@ namespace btmanip {
 	if (is_field_present(bt,"doi")) {
 	  if (is_field_present(bt,"url")) {
 	    std::string &url=get_field(bt,"url");
-	    if (url.substr(0,17)!=((std::string)"http://dx.doi.org")) {
-	      url=((std::string)"http://dx.doi.org/")+
+	    if (url.substr(0,17)!=((std::string)"https://dx.doi.org")) {
+	      url=((std::string)"https://dx.doi.org/")+
 		get_field(bt,"doi");
 	      changed=true;
 	      if (verbose>1) {
@@ -914,7 +914,7 @@ namespace btmanip {
 	    }
 	  } else {
 	    std::vector<std::string> val;
-	    val.push_back(((std::string)"http://dx.doi.org/")+
+	    val.push_back(((std::string)"https://dx.doi.org/")+
 			  get_field(bt,"doi"));
 	    bt.fields.push_back(std::make_pair("url",val));
 	    changed=true;
