@@ -117,6 +117,8 @@ Todo List
 	  to operate one entry at a time.
 .. todo:: Use the bibtex-spirit writer?
 .. todo:: Unicode support?	  
+.. todo:: The code seems to crash if there are errant backslashes in
+	  the journal name.
       
 Indices and tables
 ==================
