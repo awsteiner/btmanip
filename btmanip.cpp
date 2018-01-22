@@ -1584,8 +1584,11 @@ namespace btmanip {
 	 "This command is an alias for 'change-key'.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::change_key),cli::comm_option_both},
-	{0,"ak","",0,0,"","",
-	 new comm_option_mfptr<btmanip_class>
+	{0,"auto-key","Automatically set keys for all entries.",0,0,"",
+	 ((std::string)"This command automatically sets the key ")+
+	 "for all entries equal to the Last name of the first "+
+	 "author, a two-digit year, and the first two letters of "+
+	 "the title.",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::auto_key),cli::comm_option_both},
 	{'f',"set-field",
 	 "For entry <key> and field <field>, set its value to <value>.",2,3,
