@@ -6,7 +6,7 @@ SPHINXOPTS    = -d build
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = btmanip
 SOURCEDIR     = .
-BUILDDIR      = ../../int4/web/utk/btmanip
+BUILDDIR      = .
 
 # Put it first so that "make" without argument is like "make help".
 help:

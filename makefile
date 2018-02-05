@@ -77,8 +77,7 @@ clean:
 doc: empty
 	cd doc; doxygen doxyfile
 	cd sphinx; make html
-	cd ~/wcs/int4/web/utk/btmanip; cp -r html/* .; \
-		rm -rf html
+	sudo cp -r sphinx/html/* $(STATIC_DOC_DIR)/btmanip
 
 empty: 
 
