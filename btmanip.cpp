@@ -534,7 +534,7 @@ namespace btmanip {
 		  << ".} \\\\" << endl;
 	} else if (bf.is_field_present(bt,"journal")) {
 	  (*outs) << "{\\it " << bf.get_field(bt,"journal")
-		  << " (submitted)} \\\\" << endl;
+		  << "}. \\\\" << endl;
 	}
       
 	if (bf.is_field_present(bt,"eprint")) {
