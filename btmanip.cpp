@@ -729,7 +729,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Desc    
+    /** \brief Plain output of talks for DOE progress reports 
      */
     virtual int plain(std::vector<std::string> &sv, bool itive_com) {
 
@@ -767,6 +767,14 @@ namespace btmanip {
 	// Conference
 	if (bf.is_field_present(bt,"conference")) {
 	  std::string conf=bf.get_field(bt,"conference");
+	  std::vector<std::string> slist;
+	  rewrap(conf,slist,800);
+	  (*outs) << slist[0] << ", ";
+	}
+
+	// Institution
+	if (bf.is_field_present(bt,"institution")) {
+	  std::string conf=bf.get_field(bt,"institution");
 	  std::vector<std::string> slist;
 	  rewrap(conf,slist,800);
 	  (*outs) << slist[0] << ", ";
@@ -1553,17 +1561,17 @@ namespace btmanip {
 	{'t',"text","Output a text file.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text),
 	 cli::comm_option_both},
-	{'c',"cv","Create output for a CV.",0,1,"[file]","",
+	{'c',"cv","Create output for a LaTeX CV.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv),
 	 cli::comm_option_both},
-	{0,"cvt","Create presentations output for a CV.",0,1,"[file]","",
+	{0,"cvt","Create talks output for a LaTeX CV.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv_talks),
 	 cli::comm_option_both},
 	{'n',"nsf","Output LaTeX source for an NSF bio sketch.",
 	 0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::nsf),
 	 cli::comm_option_both},
-	{0,"plain","Plain.",
+	{0,"plain","Plain text output of talks for DOE progress report.",
 	 0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::plain),
 	 cli::comm_option_both},

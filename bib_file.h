@@ -147,6 +147,29 @@ namespace btmanip {
      */
     int verbose;
 
+    /** \brief Month names
+     */
+    std::vector<std::string> months_long;
+
+    /** \brief Short month names
+     */
+    std::vector<std::string> months_short;
+
+    /** \brief Short month names
+     */
+    std::vector<std::string> months_four;
+
+    /** \brief Short month names
+     */
+    //@{
+    int month_format;
+    static const int month_format_long=0;
+    static const int month_format_four=1;
+    static const int month_format_short=2;
+    static const int month_format_short_dot=3;
+    static const int month_format_num=4;
+    //@}
+
     /** \brief Create a ``bib_file`` object
      */
     bib_file() {
@@ -319,6 +342,15 @@ namespace btmanip {
       remove_fields={"adsnote","date-added","annote","bdsk-url-1",
 		     "bdsk-url-2","date-modified","archiveprefix",
 		     "primaryclass","abstract"};
+      months_long={"January","February","March","April","May","June",
+		   "July","August","September","October","November",
+		   "December"};
+      months_short={"Jan","Feb","Mar","Apr","May","Jun",
+		    "Jul","Aug","Sep","Oct","Nov",
+		    "Dec"};
+      months_four={"Jan.","Feb.","Mar.","Apr.","May.","June",
+		   "July","Aug.","Sep.","Oct.","Nov.",
+		   "Dec."};
     }
 
     /** \brief Convert all characters in a string to lower case
