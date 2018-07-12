@@ -729,6 +729,74 @@ namespace btmanip {
       return 0;
     }
   
+    /** \brief Desc    
+     */
+    virtual int plain(std::vector<std::string> &sv, bool itive_com) {
+
+      ostream *outs=&cout;
+      ofstream fout;
+      if (sv.size()>1) {
+	std::string fname=sv[1];
+	fout.open(fname);
+	outs=&fout;
+      }
+
+      std::string stmp;
+      int count=0;
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+
+	// Authors
+	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+				 false,false);
+	bf.tilde_to_space(stmp);
+	(*outs) << count+1 << ") ";
+	(*outs) << stmp << ", ";
+	
+	(*outs) << bf.get_field(bt,"month") << " ";
+	(*outs) << bf.get_field(bt,"year") << ", ";
+	
+	// Title
+	{
+	  std::string title=bf.get_field(bt,"title");
+	  std::vector<std::string> slist;
+	  rewrap(title,slist,800);
+	  (*outs) << slist[0] << ", ";
+	}
+
+	// Conference
+	if (bf.is_field_present(bt,"conference")) {
+	  std::string conf=bf.get_field(bt,"conference");
+	  std::vector<std::string> slist;
+	  rewrap(conf,slist,800);
+	  (*outs) << slist[0] << ", ";
+	}
+
+	if (bf.is_field_present(bt,"city")) {
+	  (*outs) << bf.get_field(bt,"city") << ", ";
+	}
+	if (bf.is_field_present(bt,"country")) {
+	  if (bf.is_field_present(bt,"state")) {
+	    (*outs) << bf.get_field(bt,"state") << ", ";
+	  }
+	  (*outs) << bf.get_field(bt,"country") << ".";
+	} else {
+	  if (bf.is_field_present(bt,"state")) {
+	    (*outs) << bf.get_field(bt,"state") << ".";
+	  }
+	}
+
+	(*outs) << endl;
+	count++;
+      }
+    
+      if (sv.size()>1) {
+	fout.close();
+      }
+
+      return 0;
+    }
+  
     /** \brief Output the BibTeX data as a new .bib file
      */
     virtual int bib(std::vector<std::string> &sv, bool itive_com) {
@@ -1459,7 +1527,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=31;
+      static const int nopt=32;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1494,6 +1562,10 @@ namespace btmanip {
 	{'n',"nsf","Output LaTeX source for an NSF bio sketch.",
 	 0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::nsf),
+	 cli::comm_option_both},
+	{0,"plain","Plain.",
+	 0,1,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::plain),
 	 cli::comm_option_both},
 	{'b',"bib","Output a .bib file.",0,1,"[file]",
 	 ((std::string)"Output all of the current entries in .bib ")+
