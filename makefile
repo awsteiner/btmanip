@@ -64,9 +64,11 @@ endif
 
 btmanip: btmanip.o
 	$(CXX) $(FLAGS) -o btmanip btmanip.o $(LIBS)
+	@echo "Use 'sudo make install' to install to "
+	@echo $(BIN_DIR)
 
 install:
-	sudo cp btmanip $(BIN_DIR)
+	cp btmanip $(BIN_DIR)
 
 btmanip.o: btmanip.cpp bib_file.h hdf_bibtex.h
 	$(CXX) $(FLAGS) $(INCS) -I. -c -o btmanip.o btmanip.cpp

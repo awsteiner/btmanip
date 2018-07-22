@@ -1187,7 +1187,7 @@ namespace btmanip {
 		  << ":" << endl;
 	}
 
-	if (bt.tag==((string)"Article")) {
+	if (bf.lower_string(bt.tag)==((string)"article")) {
 
 	  if (bf.is_field_present(bt,"author")) {
 	    if (bf.is_field_present(bt,"url")) {
@@ -1238,7 +1238,7 @@ namespace btmanip {
 	  }
 	  (*outs) << endl;
 
-	} else if (bt.tag==((string)"InBook")) {
+	} else if (bf.lower_string(bt.tag)==((string)"inbook")) {
 
 	  if (bf.is_field_present(bt,"crossref") &&
 	      bf.get_field(bt,"crossref").length()>0) {
@@ -1298,7 +1298,7 @@ namespace btmanip {
 	    (*outs) << endl;
 	  }
 
-	} else if (bt.tag==((string)"Book")) {
+	} else if (bf.lower_string(bt.tag)==((string)"book")) {
 
 	  if (bf.is_field_present(bt,"author")) {
 	    (*outs) << "    "
@@ -1362,7 +1362,7 @@ namespace btmanip {
 	  (*outs) << ".. [" << *bt.key << "] ";
 	}
 
-	if (bt.tag==((string)"Article")) {
+	if (bf.lower_string(bt.tag)==((string)"article")) {
 
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
@@ -1398,7 +1398,7 @@ namespace btmanip {
 	  }
 	  (*outs) << endl;
 
-	} else if (bt.tag==((string)"InBook")) {
+	} else if (bf.lower_string(bt.tag)==((string)"inbook")) {
 
 	  if (bf.is_field_present(bt,"crossref") &&
 	      bf.get_field(bt,"crossref").length()>0) {
@@ -1435,7 +1435,9 @@ namespace btmanip {
 		    << bf.spec_char_to_uni(bf.get_field(bt2,"publisher"))
 		    << ", p. " << bf.get_field(bt,"pages") << "." << endl;
 	    (*outs) << endl;
+	    
 	  } else {
+	    
 	    if (bf.is_field_present(bt,"author")) {
 	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					      true,true);
@@ -1466,7 +1468,7 @@ namespace btmanip {
 	    (*outs) << endl;
 	  }
 
-	} else if (bt.tag==((string)"Book")) {
+	} else if (bf.lower_string(bt.tag)==((string)"book")) {
 
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
@@ -1499,6 +1501,28 @@ namespace btmanip {
 		    << bf.spec_char_to_uni(bf.get_field(bt,"note"))
 		    << ")";
 	  }
+	  (*outs) << ".\n" << endl;
+
+	} else if (bf.lower_string(bt.tag)==((string)"mastersthesis")) {
+
+	  if (bf.is_field_present(bt,"author")) {
+	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+					    true,true);
+	    auth=bf.spec_char_to_uni(auth);
+	    (*outs) << "    " << auth << "," << endl;
+	  }
+	  if (bf.is_field_present(bt,"url")) {
+	    (*outs) << "    <a href=\""
+		    << bf.get_field(bt,"url") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else {
+	    (*outs) << "    "
+		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+		    << "," << endl;
+	  }
+	  (*outs) << "    (" << bf.get_field(bt,"year") << ")";
 	  (*outs) << ".\n" << endl;
 	}
       }
