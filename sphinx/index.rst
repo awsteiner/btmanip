@@ -110,15 +110,18 @@ Class bib_file
 Todo List
 =========
 
-.. todo:: Automatically remove curly braces from last author in clean
-.. todo:: Better documentation
-.. todo:: Move code from bib_file.h to new source file bib_file.cpp
+.. todo:: Better documentation.
+.. todo:: A mechanism for removing curly braces and other 'extra'
+          characters from author and title entries for text mode. (How
+          do we distinguish necessary from unnecessary curly braces?)
+          See discussion in parse_author() docs.
+.. todo:: Move code from bib_file.h to a new source file bib_file.cpp
 .. todo:: In clean, remove tildes from author lists, and rework loop
 	  to operate one entry at a time.
 .. todo:: Use the bibtex-spirit writer?
 .. todo:: Unicode support?	  
 .. todo:: The code seems to crash if there are errant backslashes in
-	  the journal name.
+	  the journal name. Fix this.
       
 Indices and tables
 ==================

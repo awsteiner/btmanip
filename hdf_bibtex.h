@@ -40,96 +40,17 @@ namespace btmanip {
   /** \brief Desc
    */
   void hdf_output(o2scl_hdf::hdf_file &hf, bibtex::BibTeXEntry &ent, 
-		  std::string name) {
-  
-    // Start group
-    hid_t top=hf.get_current_id();
-    hid_t group=hf.open_group(name);
-    hf.set_current_id(group);
-
-    // Add typename
-    hf.sets_fixed("o2scl_type","vector<BibTeXEntry>");
-    
-    std::ostringstream strout;
-    bib_file bf;
-    bf.bib_output_one(strout,ent);
-    
-    hf.sets(name,strout.str());
-
-    // Close group
-    hf.close_group(group);
-
-    // Return location to previous value
-    hf.set_current_id(top);
-
-    return;
-  }
-
+		  std::string name);
   /** \brief Desc
    */
   void hdf_output(o2scl_hdf::hdf_file &hf,
 		  std::vector<bibtex::BibTeXEntry> &ents, 
-		  std::string name) {
-  
-    // Start group
-    hid_t top=hf.get_current_id();
-    hid_t group=hf.open_group(name);
-    hf.set_current_id(group);
-
-    // Add typename
-    hf.sets_fixed("o2scl_type","vector<BibTeXEntry>");
-
-    std::ostringstream strout;
-    bib_file bf;
-    for(size_t i=0;i<ents.size();i++) {
-      bf.bib_output_one(strout,ents[i]);
-      strout << std::endl;
-    }
-    
-    hf.sets(name,strout.str());
-
-    // Close group
-    hf.close_group(group);
-
-    // Return location to previous value
-    hf.set_current_id(top);
-
-    return;
-  }
-
+		  std::string name);
   /** \brief Desc
    */
   void hdf_input(o2scl_hdf::hdf_file &hf,
 		 std::vector<bibtex::BibTeXEntry> &ents, 
-		 std::string name="") {
-
-    // If no name specified, find name of first group of specified type
-    if (name.length()==0) {
-      hf.find_group_by_type("vector<BibTeXEntry>",name);
-      if (name.length()==0) {
-	O2SCL_ERR2("No object of type vector<BibTeXEntry> found in ",
-		   "hdf_input().",o2scl::exc_efailed);
-      }
-    }
-  
-    // Open main group
-    hid_t top=hf.get_current_id();
-    hid_t group=hf.open_group(name);
-    hf.set_current_id(group);
-
-    std::string s;
-    hf.gets(name,s);
-    std::istringstream iss(s);
-    bibtex::read(iss,ents); 
-
-    // Close group
-    hf.close_group(group);
-
-    // Return location to previous value
-    hf.set_current_id(top);
-
-    return;
-  }
+		 std::string name="");
 
 }
 

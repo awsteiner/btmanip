@@ -1,6 +1,6 @@
 .cli_hist
 btmanip
-btmanip.o
+*.o
 doc/btmanip.tag
 doc/doxygen.log
 *~

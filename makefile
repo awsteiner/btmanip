@@ -62,8 +62,9 @@ endif
 # Targets (hopefully you shouldn't need to change these)
 # ---------------------------------------------------------------
 
-btmanip: btmanip.o
-	$(CXX) $(FLAGS) -o btmanip btmanip.o $(LIBS)
+btmanip: btmanip.o bib_file.o hdf_bibtex.o
+	$(CXX) $(FLAGS) -o btmanip btmanip.o bib_file.o hdf_bibtex.o \
+		$(LIBS)
 	@echo "Use 'sudo make install' to install to "
 	@echo $(BIN_DIR)
 
@@ -72,6 +73,12 @@ install:
 
 btmanip.o: btmanip.cpp bib_file.h hdf_bibtex.h
 	$(CXX) $(FLAGS) $(INCS) -I. -c -o btmanip.o btmanip.cpp
+
+hdf_bibtex.o: btmanip.cpp bib_file.h hdf_bibtex.h
+	$(CXX) $(FLAGS) $(INCS) -I. -c -o hdf_bibtex.o hdf_bibtex.cpp
+
+bib_file.o: bib_file.h hdf_bibtex.h
+	$(CXX) $(FLAGS) $(INCS) -I. -c -o bib_file.o bib_file.cpp
 
 clean:
 	rm -f btmanip *.o
