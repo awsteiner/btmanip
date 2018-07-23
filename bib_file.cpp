@@ -281,7 +281,7 @@ std::string bib_file::lower_string(std::string s) {
   return s;
 }
 
-int bib_file::read_journals(std::string fname="") {
+int bib_file::read_journals(std::string fname) {
   if (journals.size()>0) {
     journals.clear();
   }
@@ -514,3 +514,1492 @@ void bib_file::remove_or(std::vector<std::string> &args) {
   }
   return;
 }
+
+void bib_file::search_and(std::vector<std::string> &args) {
+
+  if (args.size()==0 || args.size()%2!=0) {
+    O2SCL_ERR("Need a set of field and pattern pairs in search_and().",
+	      o2scl::exc_einval);
+  }
+      
+  for(size_t k=0;k<args.size();k+=2) {
+
+    std::string field=lower_string(args[k]);
+    std::string pattern=args[k+1];
+	
+    std::vector<bibtex::BibTeXEntry> entries2;
+
+    for(size_t i=0;i<entries.size();i++) {
+      bool entry_matches=false;
+      bibtex::BibTeXEntry &bt=entries[i];
+      for(size_t j=0;j<bt.fields.size();j++) {
+	std::string tmp=lower_string(bt.fields[j].first);
+	if (tmp==field &&
+	    fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+	  entry_matches=true;
+	}
+      }
+      if (entry_matches) {
+	entries2.push_back(bt);
+      }
+    }
+
+    if (entries2.size()>0) {
+      std::swap(entries,entries2);
+    } else {
+      if (verbose>0) {
+	std::cout << "No records found." << std::endl;
+      }
+      return;
+    }
+  }
+
+  if (verbose>0) {
+    if (entries.size()==1) {
+      std::cout << "1 record found." << std::endl;
+    } else {
+      std::cout << entries.size() << " records found." << std::endl;
+    }
+  }
+
+  return;
+}
+
+void bib_file::entry_check_required(bibtex::BibTeXEntry &bt) {
+  if (lower_string(bt.tag)==((std::string)"article")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("Article missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Article missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"journal")) {
+      O2SCL_ERR("Article missing journal field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("Article missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"book")) {
+    if (!is_field_present(bt,"author","editor")) {
+      O2SCL_ERR("Book missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Book missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"publisher")) {
+      O2SCL_ERR("Book missing publisher field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("Book missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"booklet")) {
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Booklet missing title field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"conference")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("Conference missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Conference missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"booktitle")) {
+      O2SCL_ERR("Conference missing booktitle field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("Conference missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"inbook")) {
+    if (!is_field_present(bt,"author","editor")) {
+      O2SCL_ERR("InBook missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("InBook missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"chapter","pages")) {
+      O2SCL_ERR("InBook missing chapter field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"publisher")) {
+      O2SCL_ERR("InBook missing publisher field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("InBook missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"incollection")) {
+    if (!is_field_present(bt,"author","editor")) {
+      O2SCL_ERR("InCollection missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("InCollection missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"publisher")) {
+      O2SCL_ERR("InCollection missing publisher field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("InCollection missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"inproceedings")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("InProceedings missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("InProceedings missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"booktitle")) {
+      O2SCL_ERR("InProceedings missing booktitle field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("InProceedings missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"manual")) {
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Manual missing title field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"mastersthesis")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("MastersThesis missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("MastersThesis missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"school")) {
+      O2SCL_ERR("MastersThesis missing school field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("MastersThesis missing year field.",
+		o2scl::exc_einval);
+    }
+    //} else if (lower_string(bt.tag)==((std::string)"Misc")) {
+    // Misc has no required fields
+  } else if (lower_string(bt.tag)==((std::string)"phdthesis")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("PhDThesis missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("PhDThesis missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"school")) {
+      O2SCL_ERR("PhDThesis missing school field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("PhDThesis missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"proceedings")) {
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Proceedings missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("Proceedings missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"techreport")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("TechReport missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("TechReport missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"institution")) {
+      O2SCL_ERR("TechReport missing institution field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"year")) {
+      O2SCL_ERR("TechReport missing year field.",
+		o2scl::exc_einval);
+    }
+  } else if (lower_string(bt.tag)==((std::string)"unpublished")) {
+    if (!is_field_present(bt,"author")) {
+      O2SCL_ERR("Unpublished missing author field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"title")) {
+      O2SCL_ERR("Unpublished missing title field.",
+		o2scl::exc_einval);
+    }
+    if (!is_field_present(bt,"note")) {
+      O2SCL_ERR("Unpublished missing note field.",
+		o2scl::exc_einval);
+    }
+  }
+  return;
+}
+
+bool bib_file::entry_add_empty_title(bibtex::BibTeXEntry &bt) {
+      
+  bool changed=false;
+  if (lower_string(bt.tag)==((std::string)"article") ||
+      lower_string(bt.tag)==((std::string)"inproceedings")) {
+    if (!is_field_present(bt,"title")) {
+      std::vector<std::string> val;
+      val.push_back(" ");
+      bt.fields.push_back(std::make_pair("title",val));
+      changed=true;
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " added empty title." << std::endl;
+      }
+    }
+  }
+  return changed;
+}
+    
+bool bib_file::entry_autoformat_url(bibtex::BibTeXEntry &bt) {
+  bool changed=false;
+  if (lower_string(bt.tag)==((std::string)"article")) {
+    if (is_field_present(bt,"doi")) {
+      if (is_field_present(bt,"url")) {
+	std::string &url=get_field(bt,"url");
+	if (url.substr(0,17)!=((std::string)"https://doi.org")) {
+	  url=((std::string)"https://doi.org/")+
+	    get_field(bt,"doi");
+	  changed=true;
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " reformatted url to " << url << std::endl;
+	  }
+	}
+      } else {
+	std::vector<std::string> val;
+	val.push_back(((std::string)"https://doi.org/")+
+		      get_field(bt,"doi"));
+	bt.fields.push_back(std::make_pair("url",val));
+	changed=true;
+	if (verbose>1) {
+	  std::cout << "In entry with key " << *bt.key
+		    << " added url field " << val[0] << std::endl;
+	}
+      }
+    }
+  } else if (lower_string(bt.tag)==((std::string)"book")) {
+    if (is_field_present(bt,"isbn") && !is_field_present(bt,"url")) {
+      std::vector<std::string> val;
+      val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
+		    get_field(bt,"isbn"));
+      bt.fields.push_back(std::make_pair("url",val));
+      changed=true;
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " added url field " << val[0] << std::endl;
+      }
+    }
+  }
+  return changed;
+}
+    
+bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
+  bool changed=false;
+  if (is_field_present(bt,"journal") &&
+      is_field_present(bt,"volume")) {
+    std::string volume=get_field(bt,"volume");
+    std::string journal=get_field(bt,"journal");
+    if (journal==((std::string)"Phys. Rev.") &&
+	(volume[0]=='A' || volume[0]=='a' ||
+	 volume[0]=='B' || volume[0]=='b' ||
+	 volume[0]=='C' || volume[0]=='c' ||
+	 volume[0]=='D' || volume[0]=='d' ||
+	 volume[0]=='E' || volume[0]=='e')) {
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " reformatting journal and volume from "
+		  << journal << ", " << volume << " to ";
+      }
+      changed=true;
+      journal+=" ";
+      journal+=std::toupper(volume[0]);
+      volume=volume.substr(1,volume.length()-1);
+      if (verbose>1) {
+	std::cout << journal << ", " << volume << std::endl;
+      }
+      get_field(bt,"journal")=journal;
+      get_field(bt,"volume")=volume;
+    }
+    if (journal==((std::string)"Eur. Phys. J.") &&
+	(volume[0]=='A' || volume[0]=='a' ||
+	 volume[0]=='B' || volume[0]=='b' ||
+	 volume[0]=='C' || volume[0]=='c' ||
+	 volume[0]=='D' || volume[0]=='d' ||
+	 volume[0]=='E' || volume[0]=='e')) {
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " reformatting journal and volume from "
+		  << journal << ", " << volume << " to ";
+      }
+      changed=true;
+      journal+=" ";
+      journal+=std::toupper(volume[0]);
+      volume=volume.substr(1,volume.length()-1);
+      if (verbose>1) {
+	std::cout << journal << ", " << volume << std::endl;
+      }
+      get_field(bt,"journal")=journal;
+      get_field(bt,"volume")=volume;
+    }
+    if (journal==((std::string)"Nucl. Phys.") &&
+	(volume[0]=='A' || volume[0]=='a' ||
+	 volume[0]=='B' || volume[0]=='b')) {
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " reformatting journal and volume from "
+		  << journal << ", " << volume << " to ";
+      }
+      changed=true;
+      journal+=" ";
+      journal+=std::toupper(volume[0]);
+      volume=volume.substr(1,volume.length()-1);
+      if (verbose>1) {
+	std::cout << journal << ", " << volume << std::endl;
+      }
+      get_field(bt,"journal")=journal;
+      get_field(bt,"volume")=volume;
+    }
+    if (journal==((std::string)"Phys. Lett.") &&
+	(volume[0]=='A' || volume[0]=='a' ||
+	 volume[0]=='B' || volume[0]=='b')) {
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " reformatting journal and volume from "
+		  << journal << ", " << volume << " to ";
+      }
+      changed=true;
+      journal+=" ";
+      journal+=std::toupper(volume[0]);
+      volume=volume.substr(1,volume.length()-1);
+      if (verbose>1) {
+	std::cout << journal << ", " << volume << std::endl;
+      }
+      get_field(bt,"journal")=journal;
+      get_field(bt,"volume")=volume;
+    }
+  }
+  return changed;
+}
+    
+void bib_file::clean(bool prompt) {
+
+  size_t empty_titles_added=0;
+  size_t entries_fields_removed=0;
+  size_t journals_renamed=0;
+  size_t urls_reformatted=0;
+  size_t vol_letters_moved=0;
+  size_t tags_normalized=0;
+  size_t author_fields_notilde=0;
+      
+  if (verbose>1) {
+    std::cout << "normalize_tags: " << normalize_tags << std::endl;
+    std::cout << "lowercase_fields: " << lowercase_fields << std::endl;
+    std::cout << "recase_tag: " << recase_tag << std::endl;
+    std::cout << "reformat_journal: " << reformat_journal << std::endl;
+    std::cout << "check_required: " << check_required << std::endl;
+    std::cout << "remove_extra_whitespace: "
+	      << remove_extra_whitespace << std::endl;
+    std::cout << "remove_vol_letters: " << remove_vol_letters << std::endl;
+    std::cout << "natbib_jours: " << natbib_jours << std::endl;
+    std::cout << "autoformat_urls: " << autoformat_urls << std::endl;
+    std::cout << "add_empty_titles: " << add_empty_titles << std::endl;
+    std::cout << "remove_author_tildes: " << remove_author_tildes
+	      << std::endl;
+  }
+
+  if (entries.size()==0) {
+    std::cout << "No entries to clean." << std::endl;
+  }
+
+  std::vector<bool> entry_changed(entries.size());
+      
+  // Reformat if necessary. This loop is over each entry
+  for(size_t i=0;i<entries.size();i++) {
+    entry_changed[i]=false;
+	
+    bool this_empty_titles_added=false;
+    bool this_entries_fields_removed=false;
+    bool this_journals_renamed=false;
+    bool this_urls_reformatted=false;
+    bool this_vol_letters_moved=false;
+    bool this_tags_normalized=false;
+    bool this_author_fields_notilde=false;
+
+    // Make a copy
+    bibtex::BibTeXEntry bt=entries[i];
+
+    if (normalize_tags) {
+	  
+      std::string old_tag=bt.tag;
+      // Capitalize first letter and downcase all other letters
+      bt.tag[0]=std::toupper(bt.tag[0]);
+      for(size_t i=1;i<bt.tag.size();i++) {
+	bt.tag[i]=std::tolower(bt.tag[i]);
+      }
+      // Manually fix tags which normally have more than one
+      // uppercase letter
+      if (bt.tag==((std::string)"Inbook")) {
+	bt.tag="InBook";
+      } else if (bt.tag==((std::string)"Incollection")) {
+	bt.tag="InCollection";
+      } else if (bt.tag==((std::string)"Inproceedings")) {
+	bt.tag="InProceedings";
+      } else if (bt.tag==((std::string)"Mastersthesis")) {
+	bt.tag="MastersThesis";
+      } else if (bt.tag==((std::string)"Phdthesis")) {
+	bt.tag="PhDThesis";
+      } else if (bt.tag==((std::string)"Techreport")) {
+	bt.tag="TechReport";
+      }
+      if (bt.tag!=old_tag) {
+	entry_changed[i]=true;
+	this_tags_normalized=true;
+      }
+    }
+
+    if (remove_author_tildes && is_field_present(bt,"author")) {
+      std::string old_auth=get_field(bt,"author"), auth=old_auth;
+      tilde_to_space(auth);
+      if (auth!=old_auth) {
+	set_field_value(bt,"author",auth);
+	entry_changed[i]=true;
+	this_author_fields_notilde=true;
+      }
+    }
+	
+    // Loop over each field
+
+    bool restart_loop=true;
+    while (restart_loop) {
+      restart_loop=false;
+	  
+      for(size_t j=0;j<bt.fields.size();j++) {
+	    
+	// Ensure the field name is all lowercase
+	if (lowercase_fields) {
+	  std::string fitemp=bt.fields[j].first, fitemp2=fitemp;
+	  for(size_t k=0;k<fitemp2.size();k++) {
+	    fitemp2[k]=std::tolower(fitemp2[k]);
+	  }
+	  if (fitemp2!=fitemp) {
+	    bt.fields[j].first=fitemp2;
+	    entry_changed[i]=true;
+	  }
+	}
+
+	// Remove extra braces from each value
+	std::string &valtemp=bt.fields[j].second[0];
+	bool removed_verb=false;
+	while (valtemp.length()>=4 && valtemp[0]=='{' &&
+	       valtemp[1]=='{' && valtemp[valtemp.size()-1]=='}' &&
+	       valtemp[valtemp.size()-2]=='}') {
+	  valtemp=valtemp.substr(1,valtemp.size()-2);
+	  entry_changed[i]=true;
+	  if (removed_verb==false && verbose>1) {
+	    std::cout << "Removing extra braces in entry with key "
+		      << *bt.key << " for field " << bt.fields[j].first
+		      << "with value:\n" << valtemp << std::endl;
+	    removed_verb=true;
+	  }
+	}
+
+	// Remove extra fields
+	bool field_removed=false;
+	for(size_t k=0;k<remove_fields.size();k++) {
+	  if (bt.fields[j].first==((std::string)remove_fields[k])) {
+	    if (verbose>1) {
+	      std::cout << "Removing extra field "
+			<< bt.fields[j].first
+			<< " in entry with key " << *bt.key << std::endl;
+	    }
+	    bt.fields.erase(bt.fields.begin()+j);
+	    restart_loop=true;
+	    j=bt.fields.size();
+	    field_removed=true;
+	    entry_changed[i]=true;
+	  }
+	}
+
+	if (field_removed) {
+	  this_entries_fields_removed=true;
+	}
+	  
+	if (field_removed==false) {
+	    
+	  if (bt.fields[j].second.size()==0) {
+	    std::string err=((std::string)"Field ")+bt.fields[j].first+
+	      " has no values";
+	    O2SCL_ERR(err.c_str(),o2scl::exc_einval);
+	  } else if (bt.fields[j].second.size()>1) {
+	    std::string err=((std::string)"Field ")+bt.fields[j].first+
+	      " has more than one value";
+	    O2SCL_ERR(err.c_str(),o2scl::exc_einval);
+	  }
+	  
+	  if (remove_extra_whitespace) {
+	    for(size_t k=0;k<bt.fields[j].second.size();k++) {
+	      std::string old=bt.fields[j].second[k];
+	      thin_whitespace(bt.fields[j].second[k]);
+	      if (bt.fields[j].second[k]!=old) {
+		entry_changed[i]=true;
+	      }
+	    }
+	  }
+
+	  // Reformat journal name by replacing it with the
+	  // standard abbreviation
+	  if (reformat_journal &&
+	      bt.fields[j].first==((std::string)"journal") &&
+	      journals.size()>0 ) {
+	    if (bt.fields[j].second.size()>0) {
+	      std::string jour=bt.fields[j].second[0];
+	      std::string abbrev;
+	      if (find_abbrev(jour,abbrev)==0) {
+		if (jour!=abbrev) {
+		  if (verbose>1) {
+		    std::cout << "Reformatting journal " << jour << " to "
+			      << abbrev << std::endl;
+		  }
+		  bt.fields[j].second[0]=abbrev;
+		  this_journals_renamed=true;
+		  entry_changed[i]=true;
+		}
+	      } else {
+		std::cout << "Journal " << jour << " not found in key "
+			  << *bt.key << " ." << std::endl;
+	      }
+	    }
+	  }
+
+	  // End of if (field_removed==false)
+	}
+	// End of loop over fields
+      }
+    }
+
+    // If the journal letter is in the volume, move to
+    // the journal field
+    if (remove_vol_letters) {
+      if (entry_remove_vol_letters(bt)) {
+	entry_changed[i]=true;
+	this_vol_letters_moved=true;
+      }
+    }
+
+    // If necessary, create an article URL from the
+    // DOI entry
+    if (autoformat_urls) {
+      if (entry_autoformat_url(bt)) {
+	entry_changed[i]=true;
+	this_urls_reformatted=true;
+      }
+    }
+		  
+    // Add empty title to an article if necessary
+    if (add_empty_titles) {
+      if (entry_add_empty_title(bt)) {
+	entry_changed[i]=true;
+	this_empty_titles_added=true;
+      }
+    }
+
+    // If requested, check that required fields are present
+    // for each entry
+    if (normalize_tags && lowercase_fields && check_required) {
+      entry_check_required(bt);
+    }
+
+    if (entry_changed[i]==true) {
+      bool accept=false;
+      if (prompt) {
+	char ch;
+	do {
+	  std::cout << "\nChanging " << i << " of " << entries.size()
+		    << "\n" << std::endl;
+	  bib_output_one(std::cout,entries[i]);
+	  std::cout << "\nto\n" << std::endl;
+	  bib_output_one(std::cout,bt);
+	  std::cout << std::endl;
+	  if (this_empty_titles_added) {
+	    std::cout << "Empty title added." << std::endl;
+	  }
+	  if (this_entries_fields_removed) {
+	    std::cout << "Some fields removed." << std::endl;
+	  }
+	  if (this_journals_renamed) {
+	    std::cout << "Journal renamed." << std::endl;
+	  }
+	  if (this_urls_reformatted) {
+	    std::cout << "URL reformatted." << std::endl;
+	  }
+	  if (this_vol_letters_moved) {
+	    std::cout << "Volume letter moved." << std::endl;
+	  }
+	  if (this_tags_normalized) {
+	    std::cout << "Tag name recapitalized." << std::endl;
+	  }
+	  if (this_author_fields_notilde) {
+	    std::cout << "Removed tildes from author names." << std::endl;
+	  }
+	  std::cout << "\nYes (y), no (n), yes to all (Y), no to all (N)? ";
+	  std::cin >> ch;
+	  if (ch=='y') {
+	    accept=true;
+	  }
+	  if (ch=='Y') prompt=false;
+	  if (ch=='n' || ch=='N') {
+	    entry_changed[i]=false;
+	  }
+	  if (ch=='N') {
+	    i=entries.size();
+	  }
+	} while (ch!='n' && ch!='N' && ch!='y' && ch!='Y');
+      } else {
+	accept=true;
+      }
+      if (accept) {
+	entries[i]=bt;
+	std::cout << "Tag: " << entries[i].tag << std::endl;
+	std::cout << "Author: " << get_field(entries[i],"author")
+		  << std::endl;
+	if (this_empty_titles_added) {
+	  empty_titles_added++;
+	}
+	if (this_entries_fields_removed) {
+	  entries_fields_removed++;
+	}
+	if (this_journals_renamed) {
+	  journals_renamed++;
+	}
+	if (this_urls_reformatted) {
+	  urls_reformatted++;
+	}
+	if (this_vol_letters_moved) {
+	  vol_letters_moved++;
+	}
+	if (this_tags_normalized) {
+	  tags_normalized++;
+	}
+	if (this_author_fields_notilde) {
+	  author_fields_notilde++;
+	}
+      }
+    }
+	
+    // End of loop over entries
+  }
+
+  if (verbose>0) {
+    // Count entries that changed
+    size_t nch=0;
+    for(size_t k=0;k<entries.size();k++) {
+      if (entry_changed[k]) nch++;
+    }
+    std::cout << nch << " entries changed out of " << entries.size()
+	      << std::endl;
+    if (normalize_tags) {
+      std::cout << tags_normalized << " tags normalized."
+		<< std::endl;
+    }
+    if (add_empty_titles) {
+      std::cout << empty_titles_added << " emtpy titles added."
+		<< std::endl;
+    }
+    std::cout << entries_fields_removed
+	      << " entries with extra fields removed." << std::endl;
+    if (reformat_journal) {
+      std::cout << journals_renamed << " journal names standardized."
+		<< std::endl;
+    }
+    if (autoformat_urls) {
+      std::cout << urls_reformatted << " URLs reformatted."
+		<< std::endl;
+    }
+    if (remove_vol_letters) {
+      std::cout << vol_letters_moved << " volume letters moved."
+		<< std::endl;
+    }
+    if (remove_author_tildes) {
+      std::cout << author_fields_notilde << " author fields cleaned "
+		<< "of tildes." << std::endl;
+    }
+  }
+      
+  return;
+}
+
+int bib_file::set_field_value(bibtex::BibTeXEntry &bt, std::string field,
+			      std::string value) {
+  for(size_t j=0;j<bt.fields.size();j++) {
+    if (bt.fields[j].first==field) {
+      bt.fields[j].second[0]=value;
+      return 0;
+    }
+  }
+  std::vector<std::string> list={value};
+  // If the field is not found, then add it
+  bt.fields.push_back(std::make_pair(field,list));
+      
+  return 0;
+}
+    
+int bib_file::set_field_value(std::string key, std::string field,
+			      std::string value) {
+  bibtex::BibTeXEntry &bt=get_entry_by_key(key);
+  return set_field_value(bt,field,value);
+}
+    
+void bib_file::parse_bib(std::string fname) {
+
+  // Erase current entries
+  if (entries.size()>0) {
+    entries.clear();
+    sort.clear();
+  }
+      
+  // Main parse call
+  if (verbose>1) std::cout << "Main parse call." << std::endl;
+  std::ifstream in(fname.c_str());
+  bibtex::read(in,entries); 
+  in.close();
+  if (verbose>1) std::cout << "Done with main parse call." << std::endl;
+
+  // Loop over entries
+  for(size_t i=0;i<entries.size();i++) {
+      
+    bibtex::BibTeXEntry &bt=entries[i];
+
+    // Insert to the map for sorting
+    if (bt.key) {
+      if (sort.find(*bt.key)==sort.end()) {
+	sort.insert(make_pair(*bt.key,i));
+      } else {
+	std::cout << "Warning: multiple copies with key "
+		  << *bt.key << "." << std::endl;
+      }
+    } else {
+      O2SCL_ERR("This class does not support keyless entries.",
+		o2scl::exc_efailed);
+    }
+
+    if (verbose>1) {
+      std::cout << "Entry " << i+1 << " of " << entries.size();
+      std::cout << ", tag: " << bt.tag;
+      if (bt.key) {
+	std::cout << ", key: " << *bt.key << std::endl;
+      } else {
+	std::cout << ", (no key)." << std::endl;
+      }
+    }
+
+    // End of loop over entries
+  }
+
+  /* 
+     This test will fail if there are multiple entries with
+     the same key. We currently allow this, thus this 
+     test must be removed. 
+  */
+  if (false && entries.size()!=sort.size()) {
+    std::cout << "Entries: " << entries.size() << " sort: "
+	      << sort.size() << std::endl;
+    O2SCL_ERR2("Entries and sort structures mismatched in ",
+	       "bib_file::parse_bib().",o2scl::exc_efailed);
+  }
+      
+  if (verbose>0) {
+    std::cout << "Read " << entries.size() << " entries from file "
+	      << fname << std::endl;
+  }
+
+  // Just for debugging
+  if (false) {
+    std::cout << "Sort: " << std::endl;
+    for(std::map<std::string,size_t,
+	  std::greater<std::string> >::iterator it=sort.begin();
+	it!=sort.end();it++) {
+      std::cout << it->first << " " << it->second << std::endl;
+    }
+  }
+      
+  return;
+}
+    
+void bib_file::refresh_sort() {
+  sort.clear();
+  // Go through all entries
+  for(size_t i=0;i<entries.size();i++) {
+    bibtex::BibTeXEntry &bt=entries[i];
+    // If the key is not already in the sort map, add it
+    if (sort.find(*bt.key)==sort.end()) {
+      sort.insert(make_pair(*bt.key,i));
+    }
+  }
+  return;
+}
+    
+void bib_file::sort_bib() {
+
+  if (entries.size()!=sort.size()) {
+    O2SCL_ERR("Cannot sort when two entries have the same key.",
+	      o2scl::exc_efailed);
+  }
+      
+  std::vector<bibtex::BibTeXEntry> entries2;
+  for(std::map<std::string,size_t,
+	std::greater<std::string> >::iterator it=sort.begin();
+      it!=sort.end();it++) {
+    entries2.push_back(entries[it->second]);
+  }
+  std::swap(entries,entries2);
+  refresh_sort();
+      
+  return;
+}
+    
+void bib_file::bib_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
+
+  // Output tag and key
+  outs << "@" << bt.tag << "{";
+  if (bt.key) outs << *bt.key;
+  outs << "," << std::endl;
+      
+  for(size_t j=0;j<bt.fields.size();j++) {
+
+    if (bt.fields[j].second.size()>0) {
+
+      // Construct and output field string, including spaces to
+      // make it 16 characters. This is the same as the default
+      // emacs formatting.
+      std::string field_s=((std::string)"  ")+bt.fields[j].first+" =";
+      while (field_s.length()<16) field_s+=" ";
+      outs << field_s;
+
+      // Determine if the field value needs extra braces
+      bool with_braces=true;
+      if (bt.fields[j].first=="year") {
+	with_braces=false;
+      }
+      if (bt.fields[j].second[0][0]=='{' &&
+	  bt.fields[j].second[0][bt.fields[j].second[0].size()-1]=='}' &&
+	  bt.fields[j].second[0].find('{',1)==std::string::npos) {
+	with_braces=false;
+      }
+      // Don't surround purely numeric values with braces
+      // unless they begin with a '0'. 
+      if ((bt.fields[j].first=="pages" ||
+	   bt.fields[j].first=="numpages" ||
+	   bt.fields[j].first=="volume" ||
+	   bt.fields[j].first=="issue" ||
+	   bt.fields[j].first=="isbn" ||
+	   bt.fields[j].first=="citations" ||
+	   bt.fields[j].first=="adscites" ||
+	   bt.fields[j].first=="number") &&
+	  bt.fields[j].second[0].size()>0 &&
+	  bt.fields[j].second[0][0]!='0') {
+	bool has_nonnum=false;
+	for(size_t i=0;i<bt.fields[j].second[0].size();i++) {
+	  if (!isdigit(bt.fields[j].second[0][i])) {
+	    has_nonnum=true;
+	  }
+	}
+	if (has_nonnum==false) {
+	  with_braces=false;
+	}
+      }
+
+      // Output with or without braces, and with or without a
+      // comma, as necessary
+      if (with_braces==false) {
+	if (j+1==bt.fields.size()) {
+	  outs << bt.fields[j].second[0] << std::endl;
+	} else {
+	  outs << bt.fields[j].second[0] << "," << std::endl;
+	}
+      } else {
+	if (j+1==bt.fields.size()) {
+	  outs << "{" << bt.fields[j].second[0] << "}" << std::endl;
+	} else {
+	  outs << "{" << bt.fields[j].second[0] << "}," << std::endl;
+	}
+      }
+    }
+  }
+
+  // Output final brace
+  outs << "}" << std::endl;
+      
+  return;
+}
+
+int bib_file::possible_duplicate(bibtex::BibTeXEntry &bt,
+				 bibtex::BibTeXEntry &bt2) {
+  std::string lower_tag1=bt.tag, lower_tag2=bt2.tag;
+  std::string lower_key1=*bt.key, lower_key2=*bt2.key;
+  for (size_t k=0;k<lower_tag1.size();k++) {
+    lower_tag1[k]=std::tolower(lower_tag1[k]);
+  }
+  for (size_t k=0;k<lower_tag2.size();k++) {
+    lower_tag2[k]=std::tolower(lower_tag2[k]);
+  }
+  for (size_t k=0;k<lower_key1.size();k++) {
+    lower_key1[k]=std::tolower(lower_key1[k]);
+  }
+  for (size_t k=0;k<lower_key2.size();k++) {
+    lower_key2[k]=std::tolower(lower_key2[k]);
+  }
+  if (lower_tag1==lower_tag2 && lower_key1==lower_key2) {
+    return 1;
+  }
+  // First, check to see if tag, journal, volume and first page all match
+  if (lower_tag1==lower_tag2 &&
+      is_field_present(bt,"volume") &&
+      is_field_present(bt,"pages") &&
+      is_field_present(bt2,"volume") &&
+      is_field_present(bt2,"pages") &&
+      get_field(bt,"volume")==get_field(bt2,"volume") &&
+      first_page(get_field(bt,"pages"))==
+      first_page(get_field(bt2,"pages"))) {
+    // Then, check that journal fields are present
+    if (is_field_present(bt,"journal") &&
+	is_field_present(bt2,"journal")) {
+      std::string j1=get_field(bt,"journal");
+      std::string j2=get_field(bt2,"journal");
+      // If we can, get the standard abbreviation for each
+      if (journals.size()>0) {
+	find_abbrev(j1,j1);
+	find_abbrev(j2,j2);
+      }
+      // Finally, check journal
+      if (j1==j2) {
+	return 2;
+      }
+    }
+  }
+  return 0;
+}
+
+void bib_file::list_possible_duplicates(bibtex::BibTeXEntry &bt,
+					std::vector<size_t> &list) {
+  list.clear();
+  for(size_t i=0;i<entries.size();i++) {
+    bibtex::BibTeXEntry &bt2=entries[i];
+    if (possible_duplicate(bt,bt2)>0) {
+      list.push_back(i);
+    }
+  }
+  return;
+}
+    
+void bib_file::text_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
+  outs << "tag: " << bt.tag << std::endl;
+  if (bt.key) outs << "key: " << *bt.key << std::endl;
+  for(size_t j=0;j<bt.fields.size();j++) {
+    outs << bt.fields[j].first << ": ";
+    if (bt.fields[j].second.size()>0) {
+      outs << bt.fields[j].second[0] << std::endl;
+    } else {
+      outs << "(none)" << std::endl;
+    }
+    if (bt.fields[j].first==((std::string)"author")) {
+      if (bt.fields[j].second.size()>0) {
+	outs << "author (reformat): " 
+	     << author_firstlast(bt.fields[j].second[0])
+	     << std::endl;
+      }
+    }
+  }
+  return;
+}
+    
+void bib_file::add_bib(std::string fname) {
+
+  std::vector<bibtex::BibTeXEntry> entries2;
+
+  // Main parse call
+  if (verbose>1) std::cout << "Main parse call." << std::endl;
+  std::ifstream in(fname.c_str());
+  bibtex::read(in,entries2); 
+  in.close();
+  if (verbose>1) std::cout << "Done with main parse call." << std::endl;
+
+  // Loop over entries
+  for(size_t i=0;i<entries2.size();i++) {
+
+    bibtex::BibTeXEntry &bt=entries2[i];
+
+    std::vector<size_t> list;
+    list_possible_duplicates(bt,list);
+    if (list.size()>0) {
+      std::cout << "When adding entry:\n" << std::endl;
+      bib_output_one(std::cout,bt);
+      std::cout << "\n" << list.size() << " possible duplicates in the "
+		<< "current list were found:\n" << std::endl;
+      for(size_t j=0;j<list.size();j++) {
+	bib_output_one(std::cout,entries[list[j]]);
+      }
+      if (list.size()==1) {
+	std::cout << "\nAdd entry anyway (y), replace (r), "
+		  << "stop add (s) or ignore (i)? " << std::flush;
+      } else {
+	std::cout << "\nAdd entry anyway (y), "
+		  << "stop add (s) or ignore (i)? " << std::flush;
+      }
+      char ch;
+      std::cin >> ch;
+      if (ch=='y' || ch=='Y') {
+	entries.push_back(bt);
+	    
+	if (!bt.key) {
+	  O2SCL_ERR("This class does not support keyless entries.",
+		    o2scl::exc_efailed);
+	}
+	    
+	// Insert to the map for sorting
+	sort.insert(make_pair(*bt.key,entries.size()-1));
+	    
+	if (verbose>1) {
+	  std::cout << "Entry " << i+1 << " of " << entries2.size();
+	  std::cout << ", tag: " << bt.tag;
+	  std::cout << ", key: " << *bt.key << std::endl;
+	}
+      } else if (list.size()==1 && (ch=='r' || ch=='R')) {
+	std::cout << "Replacing " << *(entries[list[0]].key)
+		  << " with " << *bt.key << std::endl;
+	entries[list[0]]=bt;
+      } else if (ch=='s' || ch=='S') {
+	std::cout << "Stopping add." << std::endl;
+	i=entries2.size();
+      } else {
+	std::cout << "Ignoring " << *bt.key << std::endl;
+      }
+    } else {
+      // If this entry is not marked as a possible duplicate,
+      // add it.
+      entries.push_back(bt);
+    }
+	
+    // End of loop over entries
+  }
+      
+  /* 
+     This test will fail if there are multiple entries with
+     the same key. We currently allow this, thus this 
+     test must be removed. 
+  */
+      
+  if (verbose>0) {
+    std::cout << "Read " << entries2.size() << " entries from file \""
+	      << fname << "\". Now " << entries.size() 
+	      << " total entries with " << sort.size()
+	      << " sortable entries." << std::endl;
+  }
+
+  return;
+}
+
+bool bib_file::is_key_present(std::string key) {
+  if (sort.find(key)==sort.end()) return false;
+  return true;
+}
+
+bibtex::BibTeXEntry &bib_file::get_entry_by_key(std::string key) {
+  return entries[sort.find(key)->second];
+}
+
+void bib_file::change_key(std::string key1, std::string key2) {
+  size_t ix=sort.find(key1)->second;
+  if (sort.find(key2)!=sort.end()) {
+    O2SCL_ERR("Key 2 already present in change_key().",
+	      o2scl::exc_einval);
+  }
+  bibtex::BibTeXEntry bt=entries[ix];      
+  entries.erase(entries.begin()+ix);
+  *bt.key=key2;
+  entries.push_back(bt);
+  refresh_sort();
+  return;
+}
+    
+size_t bib_file::get_index_by_key(std::string key) {
+  return sort.find(key)->second;
+}
+
+std::string bib_file::spec_char_to_latex(std::string s_in) {
+  for(size_t i=0;i<trans_latex.size();i++) {
+    if (s_in.find(trans_html[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_html[i],trans_latex[i]);
+    }
+    if (s_in.find(trans_uni[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_uni[i],trans_latex[i]);
+    }
+    if (s_in.find(trans_latex_alt[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_latex_alt[i],trans_latex[i]);
+    }
+  }
+  return s_in;
+}
+
+std::string bib_file::spec_char_to_html(std::string s_in) {
+  for(size_t i=0;i<trans_latex.size();i++) {
+    if (s_in.find(trans_latex[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_latex[i],trans_html[i]);
+    }
+    if (s_in.find(trans_uni[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_uni[i],trans_html[i]);
+    }
+    if (s_in.find(trans_latex_alt[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_latex_alt[i],trans_html[i]);
+    }
+  }
+  return s_in;
+}
+
+std::string bib_file::spec_char_to_uni(std::string s_in) {
+  for(size_t i=0;i<trans_latex.size();i++) {
+    if (s_in.find(trans_latex[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_latex[i],trans_uni[i]);
+    }
+    if (s_in.find(trans_html[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_html[i],trans_uni[i]);
+    }
+    if (s_in.find(trans_latex_alt[i])!=std::string::npos) {
+      boost::replace_all(s_in,trans_latex_alt[i],trans_uni[i]);
+    }
+  }
+  return s_in;
+}
+
+std::string bib_file::spec_char_auto(std::string s_in) {
+  if (spec_chars==sc_force_unicode) {
+    return spec_char_to_uni(s_in);
+  } else if (spec_chars==sc_force_html) {
+    return spec_char_to_html(s_in);
+  } else if (spec_chars==sc_force_latex) {
+    return spec_char_to_latex(s_in);
+  }
+  return s_in;
+}
+    
+std::string bib_file::short_author(bibtex::BibTeXEntry &bt) {
+  std::string auth=get_field(bt,"author");
+  std::vector<std::string> firstv, lastv;
+  parse_author(auth,firstv,lastv);
+  std::string ret;
+  if (firstv.size()>1) {
+    ret=lastv[0]+" et al.";
+  } else {
+    ret=lastv[0];
+  }
+  return ret;
+}
+    
+std::string bib_file::last_name_first_author(bibtex::BibTeXEntry &bt) {
+  std::string auth=get_field(bt,"author");
+  std::vector<std::string> firstv, lastv;
+  parse_author(auth,firstv,lastv);
+  std::string ret=lastv[0];
+  if (ret[0]=='{' && ret[ret.length()-1]=='}') {
+    ret=ret.substr(1,ret.length()-2);
+  }
+  return ret;
+}
+    
+void bib_file::parse_author(std::string s_in,
+			    std::vector<std::string> &firstv, 
+			    std::vector<std::string> &lastv,
+			    bool remove_braces) {
+
+  // Look for a comma
+  size_t comma_loc=s_in.find(',');
+  if (comma_loc!=std::string::npos) {
+
+    // If a comma is found, assume "last, first and" notation
+	
+    std::istringstream *is=new std::istringstream(s_in.c_str());
+    std::string stmp;
+    while ((*is) >> stmp) {
+      std::string first, last=stmp;
+      bool done=false;
+      while (done==false && stmp[stmp.length()-1]!=',') {
+	if (!((*is) >> stmp)) {
+	  done=true;
+	} else {
+	  last+=((std::string)" ")+stmp;
+	}
+      }
+      if (done==true) {
+	firstv.push_back("(none)");
+	lastv.push_back(last);
+      } else {
+	while ((*is) >> stmp && stmp!=((std::string)"and")) {
+	  if (first.length()==0) {
+	    first=stmp;
+	  } else {
+	    first+=((std::string)" ")+stmp;
+	  }
+	}
+	if (last[last.length()-1]==',') {
+	  last=last.substr(0,last.length()-1);
+	}
+	firstv.push_back(first);
+	lastv.push_back(last);
+      }
+    }
+
+  } else {
+
+    // Assume "first last and" notation
+	
+    std::istringstream *is=new std::istringstream(s_in.c_str());
+    std::string stmp;
+    std::string stmp2;
+    (*is) >> stmp;
+    firstv.push_back("");
+    while ((*is) >> stmp2) {
+      if (stmp2==(std::string)"and") {
+	lastv.push_back(stmp);
+	firstv.push_back("");
+	stmp=stmp2;
+	(*is) >> stmp2;
+      } else {
+	if (firstv[firstv.size()-1].length()>0) {
+	  firstv[firstv.size()-1]+=((std::string)" ")+stmp;
+	} else {
+	  firstv[firstv.size()-1]=stmp;
+	}
+      }
+      stmp=stmp2;
+    }
+    lastv.push_back(stmp);
+
+  }
+
+  // Remove extra curly braces from all last names
+  if (remove_braces) {
+    for(size_t k=0;k<lastv.size();k++) {
+      if (lastv[k][0]=='{' and lastv[k][lastv[k].length()-1]=='}') {
+	lastv[k]=lastv[k].substr(1,lastv[k].length()-2);
+      }
+    }
+  }
+
+  /*
+    std::cout << "ra done" << std::endl;
+    for(size_t i=0;i<firstv.size();i++) {
+    std::cout << i << " First: " << firstv[i] << " Last: "
+    << lastv[i] << std::endl;
+    }
+  */
+
+  return;
+}
+
+std::string bib_file::author_firstlast(std::string s_in, 
+				       bool remove_braces,
+				       bool first_initial) {
+
+  std::vector<std::string> firstv, lastv;
+
+  parse_author(s_in,firstv,lastv,remove_braces);
+
+  /*
+    for(size_t k=0;k<lastv.size();k++) {
+    firstv[k]=spec_char_auto(firstv[k]);
+    lastv[k]=spec_char_auto(lastv[k]);
+    }
+  */
+
+  // Convert first (and middle) names to first initials
+  if (first_initial) {
+
+    // Go through all of the first names in the list
+    for(size_t k=0;k<firstv.size();k++) {
+      // Go through each character in the name
+      for(size_t j=0;j<firstv[k].length();j++) {
+	// Look for an upper case character
+	if (isupper(firstv[k][j])) {
+
+	  // Count lowercase characters immediately after
+	  size_t lower_count=0;
+	  for(size_t jj=j+1;jj<firstv[k].length();jj++) {
+	    if (islower(firstv[k][jj])) {
+	      lower_count++;
+	    } else {
+	      jj=firstv[k].length();
+	    }
+	  }
+
+	  // If there is at least one, then remove them
+	  if (lower_count>0) {
+	    std::string temp;
+	    // Look for a dot, and add one if not already present
+	    if (firstv[k][j+lower_count+1]=='.') {
+	      temp=firstv[k].substr(0,j+1)+
+		firstv[k].substr(j+1+lower_count,
+				 firstv[k].length()-j-1-lower_count);
+	    } else {
+	      temp=firstv[k].substr(0,j+1)+'.'+
+		firstv[k].substr(j+1+lower_count,
+				 firstv[k].length()-j-1-lower_count);
+	    }
+	    firstv[k]=temp;
+
+	    // Start over at the beginning of the first name
+	    // string looking for lower case letters to remove
+	    j=0;
+	  }
+	}
+      }
+    }
+  }
+
+  // Now construct s_out from the firstv and lastv objects
+  if (firstv.size()==1) {
+    s_in=firstv[0]+" "+lastv[0];
+  } else if (firstv.size()==2) {
+    s_in=firstv[0]+" "+lastv[0]+" ";
+    s_in+="and "+firstv[firstv.size()-1]+" "+lastv[1];
+  } else {
+    s_in="";
+    for(size_t i=0;i<firstv.size()-1;i++) {
+      s_in+=firstv[i]+" "+lastv[i]+", ";
+    }
+    s_in+="and "+firstv[firstv.size()-1]+" "+lastv[lastv.size()-1];
+  }
+  return s_in;
+}
+    
+bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field) {
+  for(size_t j=0;j<bt.fields.size();j++) {
+    std::string lower=bt.fields[j].first;
+    for(size_t k=0;k<lower.size();k++) {
+      lower[k]=std::tolower(lower[k]);
+    }
+    for(size_t k=0;k<field.size();k++) {
+      field[k]=std::tolower(field[k]);
+    }
+    if (lower==field && bt.fields[j].second.size()>0) {
+      return true;
+    }
+  } 
+  return false;
+}
+
+bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field1,
+				std::string field2) {
+  for(size_t j=0;j<bt.fields.size();j++) {
+    std::string lower=bt.fields[j].first;
+    for(size_t k=0;k<lower.size();k++) {
+      lower[k]=std::tolower(lower[k]);
+    }
+    for(size_t k=0;k<field1.size();k++) {
+      field1[k]=std::tolower(field1[k]);
+    }
+    for(size_t k=0;k<field2.size();k++) {
+      field2[k]=std::tolower(field2[k]);
+    }
+    if ((lower==field1 || lower==field2) && bt.fields[j].second.size()>0) {
+      return true;
+    }
+  }
+  return false;
+}
+  
+std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
+  for(size_t j=0;j<bt.fields.size();j++) {
+    std::string lower=bt.fields[j].first;
+    for(size_t k=0;k<lower.size();k++) {
+      lower[k]=std::tolower(lower[k]);
+    }
+    if (lower==field) {
+      if (bt.fields[j].second.size()>0) {
+	return bt.fields[j].second[0];
+      } else {
+	O2SCL_ERR("Field found but value vector was empty.",
+		  o2scl::exc_einval);
+      }
+    }
+  }
+  O2SCL_ERR((((std::string)"Field ")+field+" not found.").c_str(),
+	    o2scl::exc_einval);
+  return trans_latex[0];
+}
+
+std::vector<std::string> &bib_file::get_field_list
+(bibtex::BibTeXEntry &bt, std::string field) {
+  for(size_t j=0;j<bt.fields.size();j++) {
+    if (bt.fields[j].first==field) {
+      return bt.fields[j].second;
+    }
+  }
+  O2SCL_ERR("Field not found.",o2scl::exc_einval);
+  return trans_latex;
+}
+
+void bib_file::tilde_to_space(std::string &s) {
+  for(size_t i=0;i<s.length();i++) {
+    if (s[i]=='~') s[i]=' ';
+  }
+  return;
+}
+  
+void bib_file::output_html(std::ostream &os, bibtex::BibTeXEntry &bt) {
+  std::string s=get_field(bt,"author");
+  std::string s2=author_firstlast(s);
+  tilde_to_space(s2);
+  os << s2 << ", <em>"
+     << get_field(bt,"journal") << "</em> <b>"
+     << get_field(bt,"volume") << "</b> ("
+     << get_field(bt,"year") << ") "
+     << get_field(bt,"pages") << ".";
+  return;
+}
+
+void bib_file::output_latex(std::ostream &os, bibtex::BibTeXEntry &bt) {
+  std::string s=get_field(bt,"author");
+  std::string s2=author_firstlast(s);
+  os << s2 << ", {\\i"
+     << get_field(bt,"journal") << "} {\\b "
+     << get_field(bt,"volume") << "} ("
+     << get_field(bt,"year") << ") "
+     << get_field(bt,"pages") << ".";
+  return;
+}
+
+void bib_file::add_entry(bibtex::BibTeXEntry &bt) {
+  entries.push_back(bt);
+  if (bt.key) sort.insert(make_pair(*bt.key,entries.size()-1));
+  return;
+}
+
