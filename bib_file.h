@@ -2015,6 +2015,12 @@ namespace btmanip {
 		      std::vector<std::string> &firstv, 
 		      std::vector<std::string> &lastv) {
 
+      // Look for a comma
+      size_t comma_loc=s_in.find('-');
+      if (comma_loc!=std::string::npos) {
+
+	// If a comma is found, assume "last, first and" notation
+	
       std::istringstream *is=new std::istringstream(s_in.c_str());
       std::string stmp;
       while ((*is) >> stmp) {
@@ -2045,6 +2051,42 @@ namespace btmanip {
 	  lastv.push_back(last);
 	}
       }
+
+      } else {
+
+	// Assume "first last and" notation
+	
+	std::istringstream *is=new std::istringstream(s_in.c_str());
+	std::string stmp;
+	std::string stmp2;
+	(*is) >> stmp;
+	firstv.push_back("");
+	while ((*is) >> stmp2) {
+	  if (stmp2==(std::string)"and") {
+	    lastv.push_back(stmp);
+	    firstv.push_back("");
+	    stmp=stmp2;
+	    (*is) >> stmp2;
+	  } else {
+	    if (firstv[firstv.size()-1].length()>0) {
+	      firstv[firstv.size()-1]+=((std::string)" ")+stmp;
+	    } else {
+	      firstv[firstv.size()-1]=stmp;
+	    }
+	  }
+	  stmp=stmp2;
+	}
+	lastv.push_back(stmp);
+
+	std::cout << "Attempted to read 'First Last and' form." << std::endl;
+	for(size_t i=0;i<firstv.size();i++) {
+	  std::cout << i << " First: " << firstv[i] << " Last: "
+		    << lastv[i] << std::endl;
+	}
+	std::cout << std::endl;
+	
+      }
+
       /*
 	std::cout << "ra done" << std::endl;
 	for(size_t i=0;i<firstv.size();i++) {
@@ -2052,6 +2094,7 @@ namespace btmanip {
 	<< lastv[i] << std::endl;
 	}
       */
+
       return;
     }
 
@@ -2066,14 +2109,7 @@ namespace btmanip {
 
       parse_author(s_in,firstv,lastv);
 
-      /*
-	for(size_t k=0;k<lastv.size();k++) {
-	firstv[k]=spec_char_auto(firstv[k]);
-	lastv[k]=spec_char_auto(lastv[k]);
-	}
-      */
-
-      // Remove curly braces from all last names
+      // Remove extra curly braces from all last names
       if (remove_braces) {
 	for(size_t k=0;k<lastv.size();k++) {
 	  if (lastv[k][0]=='{' and lastv[k][lastv[k].length()-1]=='}') {
@@ -2081,6 +2117,13 @@ namespace btmanip {
 	  }
 	}
       }
+
+      /*
+	for(size_t k=0;k<lastv.size();k++) {
+	firstv[k]=spec_char_auto(firstv[k]);
+	lastv[k]=spec_char_auto(lastv[k]);
+	}
+      */
 
       // Convert first (and middle) names to first initials
       if (first_initial) {
