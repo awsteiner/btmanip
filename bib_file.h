@@ -42,7 +42,7 @@
 /** \brief Main <tt>btmanip</tt> namespace
     
     This namespace is documented in \ref bib_file.h .
- */
+*/
 namespace btmanip {
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
@@ -141,7 +141,7 @@ namespace btmanip {
     bool add_empty_titles;
     /** \brief If true, remove LaTeX tildes from author names 
 	(default true)
-     */
+    */
     bool remove_author_tildes;
     /** \brief Verbosity parameter
      */
@@ -583,7 +583,7 @@ namespace btmanip {
 
 	This function just looks for the first hyphen and returns all
 	characters before it.
-     */
+    */
     std::string first_page(std::string pages) {
       size_t loc=pages.find('-');
       std::string pages2=pages;
@@ -595,7 +595,7 @@ namespace btmanip {
 
     /** \brief Search for a pattern, setting ``list`` equal
 	to the set of keys which match
-     */
+    */
     void search_keys(std::string pattern,
 		     std::vector<std::string> &list) {
       list.clear();
@@ -663,7 +663,7 @@ namespace btmanip {
 
 	If the number of arguments to this function is zero or
 	an odd number, then the error handler is called.
-     */
+    */
     void remove_or(std::vector<std::string> &args) {
 
       if (args.size()==0 || args.size()%2!=0) {
@@ -713,7 +713,7 @@ namespace btmanip {
 
 	If the number of arguments to this function is zero or
 	an odd number, then the error handler is called.
-     */
+    */
     void search_and(std::vector<std::string> &args) {
 
       if (args.size()==0 || args.size()%2!=0) {
@@ -988,7 +988,7 @@ namespace btmanip {
 
 	This function returns true if any change has been
 	made to the entry.
-     */
+    */
     bool entry_autoformat_url(bibtex::BibTeXEntry &bt) {
       bool changed=false;
       if (lower_string(bt.tag)==((std::string)"article")) {
@@ -1018,15 +1018,15 @@ namespace btmanip {
 	}
       } else if (lower_string(bt.tag)==((std::string)"book")) {
 	if (is_field_present(bt,"isbn") && !is_field_present(bt,"url")) {
-	    std::vector<std::string> val;
-	    val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
-			  get_field(bt,"isbn"));
-	    bt.fields.push_back(std::make_pair("url",val));
-	    changed=true;
-	    if (verbose>1) {
-	      std::cout << "In entry with key " << *bt.key
-			<< " added url field " << val[0] << std::endl;
-	    }
+	  std::vector<std::string> val;
+	  val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
+			get_field(bt,"isbn"));
+	  bt.fields.push_back(std::make_pair("url",val));
+	  changed=true;
+	  if (verbose>1) {
+	    std::cout << "In entry with key " << *bt.key
+		      << " added url field " << val[0] << std::endl;
+	  }
 	}
       }
       return changed;
@@ -1034,7 +1034,7 @@ namespace btmanip {
     
     /** \brief Remove volume letters and move to journal names
 	for some journals
-     */
+    */
     bool entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       bool changed=false;
       if (is_field_present(bt,"journal") &&
@@ -1579,7 +1579,7 @@ namespace btmanip {
     
     /** \brief Refresh the \ref sort object which contains a set
 	of keys an indexes for the \ref entries array
-     */
+    */
     void refresh_sort() {
       sort.clear();
       // Go through all entries
@@ -1600,12 +1600,12 @@ namespace btmanip {
 
 	\note This will call the error handler if more than one
 	entry has the same key
-     */
+    */
     void sort_bib() {
 
       if (entries.size()!=sort.size()) {
 	O2SCL_ERR("Cannot sort when two entries have the same key.",
-		   o2scl::exc_efailed);
+		  o2scl::exc_efailed);
       }
       
       std::vector<bibtex::BibTeXEntry> entries2;
@@ -1794,7 +1794,7 @@ namespace btmanip {
     
     /** \brief Add entries in a specified BibTeX file to the current
 	list, checking for duplicates and prompting if they're found
-     */
+    */
     void add_bib(std::string fname) {
 
       std::vector<bibtex::BibTeXEntry> entries2;
@@ -1997,7 +1997,7 @@ namespace btmanip {
     }
     
     /** \brief Return the last name of the first author
-    */
+     */
     std::string last_name_first_author(bibtex::BibTeXEntry &bt) {
       std::string auth=get_field(bt,"author");
       std::vector<std::string> firstv, lastv;
@@ -2013,44 +2013,45 @@ namespace btmanip {
      */
     void parse_author(std::string s_in,
 		      std::vector<std::string> &firstv, 
-		      std::vector<std::string> &lastv) {
+		      std::vector<std::string> &lastv,
+		      bool remove_braces=true) {
 
       // Look for a comma
-      size_t comma_loc=s_in.find('-');
+      size_t comma_loc=s_in.find(',');
       if (comma_loc!=std::string::npos) {
 
 	// If a comma is found, assume "last, first and" notation
 	
-      std::istringstream *is=new std::istringstream(s_in.c_str());
-      std::string stmp;
-      while ((*is) >> stmp) {
-	std::string first, last=stmp;
-	bool done=false;
-	while (done==false && stmp[stmp.length()-1]!=',') {
-	  if (!((*is) >> stmp)) {
-	    done=true;
-	  } else {
-	    last+=((std::string)" ")+stmp;
-	  }
-	}
-	if (done==true) {
-	  firstv.push_back("(none)");
-	  lastv.push_back(last);
-	} else {
-	  while ((*is) >> stmp && stmp!=((std::string)"and")) {
-	    if (first.length()==0) {
-	      first=stmp;
+	std::istringstream *is=new std::istringstream(s_in.c_str());
+	std::string stmp;
+	while ((*is) >> stmp) {
+	  std::string first, last=stmp;
+	  bool done=false;
+	  while (done==false && stmp[stmp.length()-1]!=',') {
+	    if (!((*is) >> stmp)) {
+	      done=true;
 	    } else {
-	      first+=((std::string)" ")+stmp;
+	      last+=((std::string)" ")+stmp;
 	    }
 	  }
-	  if (last[last.length()-1]==',') {
-	    last=last.substr(0,last.length()-1);
+	  if (done==true) {
+	    firstv.push_back("(none)");
+	    lastv.push_back(last);
+	  } else {
+	    while ((*is) >> stmp && stmp!=((std::string)"and")) {
+	      if (first.length()==0) {
+		first=stmp;
+	      } else {
+		first+=((std::string)" ")+stmp;
+	      }
+	    }
+	    if (last[last.length()-1]==',') {
+	      last=last.substr(0,last.length()-1);
+	    }
+	    firstv.push_back(first);
+	    lastv.push_back(last);
 	  }
-	  firstv.push_back(first);
-	  lastv.push_back(last);
 	}
-      }
 
       } else {
 
@@ -2078,13 +2079,15 @@ namespace btmanip {
 	}
 	lastv.push_back(stmp);
 
-	std::cout << "Attempted to read 'First Last and' form." << std::endl;
-	for(size_t i=0;i<firstv.size();i++) {
-	  std::cout << i << " First: " << firstv[i] << " Last: "
-		    << lastv[i] << std::endl;
+      }
+
+      // Remove extra curly braces from all last names
+      if (remove_braces) {
+	for(size_t k=0;k<lastv.size();k++) {
+	  if (lastv[k][0]=='{' and lastv[k][lastv[k].length()-1]=='}') {
+	    lastv[k]=lastv[k].substr(1,lastv[k].length()-2);
+	  }
 	}
-	std::cout << std::endl;
-	
       }
 
       /*
@@ -2107,16 +2110,7 @@ namespace btmanip {
 
       std::vector<std::string> firstv, lastv;
 
-      parse_author(s_in,firstv,lastv);
-
-      // Remove extra curly braces from all last names
-      if (remove_braces) {
-	for(size_t k=0;k<lastv.size();k++) {
-	  if (lastv[k][0]=='{' and lastv[k][lastv[k].length()-1]=='}') {
-	    lastv[k]=lastv[k].substr(1,lastv[k].length()-2);
-	  }
-	}
-      }
+      parse_author(s_in,firstv,lastv,remove_braces);
 
       /*
 	for(size_t k=0;k<lastv.size();k++) {
@@ -2188,7 +2182,7 @@ namespace btmanip {
     /** \brief Return true if field named \c field (ignoring
 	differences in field name capitalization) is present in entry
 	\c bt
-     */
+    */
     bool is_field_present(bibtex::BibTeXEntry &bt, std::string field) {
       for(size_t j=0;j<bt.fields.size();j++) {
 	std::string lower=bt.fields[j].first;
