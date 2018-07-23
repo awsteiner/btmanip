@@ -207,6 +207,11 @@ namespace btmanip {
       trans_html.push_back("&oacute;");
       trans_uni.push_back("ó");
       
+      trans_latex.push_back("{\\'s}");
+      trans_latex_alt.push_back("\\'{s}");
+      trans_html.push_back("&sacute;");
+      trans_uni.push_back("ś");
+      
       trans_latex.push_back("{\\'u}");
       trans_latex_alt.push_back("\\'{u}");
       trans_html.push_back("&uacute;");
@@ -236,6 +241,36 @@ namespace btmanip {
       trans_latex_alt.push_back("\\`{u}");
       trans_html.push_back("&ugrave;");
       trans_uni.push_back("ù");
+      
+      trans_latex.push_back("{\\ua}");
+      trans_latex_alt.push_back("\\u{a}");
+      trans_html.push_back("&abreve;");
+      trans_uni.push_back("ă");
+      
+      trans_latex.push_back("{\\ue}");
+      trans_latex_alt.push_back("\\u{e}");
+      trans_html.push_back("&ebreve;");
+      trans_uni.push_back("ĕ");
+      
+      trans_latex.push_back("{\\ug}");
+      trans_latex_alt.push_back("\\u{g}");
+      trans_html.push_back("&gbreve;");
+      trans_uni.push_back("ğ");
+      
+      trans_latex.push_back("{\\ui}");
+      trans_latex_alt.push_back("\\u{i}");
+      trans_html.push_back("&ibreve;");
+      trans_uni.push_back("ĭ");
+      
+      trans_latex.push_back("{\\uo}");
+      trans_latex_alt.push_back("\\u{o}");
+      trans_html.push_back("&obreve;");
+      trans_uni.push_back("ŏ");
+      
+      trans_latex.push_back("{\\uu}");
+      trans_latex_alt.push_back("\\u{u}");
+      trans_html.push_back("&ubreve;");
+      trans_uni.push_back("ŭ");
       
       trans_latex.push_back("{\\\"a}");
       trans_latex_alt.push_back("\\\"{a}");
@@ -311,6 +346,31 @@ namespace btmanip {
       trans_latex_alt.push_back("\\`{U}");
       trans_html.push_back("&Ugrave;");
       trans_uni.push_back("Ù");
+      
+      trans_latex.push_back("{\\uA}");
+      trans_latex_alt.push_back("\\u{A}");
+      trans_html.push_back("&Abreve;");
+      trans_uni.push_back("Ă");
+      
+      trans_latex.push_back("{\\uE}");
+      trans_latex_alt.push_back("\\u{E}");
+      trans_html.push_back("&Ebreve;");
+      trans_uni.push_back("Ĕ");
+      
+      trans_latex.push_back("{\\uI}");
+      trans_latex_alt.push_back("\\u{I}");
+      trans_html.push_back("&Ibreve;");
+      trans_uni.push_back("Ĭ");
+      
+      trans_latex.push_back("{\\uO}");
+      trans_latex_alt.push_back("\\u{O}");
+      trans_html.push_back("&Obreve;");
+      trans_uni.push_back("Ŏ");
+      
+      trans_latex.push_back("{\\uU}");
+      trans_latex_alt.push_back("\\u{U}");
+      trans_html.push_back("&Ubreve;");
+      trans_uni.push_back("Ŭ");
       
       trans_latex.push_back("{\\\"A}");
       trans_latex_alt.push_back("\\\"{A}");

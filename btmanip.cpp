@@ -1374,7 +1374,7 @@ namespace btmanip {
 		      << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "   https://doi.org/<" << bf.get_field(bt,"doi") 
+	      (*outs) << "   <https://doi.org/" << bf.get_field(bt,"doi") 
 		      << ">`_," << endl;
 	    } else {
 	      (*outs) << auth << "," << endl;
