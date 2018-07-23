@@ -525,7 +525,7 @@ namespace btmanip {
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
-	  (*outs) << "\\href{https://dx.doi.org/"
+	  (*outs) << "\\href{https://doi.org/"
 		  << bf.get_field(bt,"doi") << "}" << endl;
 	  (*outs) << "{{\\it " << bf.get_field(bt,"journal")
 		  << "} {\\bf " << bf.get_field(bt,"volume")
@@ -661,7 +661,7 @@ namespace btmanip {
 	First Last, First2 Last2 year, jour, \textbf{volume}, pages.
 	\endverbatim
 
-	The URL is set to ``https://dx.doi.org/`` plus 
+	The URL is set to ``https://doi.org/`` plus 
 	the ``DOI`` field (if present) or ``https://www.arxiv.org/``
 	plus the ``eprint`` field if no ``DOI`` field is present.
 	The ``url`` field is ignored. If a field called 
@@ -685,7 +685,7 @@ namespace btmanip {
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
-	  (*outs) << "\\item \\href{https://dx.doi.org/"
+	  (*outs) << "\\item \\href{https://doi.org/"
 		  << bf.get_field(bt,"doi") << "}" << endl;
 	} else {
 	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
@@ -1145,7 +1145,7 @@ namespace btmanip {
 		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
 	} else if (bf.is_field_present(bt,"doi") &&
 		   bf.get_field(bt,"doi").length()>0) {
-	  (*outs) << "<a href=\"https://dx.doi.org/" << bf.get_field(bt,"url")
+	  (*outs) << "<a href=\"https://doi.org/" << bf.get_field(bt,"url")
 		  << "\">" << bf.spec_char_to_html(bf.short_author(bt))
 		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
 	} else {
@@ -1197,7 +1197,7 @@ namespace btmanip {
 		      << bf.author_firstlast(bf.get_field(bt,"author"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
-	      (*outs) << "    <a href=\"https://dx.doi.org/"
+	      (*outs) << "    <a href=\"https://doi.org/"
 		      << bf.get_field(bt,"doi") << "\">" << endl;
 	      (*outs) << "    "
 		      << bf.author_firstlast(bf.get_field(bt,"author"))
@@ -1374,7 +1374,7 @@ namespace btmanip {
 		      << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "   <" << bf.get_field(bt,"doi") 
+	      (*outs) << "   https://doi.org/<" << bf.get_field(bt,"doi") 
 		      << ">`_," << endl;
 	    } else {
 	      (*outs) << auth << "," << endl;
@@ -1504,24 +1504,22 @@ namespace btmanip {
 	  (*outs) << ".\n" << endl;
 
 	} else if (bf.lower_string(bt.tag)==((string)"mastersthesis")) {
-
+	  
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
-	    (*outs) << "    " << auth << "," << endl;
-	  }
-	  if (bf.is_field_present(bt,"url")) {
-	    (*outs) << "    <a href=\""
-		    << bf.get_field(bt,"url") << "\">" << endl;
-	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
-		    << "</a>," << endl;
-	  } else {
-	    (*outs) << "    "
-		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
-		    << "," << endl;
-	  }
+	    if (bf.is_field_present(bt,"url")) {
+	      (*outs) << "`" << auth << endl;
+	      (*outs) << "    <" << bf.get_field(bt,"url")
+		      << ">`_," << endl;
+	    } else if (bf.is_field_present(bt,"doi")) {
+	      (*outs) << "`" << auth << endl;
+	      (*outs) << "    <https://doi.org/" << bf.get_field(bt,"doi")
+		      << ">`_," << endl;
+	    }
+	  } 
+	  (*outs) << "    Thesis: " << bf.get_field(bt,"title") << endl;
 	  (*outs) << "    (" << bf.get_field(bt,"year") << ")";
 	  (*outs) << ".\n" << endl;
 	}
