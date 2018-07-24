@@ -1522,6 +1522,26 @@ namespace btmanip {
 	  (*outs) << "    Thesis: " << bf.get_field(bt,"title") << endl;
 	  (*outs) << "    (" << bf.get_field(bt,"year") << ")";
 	  (*outs) << ".\n" << endl;
+
+	} else if (bf.lower_string(bt.tag)==((string)"misc")) {
+	  
+	  if (bf.is_field_present(bt,"author")) {
+	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+					    true,true);
+	    auth=bf.spec_char_to_uni(auth);
+	    if (bf.is_field_present(bt,"url")) {
+	      (*outs) << "`" << auth << endl;
+	      (*outs) << "    <" << bf.get_field(bt,"url")
+		      << ">`_," << endl;
+	    } else if (bf.is_field_present(bt,"doi")) {
+	      (*outs) << "`" << auth << endl;
+	      (*outs) << "    <https://doi.org/" << bf.get_field(bt,"doi")
+		      << ">`_," << endl;
+	    }
+	  } 
+	  (*outs) << "    " << bf.get_field(bt,"title");
+	  (*outs) << "(" << bf.get_field(bt,"year") << ")";
+	  (*outs) << ".\n" << endl;
 	}
       }
 
