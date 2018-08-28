@@ -313,6 +313,8 @@ namespace btmanip {
     */
     void sort_bib();
     
+    void reverse_bib();
+    
     /** \brief Output one entry \c bt to stream \c outs in 
 	.bib format
     */

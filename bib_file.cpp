@@ -1387,6 +1387,17 @@ void bib_file::sort_bib() {
   return;
 }
     
+void bib_file::reverse_bib() {
+
+  std::vector<bibtex::BibTeXEntry> entries2(entries.size());
+  for(size_t j=0;j<entries.size();j++) {
+    entries2.push_back(entries[entries.size()-1-j]);
+  }
+  std::swap(entries,entries2);
+      
+  return;
+}
+    
 void bib_file::bib_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
 
   // Output tag and key

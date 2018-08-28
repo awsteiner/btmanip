@@ -264,7 +264,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Find duplicates between two .bib files
+    /** \brief Sort the bib file by key
      */
     virtual int sort(std::vector<std::string> &sv, bool itive_com) {
       bf.sort_bib();
@@ -729,6 +729,71 @@ namespace btmanip {
       return 0;
     }
   
+    virtual int utk_review(std::vector<std::string> &sv, bool itive_com) {
+
+      ostream *outs=&cout;
+      ofstream fout;
+      if (sv.size()>1) {
+	std::string fname=sv[1];
+	fout.open(fname);
+	outs=&fout;
+      }
+
+      // Chronological order
+      bf.reverse_bib();
+      
+      std::string stmp;
+      std::vector<std::string> slist;
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+
+	if (bf.is_field_present(bt,"doi")) {
+	  // DOI link and reference
+	  (*outs) << "\\item \\href{https://doi.org/"
+		  << bf.get_field(bt,"doi") << "}" << endl;
+	} else {
+	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
+		  << bf.get_field(bt,"eprint") << "}{arXiv:"
+		  << bf.get_field(bt,"eprint") << "}" << endl;
+	}
+      
+	// Title
+	std::string title=bf.get_field(bt,"title");
+	if (bf.is_field_present(bt,"title_latex")) {
+	  title=bf.get_field(bt,"title_latex");
+	}
+	stmp=((string)"{\\emph{")+title+"}} \\\\";
+	rewrap(stmp,slist);
+	for(size_t k=0;k<slist.size();k++) {
+	  (*outs) << slist[k] << std::endl;
+	}
+      
+	// Authors
+	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+				 false,false)+", \\\\";
+	rewrap(stmp,slist);
+	for(size_t k=0;k<slist.size();k++) {
+	  if (k!=slist.size()-1) {
+	    (*outs) << slist[k] << std::endl;
+	  } else {
+	    (*outs) << slist[k] << ", ";
+	  }
+	}
+	(*outs) << bf.get_field(bt,"year") << ", ";
+	(*outs) << bf.get_field(bt,"journal") << ", \\textbf{";
+	(*outs) << bf.get_field(bt,"volume") << "},";
+	(*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	(*outs) << endl;
+	(*outs) << "[" << bf.get_field(bt,"utknote")) << "]" << endl;
+      }
+    
+      if (sv.size()>1) {
+	fout.close();
+      }
+
+      return 0;
+    }
+  
     /** \brief Plain output of talks for DOE progress reports 
      */
     virtual int plain(std::vector<std::string> &sv, bool itive_com) {
@@ -773,12 +838,6 @@ namespace btmanip {
 	}
 
 	// Institution
-	if (bf.is_field_present(bt,"institution")) {
-	  std::string conf=bf.get_field(bt,"institution");
-	  std::vector<std::string> slist;
-	  rewrap(conf,slist,800);
-	  (*outs) << slist[0] << ", ";
-	}
 
 	if (bf.is_field_present(bt,"city")) {
 	  (*outs) << bf.get_field(bt,"city") << ", ";
