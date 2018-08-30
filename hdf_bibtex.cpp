@@ -99,7 +99,7 @@ void btmanip::hdf_input(o2scl_hdf::hdf_file &hf,
 
   // If no name specified, find name of first group of specified type
   if (name.length()==0) {
-    hf.find_group_by_type("vector<BibTeXEntry>",name);
+    hf.find_object_by_type("vector<BibTeXEntry>",name);
     if (name.length()==0) {
       O2SCL_ERR2("No object of type vector<BibTeXEntry> found in ",
 		 "hdf_input().",o2scl::exc_efailed);

@@ -729,6 +729,8 @@ namespace btmanip {
       return 0;
     }
   
+    /** \brief Desc
+     */
     virtual int utk_review(std::vector<std::string> &sv, bool itive_com) {
 
       ostream *outs=&cout;
@@ -744,17 +746,20 @@ namespace btmanip {
       
       std::string stmp;
       std::vector<std::string> slist;
+      (*outs) << "\\begin{enumerate}" << endl;
       for(size_t i=0;i<bf.entries.size();i++) {
 	bibtex::BibTeXEntry &bt=bf.entries[i];
+	cout << "Formatting entry " << i << " " << *bt.key << endl;
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
 	  (*outs) << "\\item \\href{https://doi.org/"
-		  << bf.get_field(bt,"doi") << "}" << endl;
-	} else {
+		  << bf.get_field(bt,"doi") << "}{" << endl;
+	} else if (bf.is_field_present(bt,"eprint")) {
 	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
-		  << bf.get_field(bt,"eprint") << "}{arXiv:"
-		  << bf.get_field(bt,"eprint") << "}" << endl;
+		  << bf.get_field(bt,"eprint") << "}{" << endl;
+	} else {
+	  cout << "No doi or eprint for: " << *bt.key << endl;
 	}
       
 	// Title
@@ -762,7 +767,7 @@ namespace btmanip {
 	if (bf.is_field_present(bt,"title_latex")) {
 	  title=bf.get_field(bt,"title_latex");
 	}
-	stmp=((string)"{\\emph{")+title+"}} \\\\";
+	stmp=((string)"{\\emph{")+title+"}}} \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  (*outs) << slist[k] << std::endl;
@@ -770,22 +775,25 @@ namespace btmanip {
       
 	// Authors
 	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false)+", \\\\";
+				 false,false)+", ";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  if (k!=slist.size()-1) {
 	    (*outs) << slist[k] << std::endl;
 	  } else {
-	    (*outs) << slist[k] << ", ";
+	    (*outs) << slist[k] << " ";
 	  }
 	}
-	(*outs) << bf.get_field(bt,"year") << ", ";
-	(*outs) << bf.get_field(bt,"journal") << ", \\textbf{";
-	(*outs) << bf.get_field(bt,"volume") << "},";
-	(*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
-	(*outs) << endl;
-	(*outs) << "[" << bf.get_field(bt,"utknote")) << "]" << endl;
+	(*outs) << bf.get_field(bt,"year");
+	if (bf.is_field_present(bt,"journal")) {
+	  (*outs) << ", " << bf.get_field(bt,"journal") << ", \\textbf{";
+	  (*outs) << bf.get_field(bt,"volume") << "}, ";
+	  (*outs) << bf.first_page(bf.get_field(bt,"pages"));
+	}
+	(*outs) << ". \\\\" << endl;
+	(*outs) << "~[" << bf.get_field(bt,"utknote") << "]~" << endl;
       }
+      (*outs) << "\\end{enumerate}" << endl;
     
       if (sv.size()>1) {
 	fout.close();
@@ -1636,7 +1644,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=32;
+      static const int nopt=33;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1811,6 +1819,9 @@ namespace btmanip {
 	{0,"hdf5","Output an HDF5 file.",1,1,
 	 "<file>","",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::hdf5),cli::comm_option_both},
+	{0,"utk-rev","UTK review format.",0,1,
+	 "<file>","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::utk_review),cli::comm_option_both},
 	{0,"journal","Look up journal name.",1,1,"<name>",
 	 ((std::string)"If a journal name list is loaded, look up ")+
 	 "<name> in the list and output all the synonyms. Journal "+

@@ -1391,7 +1391,7 @@ void bib_file::reverse_bib() {
 
   std::vector<bibtex::BibTeXEntry> entries2(entries.size());
   for(size_t j=0;j<entries.size();j++) {
-    entries2.push_back(entries[entries.size()-1-j]);
+    entries2[entries.size()-1-j]=entries[j];
   }
   std::swap(entries,entries2);
       

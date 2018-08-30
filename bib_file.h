@@ -312,7 +312,9 @@ namespace btmanip {
 	entry has the same key
     */
     void sort_bib();
-    
+
+    /** \brief Desc
+     */
     void reverse_bib();
     
     /** \brief Output one entry \c bt to stream \c outs in 
