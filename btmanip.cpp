@@ -728,7 +728,14 @@ namespace btmanip {
 
       return 0;
     }
-  
+
+    /** \brief Reverse the order
+     */
+    virtual int reverse(std::vector<std::string> &sv, bool itive_com) {
+      bf.reverse_bib();
+      return 0;
+    }
+    
     /** \brief Desc
      */
     virtual int utk_review(std::vector<std::string> &sv, bool itive_com) {
@@ -1644,7 +1651,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=33;
+      static const int nopt=34;
       comm_option_s options[nopt]={
 	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This function parses a .bib file and ")+
@@ -1830,7 +1837,10 @@ namespace btmanip {
 	 (this,&btmanip_class::journal),cli::comm_option_both},
 	{0,"parse-hdf5","Parse a bibliography stored in an HDF5 file.",
 	 1,1,"<file>","",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::parse_hdf5),cli::comm_option_both}
+	 (this,&btmanip_class::parse_hdf5),cli::comm_option_both},
+	{0,"reverse","Reverse the order of the current bibliography.",
+	 0,0,"","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::reverse),cli::comm_option_both}
       };
       cl->set_comm_option_vec(nopt,options);    
     
