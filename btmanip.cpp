@@ -736,7 +736,7 @@ namespace btmanip {
       return 0;
     }
     
-    /** \brief Desc
+    /** \brief A tex format for UTK review
      */
     virtual int utk_review(std::vector<std::string> &sv, bool itive_com) {
 

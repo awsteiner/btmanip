@@ -313,7 +313,7 @@ namespace btmanip {
     */
     void sort_bib();
 
-    /** \brief Desc
+    /** \brief Reverse the bibliography
      */
     void reverse_bib();
     
