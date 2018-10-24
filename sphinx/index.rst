@@ -5,18 +5,16 @@ btmanip : Command-line BibTeX file manipulator
    :maxdepth: 2
    :caption: Contents:
 
-``btmanip`` is a tool for managing and processing BibTeX files.
-Of course, there are several other tools which do similar things,
+``btmanip`` is a tool for managing and processing BibTeX files. Of
+course, there are several other tools which do similar things,
 bibdesk, jabref, zotero, etc., but it was easier for me to construct a
-tool myself which was a bit easier to set up the way I wanted it.
-The BibTeX parser is built upon
-`bibtex-spirit <https://bitbucket.org/sergiu/bibtex-spirit>`_
-by Sergiu Dotenco. 
+tool myself which is optimized around the tasks I wanted to perform.
+The BibTeX parser is built upon `bibtex-spirit
+<https://bitbucket.org/sergiu/bibtex-spirit>`_ by Sergiu Dotenco.
 
-This documentation was developed with the
-use of `doxygen <http://www.doxygen.org>`_ ,
-`sphinx <http://www.sphinx-doc.org>`_ , and
-`breathe <https://github.com/michaeljones/breathe>`_ .
+This documentation was developed with the use of `doxygen
+<http://www.doxygen.org>`_ , `sphinx <http://www.sphinx-doc.org>`_ ,
+and `breathe <https://github.com/michaeljones/breathe>`_ .
 
 Installation
 ============
