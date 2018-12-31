@@ -515,9 +515,10 @@ namespace btmanip {
 	  (*outs) << slist[k] << std::endl;
 	}
 
-	// Authors
+	// Arrange authors with only initials for first and
+	// middle names
 	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false)+", \\\\";
+				 false,true)+", \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  (*outs) << slist[k] << std::endl;
