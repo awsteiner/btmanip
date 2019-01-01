@@ -1654,30 +1654,56 @@ namespace btmanip {
     
       static const int nopt=34;
       comm_option_s options[nopt]={
-	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
-	 ((std::string)"This function parses a .bib file and ")+
-	 "loads it into the current BibTeX entry list. It does not "+
-	 "do any reformatting or checking for duplicate entries.",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
-	 cli::comm_option_both},
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
 	 "the current list of entries, prompting the user how to "+
 	 "handle possible duplicate entries.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::add),
 	 cli::comm_option_both},
-	{0,"prop","Output a proposal .bib file.",0,1,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::proposal),
+	{0,"auto-key","Automatically set keys for all entries.",0,0,"",
+	 ((std::string)"This command automatically sets the key ")+
+	 "for all entries equal to the Last name of the first "+
+	 "author, a two-digit year, and the first two letters of "+
+	 "the title.",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::auto_key),cli::comm_option_both},
+	{'b',"bib","Output a .bib file.",0,1,"[file]",
+	 ((std::string)"Output all of the current entries in .bib ")+
+	 "format to the screen, or if a file is specified, to the file.",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::bib),
 	 cli::comm_option_both},
-	{0,"dox","Output a doxygen file.",0,2,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
-	 cli::comm_option_both},
-	{0,"rst","Output a rst file.",0,2,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::rst),
-	 cli::comm_option_both},
-	{'t',"text","Output a text file.",0,1,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text),
-	 cli::comm_option_both},
+	{0,"change-key","Change an entry's key.",2,2,
+	 "<key pattern> <new key>",
+	 ((std::string)"This command searches the current list of ")+
+	 "BibTeX entries for keys matching <key pattern>. If only "+
+	 "one key matches the pattern, then this key is renamed to "+
+	 "<new key>. Otherwise, an error message is output and no "+
+	 "keys are renamed.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::change_key),cli::comm_option_both},
+	{0,"ck","Change an entry's key (alias of change-key).",2,2,
+	 "<key before> <key after>",
+	 "This command is an alias for 'change-key'.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::change_key),cli::comm_option_both},
+	{0,"clean","Clean up the bibliography.",0,1,"[\"fast\"]",
+	 ((std::string)"This command cleans up the bibliography ")+
+	 "in several ways. First, if 'normalize_tags' is true, "+
+	 "it ensures all of the tags have the standard capitalization "+
+	 "It converts all fields to "+
+	 "lowercase if 'lowercase_fields' is true. It removes extra "+
+	 "braces ({}) from every field. It removes any unwanted "+
+	 "fields (see 'remove-field'). It removes extra whitespace "+
+	 "from all all fields. If a journal name list has been loaded "+
+	 "it renames the journal to the standard abbreviation. If "+
+	 "'remove_vol_letters' is true, it moves some letters in "+
+	 "volume numbers to the end of the journal name. If "+
+	 "'autoformat_urls' is true, it automatically creates a URL "+
+	 "from the DOI or ISBN. If 'add_empty_titles' is true, it adds "+
+	 "empty titles to articles or proceedings which don't have a "+
+	 "title. Finally, if 'check_required' is true, it checks to make "+
+	 "sure that all required fields are included.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::clean),cli::comm_option_both},
 	{'c',"cv","Create output for a LaTeX CV.",0,1,"[file]",
 	 ((std::string)"Output articles in a list format for LaTeX. They ")+
 	 "are formatted using: \n \n"+
@@ -1707,25 +1733,20 @@ namespace btmanip {
 	 "abbreviation is used for the month.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv_talks),
 	 cli::comm_option_both},
-	{'n',"nsf","Output LaTeX source for an NSF bio sketch.",
-	 0,1,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::nsf),
+	{0,"dox","Output a doxygen file.",0,2,"[file]",
+	 ((std::string)"This outputs articles in the following format: ")+
+	 "\n \n\\anchor [prefix]key key:\n"+
+	 "<a href=\"URL\">\n"+
+	 "Author List</a>,\n"+
+	 "journal \\\\b volume (year) pages.\n \n"+
+	 "and books in the following format:\n \n"+
+	 "\\anchor [prefix]key key:\n"+
+	 "Author List,\n"+
+	 "<a href=\"URL\">\n"+
+	 "title</a>,\n"+
+	 "(year) publisher, p. page.",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
 	 cli::comm_option_both},
-	{0,"plain","Plain text output of talks for DOE progress report.",
-	 0,1,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::plain),
-	 cli::comm_option_both},
-	{'b',"bib","Output a .bib file.",0,1,"[file]",
-	 ((std::string)"Output all of the current entries in .bib ")+
-	 "format to the screen, or if a file is specified, to the file.",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::bib),
-	 cli::comm_option_both},
-	{'u',"sub","Subtract a .bib file from the current entries.",
-	 1,1,"<file>",((std::string)"This takes all entries in ")+
-	 "<file> and looks for them in the list of current entries. "+
-	 "If any duplicates are found, they are removed from the "+
-	 "current list.",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::sub),cli::comm_option_both},
 	{'d',"dup","Find duplicates between .bib files.",0,2,
 	 "[file 1] [file 2]",
 	 ((std::string)"If no filenames are specified, then look for ")+
@@ -1735,49 +1756,6 @@ namespace btmanip {
 	 "specified, find duplicates between the two files.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::dup),cli::comm_option_both},
-	{'r',"remove-field","Add a field to the remove list.",0,1,"<field>",
-	 ((std::string)"Add <field> to the list of unwanted fields ")+
-	 "to remove with the 'clean' command. If [field] is unspecified, "+
-	 "then just output the list of unwanted fields to remove.",
-	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::remove_field),cli::comm_option_both},
-	{'k',"keep-field","Remove a field from the remove list.",
-	 0,1,"[field]",
-	 ((std::string)"Remove <field> from the list of unwanted fields ")+
-	 "to remove with the 'clean' command. If [field] is unspecified, "+
-	 "then just output the list of unwanted fields to remove.",
-	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::keep_field),cli::comm_option_both},
-	{'j',"read-jlist","Read a new journal list.",1,1,"<file>",
-	 ((std::string)"Read a list of journal names and synonyms ")+
-	 "from <file>.",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::read_jlist),cli::comm_option_both},
-	{0,"hay","Create a simple HTML author-year list.",0,1,
-	 "[file]","",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::hay),cli::comm_option_both},
-	{0,"clean","Clean up the bibliography.",0,1,"[\"fast\"]",
-	 ((std::string)"This command cleans up the bibliography ")+
-	 "in several ways. First, if 'normalize_tags' is true, "+
-	 "it ensures all of the tags have the standard capitalization "+
-	 "It converts all fields to "+
-	 "lowercase if 'lowercase_fields' is true. It removes extra "+
-	 "braces ({}) from every field. It removes any unwanted "+
-	 "fields (see 'remove-field'). It removes extra whitespace "+
-	 "from all all fields. If a journal name list has been loaded "+
-	 "it renames the journal to the standard abbreviation. If "+
-	 "'remove_vol_letters' is true, it moves some letters in "+
-	 "volume numbers to the end of the journal name. If "+
-	 "'autoformat_urls' is true, it automatically creates a URL "+
-	 "from the DOI or ISBN. If 'add_empty_titles' is true, it adds "+
-	 "empty titles to articles or proceedings which don't have a "+
-	 "title. Finally, if 'check_required' is true, it checks to make "+
-	 "sure that all required fields are included.",
-	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::clean),cli::comm_option_both},
-	{0,"sort","Sort current BibTeX entries by key.",0,0,
-	 "","Sort current BibTeX entries by key.",
-	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::sort),cli::comm_option_both},
 	{'g',"get-key","Get entry by key.",1,1,"<key pattern>",
 	 ((std::string)"Get a single BibTeX entry from the current ")+
 	 "list of entries by matching keys to the specified pattern "+
@@ -1790,34 +1768,25 @@ namespace btmanip {
 	 "This command is an alias for 'get-key'.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::get_key),cli::comm_option_both},
-	{0,"change-key","Change an entry's key.",2,2,
-	 "<key pattern> <new key>",
-	 ((std::string)"This command searches the current list of ")+
-	 "BibTeX entries for keys matching <key pattern>. If only "+
-	 "one key matches the pattern, then this key is renamed to "+
-	 "<new key>. Otherwise, an error message is output and no "+
-	 "keys are renamed.",
+	{0,"hay","Create a simple HTML author-year list.",0,1,
+	 "[file]","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::hay),cli::comm_option_both},
+	{0,"hdf5","Output an HDF5 file.",1,1,
+	 "<file>","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::hdf5),cli::comm_option_both},
+	{0,"journal","Look up journal name.",1,1,"<name>",
+	 ((std::string)"If a journal name list is loaded, look up ")+
+	 "<name> in the list and output all the synonyms. Journal "+
+	 "name matching ignores spacing, case, and punctuation.",
 	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::change_key),cli::comm_option_both},
-	{0,"ck","Change an entry's key (alias of change-key).",2,2,
-	 "<key before> <key after>",
-	 "This command is an alias for 'change-key'.",
+	 (this,&btmanip_class::journal),cli::comm_option_both},
+	{'k',"keep-field","Remove a field from the remove list.",
+	 0,1,"[field]",
+	 ((std::string)"Remove <field> from the list of unwanted fields ")+
+	 "to remove with the 'clean' command. If [field] is unspecified, "+
+	 "then just output the list of unwanted fields to remove.",
 	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::change_key),cli::comm_option_both},
-	{0,"auto-key","Automatically set keys for all entries.",0,0,"",
-	 ((std::string)"This command automatically sets the key ")+
-	 "for all entries equal to the Last name of the first "+
-	 "author, a two-digit year, and the first two letters of "+
-	 "the title.",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::auto_key),cli::comm_option_both},
-	{'f',"set-field",
-	 "For entry <key> and field <field>, set its value to <value>.",2,3,
-	 "<entry> <field> <value> or if one entry, <field> <value>",
-	 ((std::string)"Set the value of <field> in <entry> to ")+
-	 "<value>, or if there is only one entry in the current list "+
-	 "and only two arguments are given, set <field> to <value>.",
-	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::set_field),cli::comm_option_both},
+	 (this,&btmanip_class::keep_field),cli::comm_option_both},
 	{'l',"list-keys","List entry keys.",0,1,"[pattern]",
 	 ((std::string)"List all entry keys from the ")+
 	 "current bibliography, or if a pattern is specified, list "+
@@ -1828,6 +1797,51 @@ namespace btmanip {
 	 "This command is an alias of 'list-keys'.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::list_keys),cli::comm_option_both},
+	{'n',"nsf","Output LaTeX source for an NSF bio sketch.",
+	 0,1,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::nsf),
+	 cli::comm_option_both},
+	{'p',"parse","Parse a specified .bib file.",1,1,"<file>",
+	 ((std::string)"This function parses a .bib file and ")+
+	 "loads it into the current BibTeX entry list. It does not "+
+	 "do any reformatting or checking for duplicate entries.",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::parse),
+	 cli::comm_option_both},
+	{0,"parse-hdf5","Parse a bibliography stored in an HDF5 file.",
+	 1,1,"<file>","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::parse_hdf5),cli::comm_option_both},
+	{0,"plain","Plain text output of talks for DOE progress report.",
+	 0,1,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::plain),
+	 cli::comm_option_both},
+	{0,"prop","Output a proposal .bib file.",0,1,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::proposal),
+	 cli::comm_option_both},
+	{'j',"read-jlist","Read a new journal list.",1,1,"<file>",
+	 ((std::string)"Read a list of journal names and synonyms ")+
+	 "from <file>.",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::read_jlist),cli::comm_option_both},
+	{0,"remove",
+	 "Remove fields which match a set of field and pattern pairs.",2,-1,
+	 ((std::string)"[\"and\"] [\"or\"] <field 1> ")+
+	 "<pattern 1> [field 2] [pattern 2] ...",
+	 ((std::string)"Remove entries from the current list of ")+
+	 "which have fields which match a specified pattern. Combine "+
+	 "multiple criteria with \"or\" or \"and\" if specified.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::remove),cli::comm_option_both},
+	{'r',"remove-field","Add a field to the remove list.",0,1,"<field>",
+	 ((std::string)"Add <field> to the list of unwanted fields ")+
+	 "to remove with the 'clean' command. If [field] is unspecified, "+
+	 "then just output the list of unwanted fields to remove.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::remove_field),cli::comm_option_both},
+	{0,"reverse","Reverse the order of the current bibliography.",
+	 0,0,"","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::reverse),cli::comm_option_both},
+	{0,"rst","Output a rst file.",0,2,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::rst),
+	 cli::comm_option_both},
 	{'s',"search","Search current list for field and pattern pairs.",
 	 2,-1,((std::string)"[\"and\"] [\"or\"] <field 1> ")+
 	 "<pattern 1> [field 2] [pattern 2] ...",
@@ -1838,33 +1852,30 @@ namespace btmanip {
 	 "replaced with the search results.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::search),cli::comm_option_both},
-	{0,"remove",
-	 "Remove fields which match a set of field and pattern pairs.",2,-1,
-	 ((std::string)"[\"and\"] [\"or\"] <field 1> ")+
-	 "<pattern 1> [field 2] [pattern 2] ...",
-	 ((std::string)"Remove entries from the current list of ")+
-	 "which have fields which match a specified pattern. Combine "+
-	 "multiple criteria with \"or\" or \"and\" if specified.",
+	{'f',"set-field",
+	 "For entry <key> and field <field>, set its value to <value>.",2,3,
+	 "<entry> <field> <value> or if one entry, <field> <value>",
+	 ((std::string)"Set the value of <field> in <entry> to ")+
+	 "<value>, or if there is only one entry in the current list "+
+	 "and only two arguments are given, set <field> to <value>.",
 	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::remove),cli::comm_option_both},
-	{0,"hdf5","Output an HDF5 file.",1,1,
-	 "<file>","",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::hdf5),cli::comm_option_both},
+	 (this,&btmanip_class::set_field),cli::comm_option_both},
+	{0,"sort","Sort current BibTeX entries by key.",0,0,
+	 "","Sort current BibTeX entries by key.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::sort),cli::comm_option_both},
+	{'u',"sub","Subtract a .bib file from the current entries.",
+	 1,1,"<file>",((std::string)"This takes all entries in ")+
+	 "<file> and looks for them in the list of current entries. "+
+	 "If any duplicates are found, they are removed from the "+
+	 "current list.",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::sub),cli::comm_option_both},
+	{'t',"text","Output a text file.",0,1,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text),
+	 cli::comm_option_both},
 	{0,"utk-rev","UTK review format.",0,1,
 	 "<file>","",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::utk_review),cli::comm_option_both},
-	{0,"journal","Look up journal name.",1,1,"<name>",
-	 ((std::string)"If a journal name list is loaded, look up ")+
-	 "<name> in the list and output all the synonyms. Journal "+
-	 "name matching ignores spacing, case, and punctuation.",
-	 new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::journal),cli::comm_option_both},
-	{0,"parse-hdf5","Parse a bibliography stored in an HDF5 file.",
-	 1,1,"<file>","",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::parse_hdf5),cli::comm_option_both},
-	{0,"reverse","Reverse the order of the current bibliography.",
-	 0,0,"","",new comm_option_mfptr<btmanip_class>
-	 (this,&btmanip_class::reverse),cli::comm_option_both}
+	 (this,&btmanip_class::utk_review),cli::comm_option_both}
       };
       cl->set_comm_option_vec(nopt,options);    
     
@@ -1929,6 +1940,22 @@ namespace btmanip {
       cl->par_list.insert(make_pair("add_empty_titles",&p_add_empty_titles));
     
       cl->prompt="btmanip> ";
+      cl->addl_help_cmd=((string)"\n There is a custom BibTeX entry ")+
+	"called 'Talk' which btmanip is designed to work with.\n \n"+
+	"@Talk{\n"+
+	"author={},\n"+
+	"title={},\n"+
+	"city={},\n"+
+	"state={},\n"+
+	"country={},\n"+
+	"year={},\n"+
+	"month={},\n"+
+	"date={},\n"+
+	"institution={},\n"+
+	"conference={},\n"+
+	"url={},\n"+
+	"type={}\n"+
+	"}";
 
       char *dc=getenv("BTMANIP_DEFAULTS");
       if (dc) {
