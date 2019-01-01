@@ -1678,10 +1678,33 @@ namespace btmanip {
 	{'t',"text","Output a text file.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text),
 	 cli::comm_option_both},
-	{'c',"cv","Create output for a LaTeX CV.",0,1,"[file]","",
+	{'c',"cv","Create output for a LaTeX CV.",0,1,"[file]",
+	 ((std::string)"Output articles in a list format for LaTeX. They ")+
+	 "are formatted using: \n \n"+
+	 "\\noindent 1. ``Title'', \\\\\n"+
+	 "Author list, \\\\\n"+
+	 "\\href{URL}\n"+
+	 "{{\\it Journal} {\\bf Volume} (Year) "+
+	 "First page.} \\\\\n"+
+	 "(\\href{Arxiv URL}{arXiv:number} - citations)\\\\\n \n"+
+	 "The title is wrapped to 80 columns. The "+
+	 "author list is converted to initials and "+
+	 "last names and then wrapped to 80 columns. "+
+	 "The URL is constructed from "+
+	 "the DOI entry, and the citations is taken from a custom field "+
+	 "named 'citations'. A footnote is added to the first "+
+	 "article with at least one citation.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv),
 	 cli::comm_option_both},
-	{0,"cvt","Create talks output for a LaTeX CV.",0,1,"[file]","",
+	{0,"cvt","Create talks output for a LaTeX CV.",0,1,"[file]",
+	 ((std::string)"Output talks in a list format for LaTeX. They ")+
+	 "are formatted using: \n \n"+
+	 "\\noindent 1. ``Title'', \\\\\n"+
+	 "{\\bf \\href{URL}{Conference}}, \\\\\n"+
+	 "Institution, City, State, Country, Month Year.\n \n"+
+	 "The title is wrapped to 80 columns. If the field 'title_latex' "+
+	 "is present it is used for the title. A three-letter "+
+	 "abbreviation is used for the month.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv_talks),
 	 cli::comm_option_both},
 	{'n',"nsf","Output LaTeX source for an NSF bio sketch.",
