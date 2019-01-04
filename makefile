@@ -62,6 +62,14 @@ endif
 # Targets (hopefully you shouldn't need to change these)
 # ---------------------------------------------------------------
 
+help:
+	@echo "btmanip: "
+	@echo "install: "
+	@echo "clean: "
+	@echo "doc: "
+	@echo "sync-doc: "
+	@echo "test-sync: "
+
 btmanip: btmanip.o bib_file.o hdf_bibtex.o
 	$(CXX) $(FLAGS) -o btmanip btmanip.o bib_file.o hdf_bibtex.o \
 		$(LIBS)
@@ -86,7 +94,13 @@ clean:
 doc: empty
 	cd doc; doxygen doxyfile
 	cd sphinx; make html
-	sudo cp -r sphinx/html/* $(STATIC_DOC_DIR)/btmanip
+
+sync-doc:
+	rsync -Cavzu sphinx/html/* $(STATIC_DOC_DIR)/btmanip
+
+test-sync:
+	rsync -Cavzun sphinx/html/* $(STATIC_DOC_DIR)/btmanip
+
 
 empty: 
 
