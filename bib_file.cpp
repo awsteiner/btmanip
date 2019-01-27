@@ -286,6 +286,7 @@ int bib_file::read_journals(std::string fname) {
     journals.clear();
   }
       
+  wordexp_single_file(fname);
   std::ifstream fin(fname);
   if (!fin.is_open()) {
     return o2scl::exc_efilenotfound;
@@ -441,11 +442,17 @@ void bib_file::search_or(std::vector<std::string> &args) {
     for(size_t k=0;k<args.size();k+=2) {
       std::string field=lower_string(args[k]);
       std::string pattern=args[k+1];
-      for(size_t j=0;j<bt.fields.size();j++) {
-	std::string tmp=lower_string(bt.fields[j].first);
-	if (tmp==field &&
-	    fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+      if (field==((string)"key")) {
+	if (fnmatch(pattern.c_str(),(*bt.key).c_str(),0)==0) {
 	  entry_matches=true;
+	}
+      } else {
+	for(size_t j=0;j<bt.fields.size();j++) {
+	  std::string tmp=lower_string(bt.fields[j].first);
+	  if (tmp==field &&
+	      fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+	    entry_matches=true;
+	  }
 	}
       }
     }
@@ -532,11 +539,17 @@ void bib_file::search_and(std::vector<std::string> &args) {
     for(size_t i=0;i<entries.size();i++) {
       bool entry_matches=false;
       bibtex::BibTeXEntry &bt=entries[i];
-      for(size_t j=0;j<bt.fields.size();j++) {
-	std::string tmp=lower_string(bt.fields[j].first);
-	if (tmp==field &&
-	    fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+      if (field==((string)"key")) {
+	if (fnmatch(pattern.c_str(),(*bt.key).c_str(),0)==0) {
 	  entry_matches=true;
+	}
+      } else {
+	for(size_t j=0;j<bt.fields.size();j++) {
+	  std::string tmp=lower_string(bt.fields[j].first);
+	  if (tmp==field &&
+	      fnmatch(pattern.c_str(),bt.fields[j].second[0].c_str(),0)==0) {
+	    entry_matches=true;
+	  }
 	}
       }
       if (entry_matches) {
@@ -1289,7 +1302,12 @@ void bib_file::parse_bib(std::string fname) {
       
   // Main parse call
   if (verbose>1) std::cout << "Main parse call." << std::endl;
+  wordexp_single_file(fname);
   std::ifstream in(fname.c_str());
+  if (!in) {
+    std::cerr << "File open failed. Wrong filename?" << std::endl;
+    return;
+  }
   bibtex::read(in,entries); 
   in.close();
   if (verbose>1) std::cout << "Done with main parse call." << std::endl;
@@ -1559,6 +1577,7 @@ void bib_file::add_bib(std::string fname) {
 
   // Main parse call
   if (verbose>1) std::cout << "Main parse call." << std::endl;
+  wordexp_single_file(fname);
   std::ifstream in(fname.c_str());
   bibtex::read(in,entries2); 
   in.close();

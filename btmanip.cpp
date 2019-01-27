@@ -1412,6 +1412,172 @@ namespace btmanip {
       return 0;
     }
   
+    /** \brief Output the BibTeX data in a longer HTML format
+    */
+    virtual int html(std::vector<std::string> &sv, bool itive_com) {
+    
+      ostream *outs=&cout;
+      ofstream fout;
+      if (sv.size()>1) {
+	std::string fname=sv[1];
+	fout.open(fname);
+	outs=&fout;
+      }
+
+      std::string prefix="";
+      if (sv.size()>2) {
+	prefix=sv[2];
+      }
+
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+
+	if (bf.entries.size()>1) {
+	  (*outs) << "<li>" << endl;
+	}
+
+	if (bf.lower_string(bt.tag)==((string)"article")) {
+
+	  if (bf.is_field_present(bt,"title")) {
+	    if (bf.is_field_present(bt,"url")) {
+	      (*outs) << "\"<a href=\""
+		      << bf.get_field(bt,"url") << "\">";
+	      (*outs) << bf.get_field(bt,"title") << "</a>\", ";
+	    } else if (bf.is_field_present(bt,"doi")) {
+	      (*outs) << "\"<a href=\"https://doi.org/"
+		      << bf.get_field(bt,"doi") << "\">";
+	      (*outs) << bf.get_field(bt,"title") << "</a>\", ";
+	    } else {
+	      (*outs) << "\"" << bf.get_field(bt,"title") << "\", ";
+	    }
+	  }
+	  (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
+		  << ", ";
+	  if (bf.is_field_present(bt,"journal")) {
+	    (*outs) << bf.get_field(bt,"journal") << " ";
+	  }
+	  if (bf.is_field_present(bt,"volume")) {
+	    (*outs) << "<b>" << bf.get_field(bt,"volume") << "</b> ";
+	  }
+	  if (bf.is_field_present(bt,"year")) {
+	    (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+	  }
+	  if (bf.is_field_present(bt,"pages")) {
+	    (*outs) << bf.first_page(bf.get_field(bt,"pages"))
+	  }
+	  if (bf.is_field_present(bt,"eprint")) {
+	    (*outs) << "\n[<a href=\"https://arxiv.org/abs/"
+		    << bf.get_field(bt,"eprint") << "\">";
+	    (*outs) << bf.author_firstlast(bf.get_field(bt,"eprint"))
+		    << "</a>]." << endl;
+	  } else {
+	    (*outs) << "." << endl;
+	  }
+
+	} else if (bf.lower_string(bt.tag)==((string)"inbook")) {
+
+	  if (bf.is_field_present(bt,"crossref") &&
+	      bf.get_field(bt,"crossref").length()>0) {
+	  
+	    bibtex::BibTeXEntry &bt2=
+	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
+	  
+	    if (bf.is_field_present(bt,"author")) {
+	      (*outs) << "    "
+		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << ", \"" << bf.get_field(bt2,"title")
+		      << "\" in" << endl;
+	    }
+	    if (bf.is_field_present(bt2,"url")) {
+	      (*outs) << "    <a href=\""
+		      << bf.get_field(bt2,"url") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt2,"title")
+		      << "</a>," << endl;
+	    } else if (bf.is_field_present(bt2,"isbn")) {
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+		      << bf.get_field(bt2,"isbn") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt2,"title")
+		      << "</a>," << endl;
+	    } else {
+	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    }
+	    (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
+		    << bf.get_field(bt2,"publisher") << ", p. "
+		    << bf.get_field(bt,"pages") << "." << endl;
+	    (*outs) << endl;
+	  } else {
+	    if (bf.is_field_present(bt,"author")) {
+	      (*outs) << "    "
+		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << "," << endl;
+	    }
+	    if (bf.is_field_present(bt,"url")) {
+	      (*outs) << "    <a href=\""
+		      << bf.get_field(bt,"url") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt,"title")
+		      << "</a>," << endl;
+	    } else if (bf.is_field_present(bt,"isbn")) {
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+		      << bf.get_field(bt,"isbn") << "\">" << endl;
+	      (*outs) << "    "
+		      << bf.get_field(bt,"title")
+		      << "</a>," << endl;
+	    } else {
+	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    }
+	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+		    << bf.get_field(bt,"publisher") << ", p. "
+		    << bf.get_field(bt,"pages") << "." << endl;
+	    (*outs) << endl;
+	  }
+
+	} else if (bf.lower_string(bt.tag)==((string)"book")) {
+
+	  if (bf.is_field_present(bt,"author")) {
+	    (*outs) << "    "
+		    << bf.author_firstlast(bf.get_field(bt,"author"))
+		    << "," << endl;
+	  }
+	  if (bf.is_field_present(bt,"url")) {
+	    (*outs) << "    <a href=\""
+		    << bf.get_field(bt,"url") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else if (bf.is_field_present(bt,"isbn")) {
+	    (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+		    << bf.get_field(bt,"isbn") << "\">" << endl;
+	    (*outs) << "    "
+		    << bf.get_field(bt,"title")
+		    << "</a>," << endl;
+	  } else {
+	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	  }
+	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+		  << bf.get_field(bt,"publisher");
+	  if (bf.is_field_present(bt,"note") &&
+	      bf.get_field(bt,"note").length()>0) {
+	    (*outs) << "\n    (" << bf.get_field(bt,"note") << ")";
+	  }
+	  (*outs) << ".\n" << endl;
+	}
+
+	if (bf.entries.size()>1) {
+	  (*outs) << "</li>" << endl;
+	}
+	
+      }
+
+      if (sv.size()>1) {
+	fout.close();
+      }
+
+      return 0;
+    }
+  
     /** \brief Output the BibTeX data as a file in
 	reStructured Text format for Sphinx
     */
@@ -1652,7 +1818,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=34;
+      static const int nopt=35;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -1746,6 +1912,20 @@ namespace btmanip {
 	 "title</a>,\n"+
 	 "(year) publisher, p. page.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
+	 cli::comm_option_both},
+	{0,"html","Output HTML.",0,2,"[file]",
+	 ((std::string)"This outputs articles in the following format: ")+
+	 "\n \n\\anchor [prefix]key key:\n"+
+	 "<a href=\"URL\">\n"+
+	 "Author List</a>,\n"+
+	 "journal <b>volume</b> (year) pages.\n \n"+
+	 "and books in the following format:\n \n"+
+	 "\\anchor [prefix]key key:\n"+
+	 "Author List,\n"+
+	 "<a href=\"URL\">\n"+
+	 "title</a>,\n"+
+	 "(year) publisher, p. page.",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::html),
 	 cli::comm_option_both},
 	{'d',"dup","Find duplicates between .bib files.",0,2,
 	 "[file 1] [file 2]",
