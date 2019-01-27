@@ -1463,10 +1463,10 @@ namespace btmanip {
 	    (*outs) << "(" << bf.get_field(bt,"year") << ") ";
 	  }
 	  if (bf.is_field_present(bt,"pages")) {
-	    (*outs) << bf.first_page(bf.get_field(bt,"pages"))
+	    (*outs) << bf.first_page(bf.get_field(bt,"pages"));
 	  }
 	  if (bf.is_field_present(bt,"eprint")) {
-	    (*outs) << "\n[<a href=\"https://arxiv.org/abs/"
+	    (*outs) << " [<a href=\"https://arxiv.org/abs/"
 		    << bf.get_field(bt,"eprint") << "\">";
 	    (*outs) << bf.author_firstlast(bf.get_field(bt,"eprint"))
 		    << "</a>]." << endl;
@@ -1915,10 +1915,9 @@ namespace btmanip {
 	 cli::comm_option_both},
 	{0,"html","Output HTML.",0,2,"[file]",
 	 ((std::string)"This outputs articles in the following format: ")+
-	 "\n \n\\anchor [prefix]key key:\n"+
-	 "<a href=\"URL\">\n"+
-	 "Author List</a>,\n"+
-	 "journal <b>volume</b> (year) pages.\n \n"+
+	 "\"<a href=\"URL\">Title</a>\", Author List, "+
+	 "journal <b>volume</b> (year) pages "+
+	 "<a href=\"arXiv URL\">arXiv number</a>.\n \n"+
 	 "and books in the following format:\n \n"+
 	 "\\anchor [prefix]key key:\n"+
 	 "Author List,\n"+
@@ -2029,7 +2028,8 @@ namespace btmanip {
 	 "which have fields which match a specified pattern. Combine "+
 	 "multiple criteria with \"or\" or \"and\" if specified. If "+
 	 "at least one entry is found, then the current list is "+
-	 "replaced with the search results.",
+	 "replaced with the search results. Replace one of the "+
+	 "field arguments with \"key\" to search by key name.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::search),cli::comm_option_both},
 	{'f',"set-field",
