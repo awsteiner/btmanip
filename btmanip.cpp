@@ -668,6 +668,9 @@ namespace btmanip {
 	The ``url`` field is ignored. If a field called 
 	``title_latex`` is present, it is used instead of the
 	``title`` field.
+
+	\todo I need to make the author first names consistent,
+	probably by shortening them to initials.
     */
     virtual int nsf(std::vector<std::string> &sv, bool itive_com) {
 
@@ -707,19 +710,23 @@ namespace btmanip {
       
 	// Authors
 	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false)+", \\\\";
+				 false,false)+",";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  if (k!=slist.size()-1) {
 	    (*outs) << slist[k] << std::endl;
 	  } else {
-	    (*outs) << slist[k] << ", ";
+	    (*outs) << slist[k] << " ";
 	  }
 	}
 	(*outs) << bf.get_field(bt,"year") << ", ";
-	(*outs) << bf.get_field(bt,"journal") << ", \\textbf{";
-	(*outs) << bf.get_field(bt,"volume") << "},";
-	(*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	if (bf.is_field_present(bt,"journal")) {
+	  (*outs) << bf.get_field(bt,"journal") << ", \\textbf{";
+	  (*outs) << bf.get_field(bt,"volume") << "}, ";
+	  (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	} else if (bf.is_field_present(bt,"eprint")) {
+	  (*outs) << "arXiv:" << bf.get_field(bt,"eprint") << "." << endl;
+	}
 	(*outs) << endl;
       }
     
