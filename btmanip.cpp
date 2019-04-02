@@ -662,15 +662,15 @@ namespace btmanip {
 	First Last, First2 Last2 year, jour, \textbf{volume}, pages.
 	\endverbatim
 
+        First and middle names are converted to initials if
+	necessary. 
+
 	The URL is set to ``https://doi.org/`` plus 
 	the ``DOI`` field (if present) or ``https://www.arxiv.org/``
 	plus the ``eprint`` field if no ``DOI`` field is present.
 	The ``url`` field is ignored. If a field called 
 	``title_latex`` is present, it is used instead of the
 	``title`` field.
-
-	\todo I need to make the author first names consistent,
-	probably by shortening them to initials.
     */
     virtual int nsf(std::vector<std::string> &sv, bool itive_com) {
 
@@ -710,7 +710,7 @@ namespace btmanip {
       
 	// Authors
 	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false)+",";
+				 true,true)+",";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  if (k!=slist.size()-1) {
