@@ -1611,7 +1611,12 @@ namespace btmanip {
 	  // so we reformat
 	  result=result.substr(25,result.length()-27);
 	  
-	  cout << "Setting citations of " << *bt.key
+	  if (bf.is_field_present(bt,"citations")) {
+	    cout << "Current value of citations field for " << *bt.key
+		 << " is: "
+		 << bf.get_field(bt,"citations") << endl;
+	  }
+	  cout << "Setting citations field of " << *bt.key
 	       << " to " << result << endl;
 	  bf.set_field_value(bt,"citations",
 			     o2scl::itos(o2scl::stoi(result)));
