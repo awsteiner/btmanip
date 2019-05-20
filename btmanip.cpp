@@ -1584,7 +1584,46 @@ namespace btmanip {
 
       return 0;
     }
-  
+
+    /** \brief Desc
+     */
+    virtual int inspire_cites(std::vector<std::string> &sv,
+			      bool itive_com) {
+
+      for(size_t i=0;i<bf.entries.size();i++) {
+	
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+	
+	if (bf.is_field_present(bt,"inspireid")) {
+	  
+	  string id=bf.get_field(bt,"inspireid");
+	  cout << "Found inspireid " << id << " in "
+	       << *bt.key << endl;
+	  
+	  string cmd=((string)"curl -X GET \"http://inspirehep.net/")+
+	    "search?action_search=Search&rg=100&of=recjson&"+
+	    "ln=en&p=find+recid+"+id+"&jrec=0&ot=number_of_citations\"";
+	  string result;
+	  int ret=pipe_cmd_string(cmd,result,false);
+	  
+	  // The result string is of the form:
+	  // [{"number_of_citations": 6}]
+	  // so we reformat
+	  result=result.substr(25,result.length()-27);
+	  
+	  cout << "Setting citations of " << *bt.key
+	       << " to " << result << endl;
+	  bf.set_field_value(bt,"citations",
+			     o2scl::itos(o2scl::stoi(result)));
+	  
+	  cout << "Sleeping for 1 minute." << endl;
+	  sleep(60);
+	}
+      }
+      
+      return 0;
+    }
+    
     /** \brief Output the BibTeX data as a file in
 	reStructured Text format for Sphinx
     */
@@ -1825,7 +1864,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=35;
+      static const int nopt=36;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2028,6 +2067,9 @@ namespace btmanip {
 	{0,"rst","Output a rst file.",0,2,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::rst),
 	 cli::comm_option_both},
+	{0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::inspire_cites),cli::comm_option_both},
 	{'s',"search","Search current list for field and pattern pairs.",
 	 2,-1,((std::string)"[\"and\"] [\"or\"] <field 1> ")+
 	 "<pattern 1> [field 2] [pattern 2] ...",
