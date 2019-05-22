@@ -26,6 +26,8 @@
 #include "bib_file.h"
 #include "hdf_bibtex.h"
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include <o2scl/cli_readline.h>
 #include <o2scl/string_conv.h>
 
@@ -1629,6 +1631,80 @@ namespace btmanip {
       return 0;
     }
     
+    /** \brief Desc
+     */
+    virtual int ads_cites(std::vector<std::string> &sv,
+			      bool itive_com) {
+
+      // Get API token
+      std::string token;
+      char *token_ptr=getenv("ADSABS_TOKEN");
+      if (token_ptr) {
+	token=token_ptr;
+      } else {
+	cerr << "Token not found in \"ads-cites\"." << endl;
+	return 1;
+      }
+
+      std::string prefix="curl -X GET -H 'Authorization: Bearer:"+token+
+	"' '";
+      std::string base_url="https://api.adsabs.harvard.edu/v1/search";
+      
+      for(size_t i=0;i<bf.entries.size();i++) {
+	
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+	
+	if (bf.is_field_present(bt,"bibcode")) {
+	  
+	  string bibcode=bf.get_field(bt,"bibcode");
+	  cout << "Found bibcode " << bibcode << " in "
+	       << *bt.key << endl;
+
+	  boost::replace_all(bibcode,"%","%26");
+	  
+	  string cmd=prefix+base_url+"/query?q="+bibcode+
+	    "&fl=citation_count'";
+	  cout << "cmd: " << cmd << endl;
+	  string result;
+	  int ret=pipe_cmd_string(cmd,result,false,400);
+	  cout << result.size() << " " << result << endl;
+	  
+	  // The result string is of the form:
+	  //
+	  // {"responseHeader":{"status":0,"QTime":193,"params":
+	  // {"q":"2019PhRvD..99d3010C","x-amzn-trace-id":
+	  // "Root=1-5ce59b6e-195040826fa8b1c4925506dc","fl":
+	  // "citation_count","start":"0","rows":"10","wt":
+	  // "json"}},"response":{"numFound":1,"start":
+	  // 0,"docs":[{"citation_count":6}]}}
+	  //
+	  // so we reformat:
+	  size_t loc=result.find("\"citation_count\":");
+	  if (loc==std::string::npos) {
+	    cerr << "Failed to find correct field." << endl;
+	    return 2;
+	  }
+	  result=result.substr(loc+17,result.length()-loc-17);
+	  cout << result.size() << " " << result << endl;
+	  
+	  if (bf.is_field_present(bt,"adscites")) {
+	    cout << "Current value of adscites field for " << *bt.key
+		 << " is: "
+		 << bf.get_field(bt,"adscites") << endl;
+	  }
+	  cout << "Setting adscites field of " << *bt.key
+	       << " to " << result << endl;
+	  bf.set_field_value(bt,"adscites",
+			     o2scl::itos(o2scl::stoi(result)));
+	  
+	  cout << "Sleeping for 1 minute." << endl;
+	  sleep(60);
+	}
+      }
+      
+      return 0;
+    }
+    
     /** \brief Output the BibTeX data as a file in
 	reStructured Text format for Sphinx
     */
@@ -1869,7 +1945,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=36;
+      static const int nopt=37;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2075,6 +2151,9 @@ namespace btmanip {
 	{0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::inspire_cites),cli::comm_option_both},
+	{0,"ads-cites","Calculate ADSABS citations.",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::ads_cites),cli::comm_option_both},
 	{'s',"search","Search current list for field and pattern pairs.",
 	 2,-1,((std::string)"[\"and\"] [\"or\"] <field 1> ")+
 	 "<pattern 1> [field 2] [pattern 2] ...",
