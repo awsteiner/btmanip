@@ -526,16 +526,27 @@ namespace btmanip {
 	  (*outs) << slist[k] << std::endl;
 	}
 
-	if (bf.is_field_present(bt,"doi")) {
+	if (bf.is_field_present(bt,"doi") &&
+	    bf.is_field_present(bt,"journal")) {
 	  // DOI link and reference
 	  (*outs) << "\\href{https://doi.org/"
 		  << bf.get_field(bt,"doi") << "}" << endl;
 	  (*outs) << "{{\\it " << bf.get_field(bt,"journal")
-		  << "} {\\bf " << bf.get_field(bt,"volume")
-		  << "} (" << bf.get_field(bt,"year")
-		  << ") " << bf.first_page(bf.get_field(bt,"pages"))
-		  << ".} \\\\" << endl;
-	} else if (bf.is_field_present(bt,"journal")) {
+		  << "}";
+	  if (bf.is_field_present(bt,"volume")) {
+	    (*outs) << " {\\bf " << bf.get_field(bt,"volume")
+		    << "}";
+	  }
+	  if (bf.is_field_present(bt,"year")) {
+	    (*outs) << " (" << bf.get_field(bt,"year")
+		    << ")";
+	  }
+	  if (bf.is_field_present(bt,"pages")) {
+	    (*outs) << " " << bf.first_page(bf.get_field(bt,"pages"));
+	  }
+	  (*outs) << ".} \\\\" << endl;
+	} else if (bf.is_field_present(bt,"journal") &&
+		   bf.get_field(bt,"journal").length()>1) {
 	  (*outs) << "{\\it " << bf.get_field(bt,"journal")
 		  << "}. \\\\" << endl;
 	}
