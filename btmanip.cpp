@@ -704,14 +704,17 @@ namespace btmanip {
 	  // DOI link and reference
 	  (*outs) << "\\item \\href{https://doi.org/"
 		  << bf.get_field(bt,"doi") << "}" << endl;
-	} else {
+	} else if (bf.is_field_present(bt,"eprint")) {
 	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
 		  << bf.get_field(bt,"eprint") << "}{arXiv:"
 		  << bf.get_field(bt,"eprint") << "}" << endl;
 	}
       
 	// Title
-	std::string title=bf.get_field(bt,"title");
+	std::string title;
+	if (bf.is_field_present(bt,"title")) {
+	  title=bf.get_field(bt,"title");
+	}
 	if (bf.is_field_present(bt,"title_latex")) {
 	  title=bf.get_field(bt,"title_latex");
 	}
@@ -722,21 +725,30 @@ namespace btmanip {
 	}
       
 	// Authors
-	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 true,true)+",";
-	rewrap(stmp,slist);
-	for(size_t k=0;k<slist.size();k++) {
-	  if (k!=slist.size()-1) {
-	    (*outs) << slist[k] << std::endl;
-	  } else {
-	    (*outs) << slist[k] << " ";
+	if (bf.is_field_present(bt,"author")) {
+	  stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+				   true,true)+",";
+	  rewrap(stmp,slist);
+	  for(size_t k=0;k<slist.size();k++) {
+	    if (k!=slist.size()-1) {
+	      (*outs) << slist[k] << std::endl;
+	    } else {
+	      (*outs) << slist[k] << " ";
+	    }
 	  }
 	}
-	(*outs) << bf.get_field(bt,"year") << ", ";
+
+	if (bf.is_field_present(bt,"year")) {
+	  (*outs) << bf.get_field(bt,"year") << ", ";
+	}
 	if (bf.is_field_present(bt,"journal")) {
 	  (*outs) << bf.get_field(bt,"journal") << ", \\textbf{";
-	  (*outs) << bf.get_field(bt,"volume") << "}, ";
-	  (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	  if (bf.is_field_present(bt,"volume")) {
+	    (*outs) << bf.get_field(bt,"volume") << "}, ";
+	  }
+	  if (bf.is_field_present(bt,"volume")) {
+	    (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	  }
 	} else if (bf.is_field_present(bt,"eprint")) {
 	  (*outs) << "arXiv:" << bf.get_field(bt,"eprint") << "." << endl;
 	}
