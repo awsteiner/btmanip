@@ -1447,24 +1447,31 @@ namespace btmanip {
     /** \brief Output the BibTeX data in a longer HTML format
     */
     virtual int html(std::vector<std::string> &sv, bool itive_com) {
-    
+
+      bool list=false;
+      
       ostream *outs=&cout;
       ofstream fout;
+      
       if (sv.size()>1) {
-	std::string fname=sv[1];
-	fout.open(fname);
-	outs=&fout;
-      }
-
-      std::string prefix="";
-      if (sv.size()>2) {
-	prefix=sv[2];
+	if (sv[1]==((string)"list")) {
+	  list=true;
+	  if (sv.size()>2) {
+	    std::string fname=sv[2];
+	    fout.open(fname);
+	    outs=&fout;
+	  }
+	} else {
+	  std::string fname=sv[1];
+	  fout.open(fname);
+	  outs=&fout;
+	}
       }
 
       for(size_t i=0;i<bf.entries.size();i++) {
 	bibtex::BibTeXEntry &bt=bf.entries[i];
 
-	if (bf.entries.size()>1) {
+	if (list) {
 	  (*outs) << "<li>" << endl;
 	}
 
@@ -1597,7 +1604,7 @@ namespace btmanip {
 	  (*outs) << ".\n" << endl;
 	}
 
-	if (bf.entries.size()>1) {
+	if (list) {
 	  (*outs) << "</li>" << endl;
 	}
 	
@@ -2063,7 +2070,7 @@ namespace btmanip {
 	 "(year) publisher, p. page.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
 	 cli::comm_option_both},
-	{0,"html","Output HTML.",0,2,"[file]",
+	{0,"html","Output HTML.",0,2,"[\"list\"] [file]",
 	 ((std::string)"This outputs articles in the following format: ")+
 	 "\"<a href=\"URL\">Title</a>\", Author List, "+
 	 "journal <b>volume</b> (year) pages "+
@@ -2073,7 +2080,9 @@ namespace btmanip {
 	 "Author List,\n"+
 	 "<a href=\"URL\">\n"+
 	 "title</a>,\n"+
-	 "(year) publisher, p. page.",
+	 "(year) publisher, p. page.\n \nIf the first argument to 'html' "+
+	 "is \"list\", then all entries are preceeded by \"<li>\" and "+
+	 "succeeded by \"</li>\".",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::html),
 	 cli::comm_option_both},
 	{'d',"dup","Find duplicates between .bib files.",0,2,
