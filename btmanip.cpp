@@ -1552,20 +1552,33 @@ namespace btmanip {
 		      << bf.author_firstlast(bf.get_field(bt,"author"))
 		      << "," << endl;
 	    }
+	    std::string title_temp;
+	    if (bf.is_field_present(bt,"title")) {
+	      title_temp=bf.get_field(bt,"title");
+	    }
+	    // Remove quotes and braces if necessary
+	    if (title_temp[0]=='\"' &&
+		title_temp[title_temp.size()-1]=='\"') {
+	      title_temp=title_temp.substr(1,title_temp.size()-2);
+	    }
+	    if (title_temp[0]=='{' &&
+		title_temp[title_temp.size()-1]=='}') {
+	      title_temp=title_temp.substr(1,title_temp.size()-2);
+	    }
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "    <a href=\""
 		      << bf.get_field(bt,"url") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt,"title")
+		      << title_temp
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt,"title")
+		      << title_temp
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	      (*outs) << "    " << title_temp << "," << endl;
 	    }
 	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
 		    << bf.get_field(bt,"publisher") << ", p. "
