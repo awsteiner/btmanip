@@ -1483,6 +1483,7 @@ void bib_file::sort_by_date(bool descending) {
       }
       int sortable_date=year*10000+imonth*100+date;
       sbd.insert(make_pair(sortable_date,i));
+      cout << "Here2: " << sortable_date << " " << i << endl;
     }
   
     std::vector<bibtex::BibTeXEntry> entries2;
@@ -1566,6 +1567,7 @@ void bib_file::sort_by_date(bool descending) {
       }
       int sortable_date=year*10000+imonth*100+date;
       sbd.insert(make_pair(sortable_date,i));
+      cout << "Here: " << sortable_date << " " << i << endl;
     }
   
     std::vector<bibtex::BibTeXEntry> entries2;

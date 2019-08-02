@@ -1490,7 +1490,7 @@ namespace btmanip {
 	  
 	  if (bf.is_field_present(bt,"title")) {
 	    std::string	title_temp=bf.get_field(bt,"title");
-	    // Remove quotes and braces if necessary
+	    // Remove quotes, braces, and spaces if necessary
 	    if (title_temp[0]=='\"' &&
 		title_temp[title_temp.size()-1]=='\"') {
 	      title_temp=title_temp.substr(1,title_temp.size()-2);
@@ -1499,6 +1499,13 @@ namespace btmanip {
 		title_temp[title_temp.size()-1]=='}') {
 	      title_temp=title_temp.substr(1,title_temp.size()-2);
 	    }
+	    if (title_temp[0]==' ') {
+	      title_temp=title_temp.substr(1,title_temp.size()-1);
+	    }
+	    if (title_temp[title_temp.size()-1]==' ') {
+	      title_temp=title_temp.substr(0,title_temp.size()-1);
+	    }
+	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "\"<a href=\""
 		      << bf.get_field(bt,"url") << "\">";
@@ -1526,10 +1533,16 @@ namespace btmanip {
 	    (*outs) << bf.first_page(bf.get_field(bt,"pages"));
 	  }
 	  if (bf.is_field_present(bt,"eprint")) {
+	    string eprint_temp=bf.get_field(bt,"eprint");
+	    if (eprint_temp[0]==' ') {
+	      eprint_temp=eprint_temp.substr(1,eprint_temp.size()-1);
+	    }
+	    if (eprint_temp[eprint_temp.size()-1]==' ') {
+	      eprint_temp=eprint_temp.substr(0,eprint_temp.size()-1);
+	    }
 	    (*outs) << " [<a href=\"https://arxiv.org/abs/"
-		    << bf.get_field(bt,"eprint") << "\">";
-	    (*outs) << bf.author_firstlast(bf.get_field(bt,"eprint"))
-		    << "</a>]." << endl;
+		    << eprint_temp << "\">";
+	    (*outs) << eprint_temp << "</a>]." << endl;
 	  } else {
 	    (*outs) << "." << endl;
 	  }
@@ -1577,7 +1590,7 @@ namespace btmanip {
 	    if (bf.is_field_present(bt,"title")) {
 	      title_temp=bf.get_field(bt,"title");
 	    }
-	    // Remove quotes and braces if necessary
+	    // Remove quotes, braces, and spaces if necessary
 	    if (title_temp[0]=='\"' &&
 		title_temp[title_temp.size()-1]=='\"') {
 	      title_temp=title_temp.substr(1,title_temp.size()-2);
@@ -1586,6 +1599,13 @@ namespace btmanip {
 		title_temp[title_temp.size()-1]=='}') {
 	      title_temp=title_temp.substr(1,title_temp.size()-2);
 	    }
+	    if (title_temp[0]==' ') {
+	      title_temp=title_temp.substr(1,title_temp.size()-1);
+	    }
+	    if (title_temp[title_temp.size()-1]==' ') {
+	      title_temp=title_temp.substr(0,title_temp.size()-1);
+	    }
+	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "    <a href=\""
 		      << bf.get_field(bt,"url") << "\">" << endl;
