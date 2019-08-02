@@ -313,6 +313,10 @@ namespace btmanip {
     */
     void sort_bib();
 
+    /** \brief Sort by date
+     */
+    void sort_by_date(bool descending=false);
+    
     /** \brief Reverse the bibliography
      */
     void reverse_bib();

@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2018, Andrew W. Steiner
+  Copyright (C) 2015-2019, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -270,6 +270,17 @@ namespace btmanip {
      */
     virtual int sort(std::vector<std::string> &sv, bool itive_com) {
       bf.sort_bib();
+      return 0;
+    }
+
+    /** \brief Sort the bib file by date
+     */
+    virtual int sort_by_date(std::vector<std::string> &sv, bool itive_com) {
+      if (sv.size()>=2 && sv[1]==((string)"descending")) {
+	bf.sort_by_date(true);
+      } else {
+	bf.sort_by_date();
+      }
       return 0;
     }
 
@@ -1476,18 +1487,28 @@ namespace btmanip {
 	}
 
 	if (bf.lower_string(bt.tag)==((string)"article")) {
-
+	  
 	  if (bf.is_field_present(bt,"title")) {
+	    std::string	title_temp=bf.get_field(bt,"title");
+	    // Remove quotes and braces if necessary
+	    if (title_temp[0]=='\"' &&
+		title_temp[title_temp.size()-1]=='\"') {
+	      title_temp=title_temp.substr(1,title_temp.size()-2);
+	    }
+	    if (title_temp[0]=='{' &&
+		title_temp[title_temp.size()-1]=='}') {
+	      title_temp=title_temp.substr(1,title_temp.size()-2);
+	    }
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "\"<a href=\""
 		      << bf.get_field(bt,"url") << "\">";
-	      (*outs) << bf.get_field(bt,"title") << "</a>\", ";
+	      (*outs) << title_temp << "</a>\", ";
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "\"<a href=\"https://doi.org/"
 		      << bf.get_field(bt,"doi") << "\">";
-	      (*outs) << bf.get_field(bt,"title") << "</a>\", ";
+	      (*outs) << title_temp << "</a>\", ";
 	    } else {
-	      (*outs) << "\"" << bf.get_field(bt,"title") << "\", ";
+	      (*outs) << "\"" << title_temp << "\", ";
 	    }
 	  }
 	  (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
@@ -1988,7 +2009,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=37;
+      static const int nopt=38;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2222,6 +2243,10 @@ namespace btmanip {
 	 "","Sort current BibTeX entries by key.",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::sort),cli::comm_option_both},
+	{0,"sort-by-date","Sort current BibTeX entries by date.",0,1,
+	 "[\"descending\"]","Sort current BibTeX entries by date.",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::sort_by_date),cli::comm_option_both},
 	{'u',"sub","Subtract a .bib file from the current entries.",
 	 1,1,"<file>",((std::string)"This takes all entries in ")+
 	 "<file> and looks for them in the list of current entries. "+

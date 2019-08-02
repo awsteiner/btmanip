@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2018, Andrew W. Steiner
+  Copyright (C) 2015-2019, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -1404,7 +1404,183 @@ void bib_file::sort_bib() {
       
   return;
 }
+
+void bib_file::sort_by_date(bool descending) {
+
+  if (descending) {
     
+    std::map<int,size_t,std::greater<int>> sbd;
+    std::map<int,size_t,std::greater<int>>::iterator sbdit;
+  
+    for(size_t i=0;i<entries.size();i++) {
+      bibtex::BibTeXEntry &bt=entries[i];
+      int year=3000;
+      if (is_field_present(bt,"year")) {
+	year=std::stoi(get_field(bt,"year"));
+      }
+      int imonth=13;
+      if (is_field_present(bt,"month")) {
+	std::string month=get_field(bt,"month");
+	if (month.length()==1) {
+	  imonth=std::stoi(month);
+	} else if (month.length()==2 && month[0]=='1') {
+	  imonth=std::stoi(month);
+	} else if (month.length()>=3) {
+	  if ((month[0]=='j' || month[0]=='J') &&
+	      (month[0]=='a' || month[0]=='A') &&
+	      (month[0]=='n' || month[0]=='N')) {
+	    imonth=1;
+	  } else if ((month[0]=='f' || month[0]=='F') &&
+		     (month[0]=='e' || month[0]=='E') &&
+		     (month[0]=='b' || month[0]=='B')) {
+	    imonth=2;
+	  } else if ((month[0]=='m' || month[0]=='M') &&
+		     (month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='r' || month[0]=='R')) {
+	    imonth=3;
+	  } else if ((month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='p' || month[0]=='P') &&
+		     (month[0]=='r' || month[0]=='R')) {
+	    imonth=4;
+	  } else if ((month[0]=='m' || month[0]=='M') &&
+		     (month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='y' || month[0]=='Y')) {
+	    imonth=5;
+	  } else if ((month[0]=='j' || month[0]=='J') &&
+		     (month[0]=='u' || month[0]=='U') &&
+		     (month[0]=='n' || month[0]=='N')) {
+	    imonth=6;
+	  } else if ((month[0]=='j' || month[0]=='J') &&
+		     (month[0]=='u' || month[0]=='U') &&
+		     (month[0]=='l' || month[0]=='L')) {
+	    imonth=7;
+	  } else if ((month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='u' || month[0]=='U') &&
+		     (month[0]=='g' || month[0]=='G')) {
+	    imonth=8;
+	  } else if ((month[0]=='s' || month[0]=='S') &&
+		     (month[0]=='e' || month[0]=='E') &&
+		     (month[0]=='p' || month[0]=='P')) {
+	    imonth=9;
+	  } else if ((month[0]=='o' || month[0]=='O') &&
+		     (month[0]=='c' || month[0]=='C') &&
+		     (month[0]=='t' || month[0]=='T')) {
+	    imonth=10;
+	  } else if ((month[0]=='n' || month[0]=='N') &&
+		     (month[0]=='o' || month[0]=='O') &&
+		     (month[0]=='v' || month[0]=='V')) {
+	    imonth=11;
+	  } else if ((month[0]=='d' || month[0]=='D') &&
+		     (month[0]=='e' || month[0]=='E') &&
+		     (month[0]=='c' || month[0]=='C')) {
+	    imonth=12;
+	  }
+	}
+      }
+      int date=40;
+      if (is_field_present(bt,"date")) {
+	date=std::stoi(get_field(bt,"date"));
+      }
+      int sortable_date=year*10000+imonth*100+date;
+      sbd.insert(make_pair(sortable_date,i));
+    }
+  
+    std::vector<bibtex::BibTeXEntry> entries2;
+    for(sbdit=sbd.begin();sbdit!=sbd.end();sbdit++) {
+      entries2.push_back(entries[sbdit->second]);
+    }
+    
+  } else {
+
+    std::map<int,size_t,std::less<int>> sbd;
+    std::map<int,size_t,std::less<int>>::iterator sbdit;
+  
+    for(size_t i=0;i<entries.size();i++) {
+      bibtex::BibTeXEntry &bt=entries[i];
+      int year=3000;
+      if (is_field_present(bt,"year")) {
+	year=std::stoi(get_field(bt,"year"));
+      }
+      int imonth=13;
+      if (is_field_present(bt,"month")) {
+	std::string month=get_field(bt,"month");
+	if (month.length()==1) {
+	  imonth=std::stoi(month);
+	} else if (month.length()==2 && month[0]=='1') {
+	  imonth=std::stoi(month);
+	} else if (month.length()>=3) {
+	  if ((month[0]=='j' || month[0]=='J') &&
+	      (month[0]=='a' || month[0]=='A') &&
+	      (month[0]=='n' || month[0]=='N')) {
+	    imonth=1;
+	  } else if ((month[0]=='f' || month[0]=='F') &&
+		     (month[0]=='e' || month[0]=='E') &&
+		     (month[0]=='b' || month[0]=='B')) {
+	    imonth=2;
+	  } else if ((month[0]=='m' || month[0]=='M') &&
+		     (month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='r' || month[0]=='R')) {
+	    imonth=3;
+	  } else if ((month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='p' || month[0]=='P') &&
+		     (month[0]=='r' || month[0]=='R')) {
+	    imonth=4;
+	  } else if ((month[0]=='m' || month[0]=='M') &&
+		     (month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='y' || month[0]=='Y')) {
+	    imonth=5;
+	  } else if ((month[0]=='j' || month[0]=='J') &&
+		     (month[0]=='u' || month[0]=='U') &&
+		     (month[0]=='n' || month[0]=='N')) {
+	    imonth=6;
+	  } else if ((month[0]=='j' || month[0]=='J') &&
+		     (month[0]=='u' || month[0]=='U') &&
+		     (month[0]=='l' || month[0]=='L')) {
+	    imonth=7;
+	  } else if ((month[0]=='a' || month[0]=='A') &&
+		     (month[0]=='u' || month[0]=='U') &&
+		     (month[0]=='g' || month[0]=='G')) {
+	    imonth=8;
+	  } else if ((month[0]=='s' || month[0]=='S') &&
+		     (month[0]=='e' || month[0]=='E') &&
+		     (month[0]=='p' || month[0]=='P')) {
+	    imonth=9;
+	  } else if ((month[0]=='o' || month[0]=='O') &&
+		     (month[0]=='c' || month[0]=='C') &&
+		     (month[0]=='t' || month[0]=='T')) {
+	    imonth=10;
+	  } else if ((month[0]=='n' || month[0]=='N') &&
+		     (month[0]=='o' || month[0]=='O') &&
+		     (month[0]=='v' || month[0]=='V')) {
+	    imonth=11;
+	  } else if ((month[0]=='d' || month[0]=='D') &&
+		     (month[0]=='e' || month[0]=='E') &&
+		     (month[0]=='c' || month[0]=='C')) {
+	    imonth=12;
+	  }
+	}
+      }
+      int date=40;
+      if (is_field_present(bt,"date")) {
+	date=std::stoi(get_field(bt,"date"));
+      }
+      int sortable_date=year*10000+imonth*100+date;
+      sbd.insert(make_pair(sortable_date,i));
+    }
+  
+    std::vector<bibtex::BibTeXEntry> entries2;
+    for(sbdit=sbd.begin();sbdit!=sbd.end();sbdit++) {
+      entries2.push_back(entries[sbdit->second]);
+    }
+
+    std::swap(entries,entries2);
+    refresh_sort();
+    
+  }
+  
+  return;
+}
+
 void bib_file::reverse_bib() {
 
   std::vector<bibtex::BibTeXEntry> entries2(entries.size());
