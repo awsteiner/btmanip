@@ -1695,17 +1695,22 @@ namespace btmanip {
 	  // The result string is of the form:
 	  // [{"number_of_citations": 6}]
 	  // so we reformat
-	  result=result.substr(25,result.length()-27);
-	  
-	  if (bf.is_field_present(bt,"citations")) {
-	    cout << "Current value of citations field for " << *bt.key
-		 << " is: "
-		 << bf.get_field(bt,"citations") << endl;
+	  if (result.size()<27) {
+	    cout << "Result failed for key "
+		 << *bt.key << " in btmanip::inspire_cites()." << endl;
+	  } else {
+	    result=result.substr(25,result.length()-27);
+	    
+	    if (bf.is_field_present(bt,"citations")) {
+	      cout << "Current value of citations field for " << *bt.key
+		   << " is: "
+		   << bf.get_field(bt,"citations") << endl;
+	    }
+	    cout << "Setting citations field of " << *bt.key
+		 << " to " << result << endl;
+	    bf.set_field_value(bt,"citations",
+			       o2scl::itos(o2scl::stoi(result)));
 	  }
-	  cout << "Setting citations field of " << *bt.key
-	       << " to " << result << endl;
-	  bf.set_field_value(bt,"citations",
-			     o2scl::itos(o2scl::stoi(result)));
 	  
 	  cout << "Sleeping for 1 minute." << endl;
 	  sleep(60);
@@ -1744,7 +1749,7 @@ namespace btmanip {
 	  cout << "Found bibcode " << bibcode << " in "
 	       << *bt.key << endl;
 
-	  boost::replace_all(bibcode,"%","%26");
+	  boost::replace_all(bibcode,"&","%26");
 	  
 	  string cmd=prefix+base_url+"/query?q="+bibcode+
 	    "&fl=citation_count'";
