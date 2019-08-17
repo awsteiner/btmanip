@@ -26,6 +26,9 @@
 #include "bib_file.h"
 #include "hdf_bibtex.h"
 
+// For time()
+#include <ctime>
+
 #include <boost/algorithm/string/replace.hpp>
 
 #include <o2scl/cli_readline.h>
@@ -1793,6 +1796,85 @@ namespace btmanip {
       
       return 0;
     }
+
+    virtual int cites_per_month(std::vector<std::string> &sv, bool itive_com) {
+
+      // Get current time using C functions
+      std::time_t t = std::time(0); 
+      std::tm* now = std::localtime(&t);
+      int curr_year=now->tm_year+1900;
+      int curr_month=now->tm_mon+1;
+
+      /*
+	std::cout << (now->tm_year + 1900) << '-' 
+	<< (now->tm_mon + 1) << '-'
+	<<  now->tm_mday
+	<< std::endl;
+      */
+
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+	if (bf.is_field_present(bt,"year") &&
+	    bf.is_field_present(bt,"month") &&
+	    bf.is_field_present(bt,"citations")) {
+	  int pub_year=std::stoi(bf.get_field(bt,"year"));
+	  int delta_year=curr_year-pub_year;
+	  string month_str=bf.get_field(bt,"month");
+	  int pub_month=0;
+	  std::transform(month_str.begin(),month_str.end(),
+			 month_str.begin(),
+			 [](unsigned char c){ return std::tolower(c); });
+	  if (month_str.substr(0,3)==((string)"jan")) {
+	    pub_month=1;
+	  } else if (month_str.substr(0,3)==((string)"feb")) {
+	    pub_month=2;
+	  } else if (month_str.substr(0,3)==((string)"mar")) {
+	    pub_month=3;
+	  } else if (month_str.substr(0,3)==((string)"apr")) {
+	    pub_month=4;
+	  } else if (month_str.substr(0,3)==((string)"may")) {
+	    pub_month=5;
+	  } else if (month_str.substr(0,3)==((string)"jun")) {
+	    pub_month=6;
+	  } else if (month_str.substr(0,3)==((string)"jul")) {
+	    pub_month=7;
+	  } else if (month_str.substr(0,3)==((string)"aug")) {
+	    pub_month=8;
+	  } else if (month_str.substr(0,3)==((string)"sep")) {
+	    pub_month=9;
+	  } else if (month_str.substr(0,3)==((string)"oct")) {
+	    pub_month=10;
+	  } else if (month_str.substr(0,3)==((string)"nov")) {
+	    pub_month=11;
+	  } else if (month_str.substr(0,3)==((string)"dec")) {
+	    pub_month=12;
+	  }
+	  if (pub_month!=0) {
+	    int delta_month=curr_month-pub_month;
+	    if (delta_month<0) {
+	      delta_year--;
+	      delta_month+=12;
+	    }
+	    int citations=std::stoi(bf.get_field(bt,"citations"));
+	    cout.width(20);
+	    cout << *bt.key << " ";
+	    cout.width(3);
+	    cout << delta_year*12+delta_month << " ";
+	    cout.width(3);
+	    cout << citations << " ";
+	    cout << ((double)citations)/
+	      ((double)(delta_year*12+delta_month)) << endl;
+	  } else {
+	    cout << *bt.key << " results in bad month calculation."
+		 << endl;
+	  }
+	} else {
+	  cout << *bt.key << " is missing a proper field." << endl;
+	}
+      }
+      
+      return 0;
+    }  
     
     /** \brief Output the BibTeX data as a file in
 	reStructured Text format for Sphinx
@@ -2034,7 +2116,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=38;
+      static const int nopt=39;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2238,6 +2320,10 @@ namespace btmanip {
 	 (this,&btmanip_class::reverse),cli::comm_option_both},
 	{0,"rst","Output a rst file.",0,2,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::rst),
+	 cli::comm_option_both},
+	{0,"cpm","Compute citations per month.",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::cites_per_month),
 	 cli::comm_option_both},
 	{0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
