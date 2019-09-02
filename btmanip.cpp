@@ -2456,7 +2456,7 @@ namespace btmanip {
 	std::vector<cmd_line_arg> ca;
 	std::string def_args=dc;
 	cout << "Using default arguments: " << def_args << endl;
-	cl->process_args(dc,ca);
+	cl->process_args_str(dc,ca);
 	cl->call_args(ca);
       }
     
@@ -2464,7 +2464,7 @@ namespace btmanip {
 	cl->run_interactive();
       } else {
 	std::vector<cmd_line_arg> ca2;
-	cl->process_args(argc,argv,ca2);
+	cl->process_args_c(argc,argv,ca2);
 	cl->call_args(ca2);
       }
     
