@@ -1669,6 +1669,317 @@ void bib_file::bib_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
   return;
 }
 
+void bib_file::fill(std::string &s, size_t len, char ch) {
+  for(size_t i=s.length();i<len;i++) {
+    s+=ch;
+  }
+  return;
+}
+
+void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
+
+  //cout << "Here3." << endl;
+  
+  std::vector<std::string> sv2, sv3;
+  
+  for(std::vector<std::string>::iterator it=sv.begin();it!=sv.end();it++) {
+    string stmp=*it;
+    //cout << "Here2: " << stmp << " " << stmp.length() << endl;
+    if (stmp.length()<=len) {
+      sv2.push_back(stmp);
+    } else {
+      //cout << "Here4: " << stmp << endl;
+      bool done=false;
+      while (stmp.length()>=len && done==false) {
+	bool found=false;
+	int k2;
+	for(int k=len-1;k>=0;k--) {
+	  if (stmp[k]==' ') {
+	    found=true;
+	    k2=k;
+	    k=-1;
+	  }
+	}
+	if (found==false) {
+	  done=true;
+	} else {
+	  sv3.push_back(stmp.substr(0,k2+1));
+	  stmp=stmp.substr(k2+1,stmp.length()-k2-1);
+	}
+      }
+      sv3.push_back(stmp);
+      //for(size_t j=0;j<sv3.size();j++) {
+      //cout << "sv3: " << j << " " << sv3[j] << endl;
+      //}
+      for(size_t j=0;j<sv3.size();j++) {
+	sv2.push_back(sv3[j]);
+      }
+    }
+  }
+  sv=sv2;
+  
+  return;
+}
+
+void bib_file::format_and_output(std::string left, std::string right,
+				 std::ostream &outs, int highlight,
+				 std::string sep, size_t len) {
+  
+  vector<string> vs_left={left};
+  vector<string> vs_right={right};
+  local_wrap(vs_left);
+  local_wrap(vs_right);
+  while (vs_left.size()<vs_right.size()) vs_left.push_back(" ");
+  while (vs_left.size()>vs_right.size()) vs_right.push_back(" ");
+
+  /*
+    if (vs_left.size()>1) {
+    cout << "Iere: " << endl;
+    for(size_t j=0;j<vs_left.size();j++) {
+    cout << "left: " << j << " " << vs_left[j] << endl;
+    }
+    for(size_t j=0;j<vs_right.size();j++) {
+    cout << "right: " << j << " " << vs_right[j] << endl;
+    }
+    cout << "Iere2: " << endl;
+    }
+  */
+  
+  fill(vs_left[0],len);
+  fill(vs_right[0],len);
+
+  if (highlight==-1 || highlight==2) {
+    ostringstream oss;
+    oss << ((char)27) << "[1m";
+    oss << ((char)27) << "[36m";
+    oss << vs_left[0];
+    oss << ((char)27) << "[m";
+    vs_left[0]=oss.str();
+  }
+  if (highlight==1 || highlight==2) {
+    ostringstream oss;
+    oss << ((char)27) << "[1m";
+    oss << ((char)27) << "[36m";
+    oss << vs_right[0];
+    oss << ((char)27) << "[m";
+    vs_right[0]=oss.str();
+  }
+  outs << vs_left[0] << sep << vs_right[0] << endl;
+  cout << vs_left[0].length() << " " << vs_right[0].length() << endl;
+  
+  for(size_t j=1;j<vs_left.size();j++) {
+    fill(vs_left[j],len-16);
+    fill(vs_right[j],len-16);
+    if (highlight==-1 || highlight==2) {
+      ostringstream oss;
+      oss << ((char)27) << "[1m";
+      oss << ((char)27) << "[36m";
+      oss << vs_left[j];
+      oss << ((char)27) << "[m";
+      vs_left[j]=oss.str();
+    }
+    if (highlight==1 || highlight==2) {
+      ostringstream oss;
+      oss << ((char)27) << "[1m";
+      oss << ((char)27) << "[36m";
+      oss << vs_right[j];
+      oss << ((char)27) << "[m";
+      vs_right[j]=oss.str();
+    }
+    for(size_t k=0;k<16;k++) outs << ' ';
+    outs << vs_left[j] << "z" << sep;
+    for(size_t k=0;k<16;k++) outs << ' ';
+    outs << vs_right[j] << "z" << endl;
+    cout << vs_left[j].length() << " " << vs_right[j].length() << endl;
+  }
+
+  return;
+}
+
+void bib_file::format_field_value(std::string field, std::string value,
+				  std::string &outs) {
+
+  //cout << "A: " << field << "a" << endl;
+  //cout << "B: " << value << "b" << endl;
+  
+  outs=((std::string)"  ")+field+" =";
+  while (outs.length()<16) outs+=" ";
+  
+  // Determine if the field value needs extra braces
+  bool with_braces=true;
+  if (field=="year") {
+    with_braces=false;
+  }
+  if (value[0]=='{' &&
+      value[value.size()-1]=='}' &&
+      value.find('{',1)==std::string::npos) {
+    with_braces=false;
+  }
+  // Don't surround purely numeric values with braces
+  // unless they begin with a '0'. 
+  if ((field=="pages" || field=="numpages" ||
+       field=="volume" || field=="issue" ||
+       field=="isbn" || field=="citations" ||
+       field=="adscites" || field=="number") &&
+      value.size()>0 && value[0]!='0') {
+    
+    bool has_nonnum=false;
+    for(size_t i=0;i<value.size();i++) {
+      if (!isdigit(value[i])) {
+	has_nonnum=true;
+      }
+    }
+    if (has_nonnum==false) {
+      with_braces=false;
+    }
+  }
+
+  // If the value has a carriage return or two spaces
+  for(size_t k=0;k<value.length();k++) {
+    if (value[k]=='\n') {
+      string stmp=value.substr(0,k)+' ';
+      stmp+=value.substr(k+1,value.length()-k-1);
+      value=stmp;
+      k=0;
+    }
+  }
+  for(size_t k=0;k<value.length()-1;k++) {
+    if (value[k]==' ' && value[k+1]==' ') {
+      string stmp=value.substr(0,k);
+      stmp+=value.substr(k+2,value.length()-k-2);
+      value=stmp;
+      k=0;
+    }
+  }
+  
+  // Output with braces or a comma as necessary
+  if (with_braces==false) {
+    value=value+",";
+  } else {
+    value=((string)"{")+value+"},";
+  }
+  outs+=value;
+  //cout << "Z: " << outs << "z" << endl;
+  
+  return;
+}
+
+void bib_file::bib_output_twoup(std::ostream &outs,
+				bibtex::BibTeXEntry &bt_left,
+				bibtex::BibTeXEntry &bt_right) {
+
+  string stmpl, stmpr;
+
+  bool key_match=false;
+  if (bt_left.key && bt_right.key && *bt_left.key==*bt_right.key) {
+    key_match=true;
+  }
+  
+  // Output tag and key
+  stmpl=((string)"@")+bt_left.tag+"{";
+  if (bt_left.key) {
+    if (key_match) {
+      ostringstream oss;
+      oss << ((char)27) << "[1m";
+      oss << ((char)27) << "[36m";
+      oss << (*bt_left.key);
+      oss << ((char)27) << "[m";
+      stmpl+=oss.str();
+    } else {
+      stmpl+=(*bt_left.key);
+    }
+  }
+  stmpl+=',';
+  stmpr=((string)"@")+bt_right.tag+"{";
+  if (bt_right.key) {
+    if (key_match) {
+      ostringstream oss;
+      oss << ((char)27) << "[1m";
+      oss << ((char)27) << "[36m";
+      oss << (*bt_right.key);
+      oss << ((char)27) << "[m";
+      stmpr+=oss.str();
+    } else {
+      stmpr+=(*bt_right.key);
+    }
+  }
+  stmpr+=',';
+  if (key_match) {
+    // Add extra space for the vt100 sequences
+    format_and_output(stmpl,stmpr,outs,2," | ",90);
+  } else {
+    format_and_output(stmpl,stmpr,outs);
+  }
+  
+  for(size_t j=0;j<bt_left.fields.size();j++) {
+
+    stmpr="";
+    
+    bool fields_match=false;
+    
+    if (bt_left.fields[j].second.size()>0) {
+      format_field_value(bt_left.fields[j].first,
+			 bt_left.fields[j].second[0],stmpl);
+    }
+
+    if (is_field_present(bt_right,bt_left.fields[j].first)) {
+
+      if (bt_right.fields[j].second.size()>0) {
+	format_field_value(bt_right.fields[j].first,
+			   bt_right.fields[j].second[0],stmpr);
+      }
+
+      if (bt_left.fields[j].second[0]==
+	  bt_right.fields[j].second[0]) {
+	fields_match=true;
+	ostringstream oss;
+	oss << ((char)27) << "[1m";
+	oss << ((char)27) << "[36m";
+	oss << stmpl;
+	oss << ((char)27) << "[m";
+	stmpl=oss.str();
+	ostringstream oss2;
+	oss2 << ((char)27) << "[1m";
+	oss2 << ((char)27) << "[36m";
+	oss2 << stmpr;
+	oss2 << ((char)27) << "[m";
+	stmpr=oss2.str();
+      }
+      
+    }
+
+    if (fields_match) {
+      format_and_output(stmpl,stmpr,outs,2," | ",90);
+    } else {
+      format_and_output(stmpl,stmpr,outs);
+    }
+    
+  }
+
+  stmpl="";
+  
+  for(size_t j=0;j<bt_right.fields.size();j++) {
+    if (!is_field_present(bt_left,bt_right.fields[j].first)) {
+
+      stmpr=((std::string)"  ")+bt_right.fields[j].first+" =";
+      while (stmpr.length()<16) stmpr+=" ";
+      
+      if (bt_right.fields[j].second.size()>0) {
+	format_field_value(bt_right.fields[j].first,
+			   bt_right.fields[j].second[0],stmpr);
+      }
+      
+      format_and_output(stmpl,stmpr,outs);
+    }
+  }
+
+  stmpl="}";
+  stmpr="}";
+  format_and_output(stmpl,stmpr,outs);
+
+  return;
+}
+
 int bib_file::possible_duplicate(bibtex::BibTeXEntry &bt,
 				 bibtex::BibTeXEntry &bt2) {
   std::string lower_tag1=bt.tag, lower_tag2=bt2.tag;
@@ -1769,23 +2080,36 @@ void bib_file::add_bib(std::string fname) {
     std::vector<size_t> list;
     list_possible_duplicates(bt,list);
     if (list.size()>0) {
-      std::cout << "When adding entry:\n" << std::endl;
-      bib_output_one(std::cout,bt);
       std::cout << "\n" << list.size() << " possible duplicates in the "
 		<< "current list were found:\n" << std::endl;
       for(size_t j=0;j<list.size();j++) {
-	bib_output_one(std::cout,entries[list[j]]);
+	string stmpl="Entry in current list";
+	string stmpr="New entry";
+	format_and_output(stmpl,stmpr,std::cout);
+	stmpl='-';
+	stmpr='-';
+	for(size_t k=0;k<77;k++) {
+	  stmpl+='-';
+	  stmpr+='-';
+	}
+	format_and_output(stmpl,stmpr,std::cout);
+	bib_output_twoup(std::cout,entries[list[j]],bt);
       }
-      if (list.size()==1) {
+      std::cout << "\nKeep entry on left (<,), replace with "
+		<< "entry on right (>.), add entry enyway (space) "
+		<< "or stop add (s)? " << std::flush;
+      /*
+	if (list.size()==1) {
 	std::cout << "\nAdd entry anyway (y), replace (r), "
-		  << "stop add (s) or ignore (i)? " << std::flush;
-      } else {
+	<< "stop add (s) or ignore (i)? " << std::flush;
+	} else {
 	std::cout << "\nAdd entry anyway (y), "
-		  << "stop add (s) or ignore (i)? " << std::flush;
-      }
+	<< "stop add (s) or ignore (i)? " << std::flush;
+	}
+      */
       char ch;
       std::cin >> ch;
-      if (ch=='y' || ch=='Y') {
+      if (ch==' ') {
 	entries.push_back(bt);
 	    
 	if (!bt.key) {
@@ -1801,12 +2125,13 @@ void bib_file::add_bib(std::string fname) {
 	  std::cout << ", tag: " << bt.tag;
 	  std::cout << ", key: " << *bt.key << std::endl;
 	}
-      } else if (list.size()==1 && (ch=='r' || ch=='R')) {
+      } else if (list.size()==1 && (ch=='>' || ch=='.')) {
 	std::cout << "Replacing " << *(entries[list[0]].key)
 		  << " with " << *bt.key << std::endl;
 	entries[list[0]]=bt;
-      } else if (ch=='s' || ch=='S') {
-	std::cout << "Stopping add." << std::endl;
+      } else if (ch=='<' || ch==',') {
+	std::cout << "Keeping old entry." << std::endl;
+      } else if (ch=='S' || ch=='s') {
 	i=entries2.size();
       } else {
 	std::cout << "Ignoring " << *bt.key << std::endl;
