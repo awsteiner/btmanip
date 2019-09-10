@@ -1747,6 +1747,8 @@ void bib_file::format_and_output(std::string left, std::string right,
   
   fill(vs_left[0],len);
   fill(vs_right[0],len);
+  //cout << "2: " << vs_left[0].length() << " "
+  //<< vs_right[0].length() << " " << len << endl;
 
   if (highlight==-1 || highlight==2) {
     ostringstream oss;
@@ -1765,11 +1767,24 @@ void bib_file::format_and_output(std::string left, std::string right,
     vs_right[0]=oss.str();
   }
   outs << vs_left[0] << sep << vs_right[0] << endl;
-  cout << vs_left[0].length() << " " << vs_right[0].length() << endl;
+  /*
+    cout << "4: " << vs_left[0].length() << " " << sep.length() << " "
+    << vs_right[0].length() << endl;
+    for(size_t j=0;j<vs_left[0].length();j++) {
+    cout << ((int)vs_left[0][j]) << " ";
+    }
+    cout << endl;
+    for(size_t j=0;j<vs_right[0].length();j++) {
+    cout << ((int)vs_right[0][j]) << " ";
+    }
+    cout << endl;
+  */
   
   for(size_t j=1;j<vs_left.size();j++) {
     fill(vs_left[j],len-16);
     fill(vs_right[j],len-16);
+    //cout << "3: " << vs_left[j].length() << " "
+    //<< vs_right[j].length() << " " << len << endl;
     if (highlight==-1 || highlight==2) {
       ostringstream oss;
       oss << ((char)27) << "[1m";
@@ -1787,10 +1802,10 @@ void bib_file::format_and_output(std::string left, std::string right,
       vs_right[j]=oss.str();
     }
     for(size_t k=0;k<16;k++) outs << ' ';
-    outs << vs_left[j] << "z" << sep;
+    outs << vs_left[j] << sep;
     for(size_t k=0;k<16;k++) outs << ' ';
-    outs << vs_right[j] << "z" << endl;
-    cout << vs_left[j].length() << " " << vs_right[j].length() << endl;
+    outs << vs_right[j] << endl;
+    //cout << "3: " << vs_left[j].length() << " " << vs_right[j].length() << endl;
   }
 
   return;
@@ -1877,36 +1892,14 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   
   // Output tag and key
   stmpl=((string)"@")+bt_left.tag+"{";
-  if (bt_left.key) {
-    if (key_match) {
-      ostringstream oss;
-      oss << ((char)27) << "[1m";
-      oss << ((char)27) << "[36m";
-      oss << (*bt_left.key);
-      oss << ((char)27) << "[m";
-      stmpl+=oss.str();
-    } else {
-      stmpl+=(*bt_left.key);
-    }
-  }
+  stmpl+=(*bt_left.key);
   stmpl+=',';
   stmpr=((string)"@")+bt_right.tag+"{";
-  if (bt_right.key) {
-    if (key_match) {
-      ostringstream oss;
-      oss << ((char)27) << "[1m";
-      oss << ((char)27) << "[36m";
-      oss << (*bt_right.key);
-      oss << ((char)27) << "[m";
-      stmpr+=oss.str();
-    } else {
-      stmpr+=(*bt_right.key);
-    }
-  }
+  stmpr+=(*bt_right.key);
   stmpr+=',';
   if (key_match) {
     // Add extra space for the vt100 sequences
-    format_and_output(stmpl,stmpr,outs,2," | ",90);
+    format_and_output(stmpl,stmpr,outs,2);
   } else {
     format_and_output(stmpl,stmpr,outs);
   }
@@ -1929,27 +1922,14 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 			   bt_right.fields[j].second[0],stmpr);
       }
 
-      if (bt_left.fields[j].second[0]==
-	  bt_right.fields[j].second[0]) {
+      if (bt_left.fields[j].second[0]==bt_right.fields[j].second[0]) {
 	fields_match=true;
-	ostringstream oss;
-	oss << ((char)27) << "[1m";
-	oss << ((char)27) << "[36m";
-	oss << stmpl;
-	oss << ((char)27) << "[m";
-	stmpl=oss.str();
-	ostringstream oss2;
-	oss2 << ((char)27) << "[1m";
-	oss2 << ((char)27) << "[36m";
-	oss2 << stmpr;
-	oss2 << ((char)27) << "[m";
-	stmpr=oss2.str();
       }
       
     }
 
     if (fields_match) {
-      format_and_output(stmpl,stmpr,outs,2," | ",90);
+      format_and_output(stmpl,stmpr,outs,2);
     } else {
       format_and_output(stmpl,stmpr,outs);
     }
@@ -2083,9 +2063,11 @@ void bib_file::add_bib(std::string fname) {
       std::cout << "\n" << list.size() << " possible duplicates in the "
 		<< "current list were found:\n" << std::endl;
       for(size_t j=0;j<list.size();j++) {
+	// Print out header
 	string stmpl="Entry in current list";
 	string stmpr="New entry";
 	format_and_output(stmpl,stmpr,std::cout);
+	// Print out line separator
 	stmpl='-';
 	stmpr='-';
 	for(size_t k=0;k<77;k++) {
@@ -2093,11 +2075,12 @@ void bib_file::add_bib(std::string fname) {
 	  stmpr+='-';
 	}
 	format_and_output(stmpl,stmpr,std::cout);
+	// Print out entry
 	bib_output_twoup(std::cout,entries[list[j]],bt);
       }
       std::cout << "\nKeep entry on left (<,), replace with "
 		<< "entry on right (>.), add entry enyway (space) "
-		<< "or stop add (s)? " << std::flush;
+		<< "or stop add (s)? " << std::endl;
       /*
 	if (list.size()==1) {
 	std::cout << "\nAdd entry anyway (y), replace (r), "
@@ -2108,7 +2091,8 @@ void bib_file::add_bib(std::string fname) {
 	}
       */
       char ch;
-      std::cin >> ch;
+      cin >> ch;
+      cout << "Read character: " << ch << endl;
       if (ch==' ') {
 	entries.push_back(bt);
 	    
