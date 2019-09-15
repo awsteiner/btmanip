@@ -82,10 +82,10 @@ install:
 btmanip.o: btmanip.cpp bib_file.h hdf_bibtex.h
 	$(CXX) $(FLAGS) $(INCS) -I. -c -o btmanip.o btmanip.cpp
 
-hdf_bibtex.o: btmanip.cpp bib_file.h hdf_bibtex.h
+hdf_bibtex.o: bib_file.h hdf_bibtex.h hdf_bibtex.cpp
 	$(CXX) $(FLAGS) $(INCS) -I. -c -o hdf_bibtex.o hdf_bibtex.cpp
 
-bib_file.o: bib_file.h hdf_bibtex.h
+bib_file.o: bib_file.h hdf_bibtex.h bib_file.cpp
 	$(CXX) $(FLAGS) $(INCS) -I. -c -o bib_file.o bib_file.cpp
 
 clean:

@@ -26,6 +26,8 @@
 #include "bib_file.h"
 #include "hdf_bibtex.h"
 
+#include "curses.h"
+
 #include <o2scl/cli_readline.h>
 #include <o2scl/string_conv.h>
 
@@ -2090,9 +2092,10 @@ void bib_file::add_bib(std::string fname) {
 	<< "stop add (s) or ignore (i)? " << std::flush;
 	}
       */
-      char ch;
-      cin >> ch;
+      cin.ignore();
+      char ch=getch();
       cout << "Read character: " << ch << endl;
+      exit(-1);
       if (ch==' ') {
 	entries.push_back(bt);
 	    
