@@ -22,6 +22,9 @@
 */
 /** \file btmanip.cpp
     \brief File defining \ref btmanip_class
+
+    OSTI URL is 
+    https://www.osti.gov/search/identifier:osti_id
 */
 #include "bib_file.h"
 #include "hdf_bibtex.h"
