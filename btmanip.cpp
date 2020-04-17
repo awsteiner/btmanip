@@ -1692,7 +1692,7 @@ namespace btmanip {
 	  cout << "Found inspireid " << id << " in "
 	       << *bt.key << endl;
 	  
-	  string cmd=((string)"curl -X GET \"http://inspirehep.net/")+
+	  string cmd=((string)"curl -X GET \"http://old.inspirehep.net/")+
 	    "search?action_search=Search&rg=100&of=recjson&"+
 	    "ln=en&p=find+recid+"+id+"&jrec=0&ot=number_of_citations\"";
 	  string result;
