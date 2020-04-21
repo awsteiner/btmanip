@@ -1680,8 +1680,6 @@ void bib_file::fill(std::string &s, size_t len, char ch) {
 
 void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
 
-  //cout << "Here3." << endl;
-  
   std::vector<std::string> sv2, sv3;
   
   for(std::vector<std::string>::iterator it=sv.begin();it!=sv.end();it++) {
@@ -2074,6 +2072,12 @@ void bib_file::add_bib(std::string fname) {
   in.close();
   if (verbose>1) std::cout << "Done with main parse call." << std::endl;
 
+  size_t n_orig=entries.size();
+  size_t n_new=entries2.size();
+  size_t n_add=0;
+  size_t n_process=0;
+  size_t n_mod=0;
+
   // Loop over entries
   for(size_t i=0;i<entries2.size();i++) {
 
@@ -2084,6 +2088,9 @@ void bib_file::add_bib(std::string fname) {
     if (list.size()>0) {
       std::cout << "\n" << list.size() << " possible duplicates in the "
 		<< "current list were found:\n" << std::endl;
+      cout << n_orig << " original " << n_new << " new "
+	   << n_add << " added " << n_mod << " modified "
+	   << n_process << " processed." << endl;
       for(size_t j=0;j<list.size();j++) {
 	// Print out header
 	string stmp="Entry in current list (";
@@ -2125,6 +2132,7 @@ void bib_file::add_bib(std::string fname) {
       char ch;
       cin >> ch;
       if (ch==' ') {
+	n_add++;
 	entries.push_back(bt);
 	    
 	if (!bt.key) {
@@ -2144,6 +2152,7 @@ void bib_file::add_bib(std::string fname) {
 	std::cout << "Replacing " << *(entries[list[0]].key)
 		  << " with " << *bt.key << std::endl;
 	entries[list[0]]=bt;
+	n_mod++;
       } else if (ch=='<' || ch==',') {
 	std::cout << "Keeping old entry." << std::endl;
       } else if (ch=='S' || ch=='s') {
@@ -2154,9 +2163,11 @@ void bib_file::add_bib(std::string fname) {
     } else {
       // If this entry is not marked as a possible duplicate,
       // add it.
+      n_add++;
       entries.push_back(bt);
     }
-	
+
+    n_process++;
     // End of loop over entries
   }
       

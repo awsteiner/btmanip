@@ -51,21 +51,24 @@ namespace btmanip {
 
   protected:
 
-    /** \brief Desc 
+    /** \brief Fill a string with chararacter \c ch to ensure
+	its length is \c len
      */
     void fill(std::string &s, size_t len=78, char ch=' ');
     
-    /** \brief Desc 
+    /** \brief Rewrap a list of strings into a new list with line
+	breaks
      */
     void local_wrap(std::vector<std::string> &sv, size_t len=78);
 
-    /** \brief Desc 
-     */
+    /** \brief Format the left and right strings into tabular
+	output with optional highlighting
+    */
     void format_and_output(std::string left, std::string right,
 			   std::ostream &outs, int highlight=0,
 			   std::string sep=" | ", size_t len=78);
     
-    /** \brief Desc 
+    /** \brief Output two entries in a tabular format
      */
     void bib_output_twoup(std::ostream &outs,
 			  bibtex::BibTeXEntry &bt_left,
