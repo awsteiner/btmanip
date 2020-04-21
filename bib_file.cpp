@@ -1726,11 +1726,12 @@ void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
 void bib_file::format_and_output(std::string left, std::string right,
 				 std::ostream &outs, int highlight,
 				 std::string sep, size_t len) {
-  
+
+  // First, take the value and wrap it 
   vector<string> vs_left={left};
   vector<string> vs_right={right};
-  local_wrap(vs_left);
-  local_wrap(vs_right);
+  local_wrap(vs_left,len-16);
+  local_wrap(vs_right,len-16);
   while (vs_left.size()<vs_right.size()) vs_left.push_back(" ");
   while (vs_left.size()>vs_right.size()) vs_right.push_back(" ");
 
@@ -1785,8 +1786,8 @@ void bib_file::format_and_output(std::string left, std::string right,
   for(size_t j=1;j<vs_left.size();j++) {
     fill(vs_left[j],len-16);
     fill(vs_right[j],len-16);
-    //cout << "3: " << vs_left[j].length() << " "
-    //<< vs_right[j].length() << " " << len << endl;
+    //cout << "3: " << highlight << " " << vs_left[j].length() << " "
+    //<< vs_right[j].length() << " " << len-16 << endl;
     if (highlight==-1 || highlight==2) {
       ostringstream oss;
       oss << ((char)27) << "[1m";
@@ -1807,7 +1808,8 @@ void bib_file::format_and_output(std::string left, std::string right,
     outs << vs_left[j] << sep;
     for(size_t k=0;k<16;k++) outs << ' ';
     outs << vs_right[j] << endl;
-    //cout << "3: " << vs_left[j].length() << " " << vs_right[j].length() << endl;
+    //cout << "3: " << vs_left[j].length() << " "
+    //<< vs_right[j].length() << endl;
   }
 
   return;
@@ -1816,9 +1818,12 @@ void bib_file::format_and_output(std::string left, std::string right,
 void bib_file::format_field_value(std::string field, std::string value,
 				  std::string &outs) {
 
-  //cout << "A: " << field << "a" << endl;
-  //cout << "B: " << value << "b" << endl;
-  
+  // If the field name is too long, then shorten it
+  if (field.length()>=13) {
+    field=field.substr(0,9)+"...";
+  }
+
+  // Begin the string with the field and equals sign
   outs=((std::string)"  ")+field+" =";
   while (outs.length()<16) outs+=" ";
   
@@ -1832,6 +1837,7 @@ void bib_file::format_field_value(std::string field, std::string value,
       value.find('{',1)==std::string::npos) {
     with_braces=false;
   }
+  
   // Don't surround purely numeric values with braces
   // unless they begin with a '0'. 
   if ((field=="pages" || field=="numpages" ||
@@ -1851,7 +1857,8 @@ void bib_file::format_field_value(std::string field, std::string value,
     }
   }
 
-  // If the value has a carriage return or two spaces
+  // Iterate through the value, if it has a carriage
+  // return, then replace it with a space
   for(size_t k=0;k<value.length();k++) {
     if (value[k]=='\n') {
       string stmp=value.substr(0,k)+' ';
@@ -1860,12 +1867,17 @@ void bib_file::format_field_value(std::string field, std::string value,
       k=0;
     }
   }
-  for(size_t k=0;k<value.length()-1;k++) {
-    if (value[k]==' ' && value[k+1]==' ') {
-      string stmp=value.substr(0,k);
-      stmp+=value.substr(k+2,value.length()-k-2);
-      value=stmp;
-      k=0;
+
+  // Iterate through the value, if it has two consecutive spaces
+  // then replace it with one space
+  if (value.length()>1) {
+    for(size_t k=0;k<value.length()-1;k++) {
+      if (value[k]==' ' && value[k+1]==' ') {
+	string stmp=value.substr(0,k);
+	stmp+=value.substr(k+2,value.length()-k-2);
+	value=stmp;
+	k=0;
+      }
     }
   }
   
@@ -1876,8 +1888,7 @@ void bib_file::format_field_value(std::string field, std::string value,
     value=((string)"{")+value+"},";
   }
   outs+=value;
-  //cout << "Z: " << outs << "z" << endl;
-  
+
   return;
 }
 
@@ -1905,26 +1916,33 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   } else {
     format_and_output(stmpl,stmpr,outs);
   }
-  
+
+  // Loop through all fields on the LHS
   for(size_t j=0;j<bt_left.fields.size();j++) {
 
     stmpr="";
     
     bool fields_match=false;
-    
+
+    // If the value in the field is not empty, construct the string
+    // stmpl from the value in the field
     if (bt_left.fields[j].second.size()>0) {
       format_field_value(bt_left.fields[j].first,
 			 bt_left.fields[j].second[0],stmpl);
     }
 
+    // If this field is present on the RHS
     if (is_field_present(bt_right,bt_left.fields[j].first)) {
 
-      if (bt_right.fields[j].second.size()>0) {
-	format_field_value(bt_right.fields[j].first,
-			   bt_right.fields[j].second[0],stmpr);
+      // Get the value
+      string rx=get_field(bt_right,bt_left.fields[j].first);
+
+      // If it's not empty, then fill the string stmpr
+      if (rx.size()>0) {
+	format_field_value(bt_left.fields[j].first,rx,stmpr);
       }
 
-      if (bt_left.fields[j].second[0]==bt_right.fields[j].second[0]) {
+      if (bt_left.fields[j].second[0]==rx) {
 	fields_match=true;
       }
       
@@ -1939,7 +1957,9 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   }
 
   stmpl="";
-  
+
+  // Now loop through all the extra fields in bt_right which are
+  // not present on the left
   for(size_t j=0;j<bt_right.fields.size();j++) {
     if (!is_field_present(bt_left,bt_right.fields[j].first)) {
 
@@ -2066,10 +2086,20 @@ void bib_file::add_bib(std::string fname) {
 		<< "current list were found:\n" << std::endl;
       for(size_t j=0;j<list.size();j++) {
 	// Print out header
-	string stmpl="Entry in current list";
-	string stmpr="New entry";
-	format_and_output(stmpl,stmpr,std::cout);
+	string stmp="Entry in current list (";
+	ostringstream oss;
+	oss << ((char)27) << "[1m";
+	oss << ((char)27) << "[36m";
+	oss << "matching";
+	oss << ((char)27) << "[m";
+	stmp+=oss.str();
+	stmp+=" different)";
+	while (stmp.length()<90) stmp+=' ';
+	stmp+=" | New entry";
+	cout << stmp << endl;
+	
 	// Print out line separator
+	string stmpl, stmpr;
 	stmpl='-';
 	stmpr='-';
 	for(size_t k=0;k<77;k++) {
@@ -2092,10 +2122,8 @@ void bib_file::add_bib(std::string fname) {
 	<< "stop add (s) or ignore (i)? " << std::flush;
 	}
       */
-      cin.ignore();
-      char ch=getch();
-      cout << "Read character: " << ch << endl;
-      exit(-1);
+      char ch;
+      cin >> ch;
       if (ch==' ') {
 	entries.push_back(bt);
 	    

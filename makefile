@@ -101,6 +101,9 @@ sync-doc:
 test-sync:
 	rsync -Cavzun sphinx/html/* $(STATIC_DOC_DIR)/btmanip
 
+test:
+	./btmanip -parse ~/wcs/int6/django/svn/all.bib \
+		-add ~/wcs/group/mamun/paper/paper.bib
 
 empty: 
 

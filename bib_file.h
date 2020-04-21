@@ -50,19 +50,30 @@ namespace btmanip {
   class bib_file {
 
   protected:
-    
+
+    /** \brief Desc 
+     */
     void fill(std::string &s, size_t len=78, char ch=' ');
     
+    /** \brief Desc 
+     */
     void local_wrap(std::vector<std::string> &sv, size_t len=78);
-    
+
+    /** \brief Desc 
+     */
     void format_and_output(std::string left, std::string right,
 			   std::ostream &outs, int highlight=0,
 			   std::string sep=" | ", size_t len=78);
     
+    /** \brief Desc 
+     */
     void bib_output_twoup(std::ostream &outs,
 			  bibtex::BibTeXEntry &bt_left,
 			  bibtex::BibTeXEntry &bt_right);
     
+    /** \brief Format the field and value into one string for
+	the \ref bib_output_twoup() function
+     */
     void format_field_value(std::string field, std::string value,
 			    std::string &outs);
     
