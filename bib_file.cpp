@@ -1100,8 +1100,9 @@ void bib_file::clean(bool prompt) {
 	      std::string jour=bt.fields[j].second[0];
 	      std::string abbrev;
 	      if (find_abbrev(jour,abbrev)==0) {
-		if (jour!=abbrev) {
-		  if (verbose>1) {
+		// Avoid changing arxiv entries in journal fields
+		if (jour!=abbrev && abbrev!=((string)"Arxiv.org")) {
+		  if (true || verbose>1) {
 		    std::cout << "Reformatting journal " << jour << " to "
 			      << abbrev << std::endl;
 		  }
@@ -1161,10 +1162,15 @@ void bib_file::clean(bool prompt) {
 	do {
 	  std::cout << "\nChanging " << i << " of " << entries.size()
 		    << "\n" << std::endl;
-	  bib_output_one(std::cout,entries[i]);
-	  std::cout << "\nto\n" << std::endl;
-	  bib_output_one(std::cout,bt);
-	  std::cout << std::endl;
+	  
+	  //bib_output_one(std::cout,entries[i]);
+	  //std::cout << "\nto\n" << std::endl;
+	  //bib_output_one(std::cout,bt);
+	  //std::cout << std::endl;
+
+	  bib_output_twoup(std::cout,entries[i],bt,
+			   "Original entry","Proposed new entry");
+	  
 	  if (this_empty_titles_added) {
 	    std::cout << "Empty title added." << std::endl;
 	  }
@@ -1186,7 +1192,9 @@ void bib_file::clean(bool prompt) {
 	  if (this_author_fields_notilde) {
 	    std::cout << "Removed tildes from author names." << std::endl;
 	  }
-	  std::cout << "\nYes (y), no (n), yes to all (Y), no to all (N)? ";
+	  std::cout << "\nYes (y), no (n), yes to all remaining changes (Y), "
+		    << "no to all remaining changes (N), "
+		    << "or (s) to stop? ";
 	  std::cin >> ch;
 	  if (ch=='y') {
 	    accept=true;
@@ -1195,10 +1203,10 @@ void bib_file::clean(bool prompt) {
 	  if (ch=='n' || ch=='N') {
 	    entry_changed[i]=false;
 	  }
-	  if (ch=='N') {
+	  if (ch=='N' || ch=='s') {
 	    i=entries.size();
 	  }
-	} while (ch!='n' && ch!='N' && ch!='y' && ch!='Y');
+	} while (ch!='n' && ch!='N' && ch!='y' && ch!='Y' && ch!='s');
       } else {
 	accept=true;
       }
