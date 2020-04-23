@@ -801,7 +801,7 @@ bool bib_file::entry_autoformat_url(bibtex::BibTeXEntry &bt) {
     if (is_field_present(bt,"doi")) {
       if (is_field_present(bt,"url")) {
 	std::string &url=get_field(bt,"url");
-	if (url.substr(0,17)!=((std::string)"https://doi.org")) {
+	if (url.substr(0,15)!=((std::string)"https://doi.org")) {
 	  url=((std::string)"https://doi.org/")+
 	    get_field(bt,"doi");
 	  changed=true;
@@ -1102,7 +1102,7 @@ void bib_file::clean(bool prompt) {
 	      if (find_abbrev(jour,abbrev)==0) {
 		// Avoid changing arxiv entries in journal fields
 		if (jour!=abbrev && abbrev!=((string)"Arxiv.org")) {
-		  if (true || verbose>1) {
+		  if (verbose>1) {
 		    std::cout << "Reformatting journal " << jour << " to "
 			      << abbrev << std::endl;
 		  }
@@ -1212,9 +1212,11 @@ void bib_file::clean(bool prompt) {
       }
       if (accept) {
 	entries[i]=bt;
-	std::cout << "Tag: " << entries[i].tag << std::endl;
-	std::cout << "Author: " << get_field(entries[i],"author")
-		  << std::endl;
+	
+	//std::cout << "Tag: " << entries[i].tag << std::endl;
+	//std::cout << "Author: " << get_field(entries[i],"author")
+	//<< std::endl;
+	
 	if (this_empty_titles_added) {
 	  empty_titles_added++;
 	}
