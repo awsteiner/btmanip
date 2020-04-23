@@ -86,14 +86,6 @@ namespace btmanip {
     void merge_to_left(bibtex::BibTeXEntry &bt_left,
 		       bibtex::BibTeXEntry &bt_right);
     
-    /** \brief Output two entries in a tabular format
-     */
-    void bib_output_twoup(std::ostream &outs,
-			  bibtex::BibTeXEntry &bt_left,
-			  bibtex::BibTeXEntry &bt_right,
-			  std::string left_header,
-			  std::string right_header);
-    
     /** \brief Format the field and value into one string for
 	the \ref bib_output_twoup() function
      */
@@ -122,6 +114,14 @@ namespace btmanip {
       std::greater<std::string> >::iterator journal_it;
 
   public:
+    
+    /** \brief Output two entries in a tabular format
+     */
+    void bib_output_twoup(std::ostream &outs,
+			  bibtex::BibTeXEntry &bt_left,
+			  bibtex::BibTeXEntry &bt_right,
+			  std::string left_header,
+			  std::string right_header);
     
     /** \brief List of journal synonyms
      */

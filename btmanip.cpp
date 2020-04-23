@@ -400,15 +400,20 @@ namespace btmanip {
 		cout << "Possible duplicate between "
 		     << *bt.key << " and " << *bt2.key << endl;
 		cout << endl;
-		bf.text_output_one(cout,bt);
-		cout << endl;
-		bf.text_output_one(cout,bt2);
-		cout << endl;
-		cout << "Keep first (" << *bt.key << "), second ("
-		     << *bt2.key << "), both, or quit (f,s,b,q)? ";
+		//void bib_output_twoup(std::ostream &outs,
+		//bibtex::BibTeXEntry &bt_left,
+		//bibtex::BibTeXEntry &bt_right,
+		//std::string left_header,
+		//std::string right_header);
+		bf.bib_output_twoup(cout,bt,bt2,
+				    ((std::string)"Entry ")+o2scl::szttos(i),
+				    ((std::string)"Entry ")+o2scl::szttos(j));
+		
+		cout << "Keep left (" << *bt.key << "), right ("
+		     << *bt2.key << "), both, or quit (<, , >. , b , q)? ";
 		char ch;
 		cin >> ch;
-		if (ch=='f') {
+		if (ch=='<' || ch==',') {
 		  cout << "Keeping " << *bt.key << " ." << endl;
 		  vector<bibtex::BibTeXEntry>::iterator it=bf.entries.begin();
 		  it+=j;
@@ -417,7 +422,7 @@ namespace btmanip {
 		  istart=i;
 		  i=bf.entries.size();
 		  j=bf.entries.size();
-		} else if (ch=='s') {
+		} else if (ch=='>' || ch=='.') {
 		  cout << "Keeping " << *bt2.key << " ." << endl;
 		  vector<bibtex::BibTeXEntry>::iterator it=bf.entries.begin();
 		  it+=i;
