@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2019, Andrew W. Steiner
+  Copyright (C) 2015-2020, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -1730,6 +1730,8 @@ void bib_file::format_and_output(std::string left, std::string right,
   vector<string> vs_right={right};
   local_wrap(vs_left,len-16);
   local_wrap(vs_right,len-16);
+
+  // Pad with spaces to balance left vs. right
   while (vs_left.size()<vs_right.size()) vs_left.push_back(" ");
   while (vs_left.size()>vs_right.size()) vs_right.push_back(" ");
 
@@ -1745,27 +1747,20 @@ void bib_file::format_and_output(std::string left, std::string right,
     cout << "Iere2: " << endl;
     }
   */
-  
+
+  // For the first line, pad with spaces to fill up to the
+  // full line length
   fill(vs_left[0],len);
   fill(vs_right[0],len);
+  
   //cout << "2: " << vs_left[0].length() << " "
   //<< vs_right[0].length() << " " << len << endl;
 
   if (highlight==-1 || highlight==2) {
-    ostringstream oss;
-    oss << ((char)27) << "[1m";
-    oss << ((char)27) << "[36m";
-    oss << vs_left[0];
-    oss << ((char)27) << "[m";
-    vs_left[0]=oss.str();
+    vs_left[0]=vt100_cyan_fg()+vs_left[0]+vt100_default();
   }
   if (highlight==1 || highlight==2) {
-    ostringstream oss;
-    oss << ((char)27) << "[1m";
-    oss << ((char)27) << "[36m";
-    oss << vs_right[0];
-    oss << ((char)27) << "[m";
-    vs_right[0]=oss.str();
+    vs_right[0]=vt100_cyan_fg()+vs_right[0]+vt100_default();
   }
   outs << vs_left[0] << sep << vs_right[0] << endl;
   /*
@@ -1782,30 +1777,29 @@ void bib_file::format_and_output(std::string left, std::string right,
   */
   
   for(size_t j=1;j<vs_left.size();j++) {
+
+    // For the wrapped lines, pad with spaces up to the
+    // full line minus the LHS margin
     fill(vs_left[j],len-16);
     fill(vs_right[j],len-16);
+    
     //cout << "3: " << highlight << " " << vs_left[j].length() << " "
     //<< vs_right[j].length() << " " << len-16 << endl;
+
+    // Setup highlighting
     if (highlight==-1 || highlight==2) {
-      ostringstream oss;
-      oss << ((char)27) << "[1m";
-      oss << ((char)27) << "[36m";
-      oss << vs_left[j];
-      oss << ((char)27) << "[m";
-      vs_left[j]=oss.str();
+      vs_left[j]=vt100_cyan_fg()+vs_left[j]+vt100_default();
     }
     if (highlight==1 || highlight==2) {
-      ostringstream oss;
-      oss << ((char)27) << "[1m";
-      oss << ((char)27) << "[36m";
-      oss << vs_right[j];
-      oss << ((char)27) << "[m";
-      vs_right[j]=oss.str();
+      vs_right[j]=vt100_cyan_fg()+vs_right[j]+vt100_default();
     }
+
+    // Perform the output
     for(size_t k=0;k<16;k++) outs << ' ';
     outs << vs_left[j] << sep;
     for(size_t k=0;k<16;k++) outs << ' ';
     outs << vs_right[j] << endl;
+    
     //cout << "3: " << vs_left[j].length() << " "
     //<< vs_right[j].length() << endl;
   }
@@ -1892,7 +1886,9 @@ void bib_file::format_field_value(std::string field, std::string value,
 
 void bib_file::bib_output_twoup(std::ostream &outs,
 				bibtex::BibTeXEntry &bt_left,
-				bibtex::BibTeXEntry &bt_right) {
+				bibtex::BibTeXEntry &bt_right,
+				std::string left_header,
+				std::string right_header) {
 
   string stmpl, stmpr;
 
@@ -1900,6 +1896,30 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   if (bt_left.key && bt_right.key && *bt_left.key==*bt_right.key) {
     key_match=true;
   }
+  
+  // Print out header
+  string stmp=left_header+" ( matching ";
+  stmp+=vt100_cyan_fg();
+  stmp+="different";
+  stmp+=vt100_default();
+  stmp+=" )";
+  // 78 for LHS and 12 for vt100
+  if (stmp.length()>86) stmp=stmp.substr(0,87)+"...";
+  while (stmp.length()<86) stmp+=' ';
+  stmp+=" | "+right_header;
+  // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
+  // is a total of 171
+  if (stmp.length()>171) stmp=stmp.substr(0,168)+"...";
+  cout << stmp << endl;
+  
+  // Print out line separator
+  stmpl='-';
+  stmpr='-';
+  for(size_t k=0;k<77;k++) {
+    stmpl+='-';
+    stmpr+='-';
+  }
+  format_and_output(stmpl,stmpr,std::cout);
   
   // Output tag and key
   stmpl=((string)"@")+bt_left.tag+"{";
@@ -1909,10 +1929,10 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   stmpr+=(*bt_right.key);
   stmpr+=',';
   if (key_match) {
-    // Add extra space for the vt100 sequences
-    format_and_output(stmpl,stmpr,outs,2);
-  } else {
     format_and_output(stmpl,stmpr,outs);
+  } else {
+    // Highlight if the keys don't match
+    format_and_output(stmpl,stmpr,outs,2);
   }
 
   // Loop through all fields on the LHS
@@ -1947,9 +1967,9 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     }
 
     if (fields_match) {
-      format_and_output(stmpl,stmpr,outs,2);
-    } else {
       format_and_output(stmpl,stmpr,outs);
+    } else {
+      format_and_output(stmpl,stmpr,outs,2);
     }
     
   }
@@ -1976,6 +1996,70 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   stmpl="}";
   stmpr="}";
   format_and_output(stmpl,stmpr,outs);
+
+  return;
+}
+
+void bib_file::ident_or_addl_fields(bibtex::BibTeXEntry &bt_left,
+				    bibtex::BibTeXEntry &bt_right,
+				    int &result) {
+
+  // If the keys are not present or different, then presume the
+  // entries are different
+  if (!bt_left.key || !bt_right.key || *bt_left.key!=*bt_right.key) {
+    result=ia_diff;
+    return;
+  }
+
+  // Presume the entries are identical for now  
+  result=ia_ident;
+  
+  // Loop through all fields on the LHS
+  for(size_t j=0;j<bt_left.fields.size();j++) {
+
+    // If this field is present on the RHS, then check it
+    if (is_field_present(bt_right,bt_left.fields[j].first)) {
+      string rx=get_field(bt_right,bt_left.fields[j].first);
+      // If the values are not equal, then exit, indicating they
+      // are different
+      if (bt_left.fields[j].second[0]!=rx) {
+	result=ia_diff;
+	return;
+      }
+    } else {
+      // If the field is not present on the RHS
+      result=ia_addl_fields;
+    }
+  }
+
+  
+  // Loop through all fields on the RHS
+  for(size_t j=0;j<bt_right.fields.size();j++) {
+
+    // If this field not present on the LHS
+    if (!is_field_present(bt_left,bt_right.fields[j].first)) {
+
+      // If the field is not present on the RHS
+      result=ia_addl_fields;
+      
+    }
+  }
+
+  return;
+}
+
+void bib_file::merge_to_left(bibtex::BibTeXEntry &bt_left,
+			     bibtex::BibTeXEntry &bt_right) {
+
+  // Loop through all fields on the RHS
+  for(size_t j=0;j<bt_right.fields.size();j++) {
+
+    // If this field not present on the LHS, then add it
+    if (!is_field_present(bt_left,bt_right.fields[j].first)) {
+      set_field_value(bt_left,bt_right.fields[j].first,
+		      bt_right.fields[j].second[0]);
+    }
+  }
 
   return;
 }
@@ -2077,6 +2161,8 @@ void bib_file::add_bib(std::string fname) {
   size_t n_add=0;
   size_t n_process=0;
   size_t n_mod=0;
+  size_t n_ident=0;
+  size_t n_auto=0;
 
   // Loop over entries
   for(size_t i=0;i<entries2.size();i++) {
@@ -2085,88 +2171,132 @@ void bib_file::add_bib(std::string fname) {
 
     std::vector<size_t> list;
     list_possible_duplicates(bt,list);
-    if (list.size()>0) {
-      std::cout << "\n" << list.size() << " possible duplicates in the "
-		<< "current list were found:\n" << std::endl;
-      cout << n_orig << " original " << n_new << " new "
-	   << n_add << " added " << n_mod << " modified "
-	   << n_process << " processed." << endl;
-      for(size_t j=0;j<list.size();j++) {
-	// Print out header
-	string stmp="Entry in current list (";
-	ostringstream oss;
-	oss << ((char)27) << "[1m";
-	oss << ((char)27) << "[36m";
-	oss << "matching";
-	oss << ((char)27) << "[m";
-	stmp+=oss.str();
-	stmp+=" different)";
-	while (stmp.length()<90) stmp+=' ';
-	stmp+=" | New entry";
-	cout << stmp << endl;
-	
-	// Print out line separator
-	string stmpl, stmpr;
-	stmpl='-';
-	stmpr='-';
-	for(size_t k=0;k<77;k++) {
-	  stmpl+='-';
-	  stmpr+='-';
-	}
-	format_and_output(stmpl,stmpr,std::cout);
-	// Print out entry
-	bib_output_twoup(std::cout,entries[list[j]],bt);
-      }
-      std::cout << "\nKeep entry on left (<,), replace with "
-		<< "entry on right (>.), add entry enyway (space) "
-		<< "or stop add (s)? " << std::endl;
-      /*
-	if (list.size()==1) {
-	std::cout << "\nAdd entry anyway (y), replace (r), "
-	<< "stop add (s) or ignore (i)? " << std::flush;
-	} else {
-	std::cout << "\nAdd entry anyway (y), "
-	<< "stop add (s) or ignore (i)? " << std::flush;
-	}
-      */
-      char ch;
-      cin >> ch;
-      if (ch==' ') {
-	n_add++;
-	entries.push_back(bt);
-	    
-	if (!bt.key) {
-	  O2SCL_ERR("This class does not support keyless entries.",
-		    o2scl::exc_efailed);
-	}
-	    
-	// Insert to the map for sorting
-	sort.insert(make_pair(*bt.key,entries.size()-1));
-	    
-	if (verbose>1) {
-	  std::cout << "Entry " << i+1 << " of " << entries2.size();
-	  std::cout << ", tag: " << bt.tag;
-	  std::cout << ", key: " << *bt.key << std::endl;
-	}
-      } else if (list.size()==1 && (ch=='>' || ch=='.')) {
-	std::cout << "Replacing " << *(entries[list[0]].key)
-		  << " with " << *bt.key << std::endl;
-	entries[list[0]]=bt;
-	n_mod++;
-      } else if (ch=='<' || ch==',') {
-	std::cout << "Keeping old entry." << std::endl;
-      } else if (ch=='S' || ch=='s') {
-	i=entries2.size();
-      } else {
-	std::cout << "Ignoring " << *bt.key << std::endl;
-      }
-    } else {
-      // If this entry is not marked as a possible duplicate,
-      // add it.
+
+    if (list.size()==0) {
+      
+      // If the new entry does not have any apparent duplicates,
+      // then just add it.
+      
       n_add++;
       entries.push_back(bt);
-    }
+      if (bt.key) {
+	cout << "Directly added entry " << *bt.key << endl;
+      }
+      
+    } else {
 
+      bool auto_merge=false;
+    
+      if (list.size()==1) {    
+
+	// If there is only one possible matching duplicate,
+	// see if we can auto merge
+	int result;
+	ident_or_addl_fields(bt,entries[list[0]],result);
+	
+	if (result==ia_addl_fields) {
+	  cout << "Quietly merging:" << endl;
+	  bib_output_twoup(std::cout,entries[list[0]],bt,
+			   ((string)"Entry ")+
+			   o2scl::szttos(list[0])+" in current list",
+			   ((string)"Entry ")+
+			   o2scl::szttos(i)+" in "+fname);
+	  merge_to_left(bt,entries[list[0]]);
+	  n_auto++;
+	  auto_merge=true;
+	} else if (result==ia_ident) {
+	  cout << "Identical:" << endl;
+	  bib_output_twoup(std::cout,entries[list[0]],bt,
+			   ((string)"Entry ")+
+			   o2scl::szttos(list[0])+" in current list",
+			   ((string)"Entry ")+
+			   o2scl::szttos(i)+" in "+fname);
+	  n_ident++;
+	  auto_merge=true;
+	}
+	
+      }
+
+      if (auto_merge==false) {
+	
+	std::cout << "\n" << list.size() << " possible duplicates in the "
+		  << "current list were found:\n" << std::endl;
+	
+	cout << n_orig << " original, " << n_new << " new, "
+	     << n_add << " added, " << n_ident << " identical, "
+	     << n_auto << " automatically added, " << n_mod
+	     << " modified, and " << n_process << " processed." << endl;
+      
+	for(size_t j=0;j<list.size();j++) {
+	  // Print out entry comparison
+	  bib_output_twoup(std::cout,entries[list[j]],bt,
+			   ((string)"Entry ")+
+			   o2scl::szttos(list[j])+" in current list",
+			   ((string)"Entry ")+
+			   o2scl::szttos(i)+" in "+fname);
+	}
+      
+	std::cout << "\nKeep entry on left (<,), replace with "
+		  << "entry on right (>.), add entry enyway (a) "
+		  << "or stop add (s)? " << std::endl;
+	char ch;
+	cin >> ch;
+      
+	if (ch=='a' || ch=='A') {
+	  n_add++;
+	  entries.push_back(bt);
+	
+	  if (!bt.key) {
+	    O2SCL_ERR("This class does not support keyless entries.",
+		      o2scl::exc_efailed);
+	  }
+	
+	  // Insert to the map for sorting
+	  sort.insert(make_pair(*bt.key,entries.size()-1));
+	
+	  if (verbose>1) {
+	    std::cout << "Entry " << i+1 << " of " << entries2.size();
+	    std::cout << ", tag: " << bt.tag;
+	    std::cout << ", key: " << *bt.key << std::endl;
+	  }
+	} else if (list.size()==1 && (ch=='>' || ch=='.')) {
+	  std::cout << "Replacing " << *(entries[list[0]].key)
+		    << " with " << *bt.key << std::endl;
+	  entries[list[0]]=bt;
+	  n_mod++;
+	} else if (ch=='<' || ch==',') {
+	  std::cout << "Keeping old entry." << std::endl;
+	} else if (ch=='S' || ch=='s') {
+	  i=entries2.size();
+	} else if (i>0 && (ch=='u' || ch=='U')) {
+	  std::cout << "Creating file of unprocessed entries." << std::endl;
+	  std::cout << "Give filename: " << std::flush;
+	  string fname2;
+	  std::cin >> fname2;
+	  std::vector<bibtex::BibTeXEntry>::iterator first=entries2.begin();
+	  std::vector<bibtex::BibTeXEntry>::iterator last=first+i;
+	  entries2.erase(first,last);
+	  cout << "entries2.size(): " << entries2.size() << endl;
+
+	  ofstream fout;
+	  fout.open(fname2);
+	  for(size_t i=0;i<entries2.size();i++) {
+	    bibtex::BibTeXEntry &bt=entries2[i];
+	    bib_output_one(fout,bt);
+	    if (i+1<entries2.size()) (fout) << endl;
+	  }
+	  fout.close();
+	  
+	  i=entries2.size();
+	  
+	} else {
+	  std::cout << "Ignoring " << *bt.key << std::endl;
+	}
+
+      }
+
+    }
+    
     n_process++;
     // End of loop over entries
   }
@@ -2178,6 +2308,11 @@ void bib_file::add_bib(std::string fname) {
   */
       
   if (verbose>0) {
+    cout << n_orig << " original, " << n_new << " new, "
+	 << n_add << " added, " << n_ident << " identical, "
+	 << n_auto << " automatically added, " << n_mod
+	 << " modified, and " << n_process << " processed." << endl;
+    
     std::cout << "Read " << entries2.size() << " entries from file \""
 	      << fname << "\". Now " << entries.size() 
 	      << " total entries with " << sort.size()
@@ -2501,6 +2636,9 @@ std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
     for(size_t k=0;k<lower.size();k++) {
       lower[k]=std::tolower(lower[k]);
     }
+    for(size_t k=0;k<field.size();k++) {
+      field[k]=std::tolower(field[k]);
+    }
     if (lower==field) {
       if (bt.fields[j].second.size()>0) {
 	return bt.fields[j].second[0];
@@ -2510,7 +2648,14 @@ std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
       }
     }
   }
-  O2SCL_ERR((((std::string)"Field ")+field+" not found.").c_str(),
+  if (!bt.key) {
+    O2SCL_ERR((((std::string)"Field ")+field+
+	       " not found in entry with no key ").c_str(),
+	      o2scl::exc_einval);
+    return trans_latex[0];
+  }
+  O2SCL_ERR((((std::string)"Field ")+field+
+	     " not found in entry with key "+(*bt.key).c_str()).c_str(),
 	    o2scl::exc_einval);
   return trans_latex[0];
 }

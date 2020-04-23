@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2018, Andrew W. Steiner
+  Copyright (C) 2015-2020, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -67,12 +67,32 @@ namespace btmanip {
     void format_and_output(std::string left, std::string right,
 			   std::ostream &outs, int highlight=0,
 			   std::string sep=" | ", size_t len=78);
+
+    /// \name Desc
+    //@{
+    /// Undetermined or different
+    static const int ia_diff=0;
+    /// Identical
+    static const int ia_ident=1;
+    /// One of the entries has additional fields not in the other
+    static const int ia_addl_fields=2;
+    //@}
+    
+    /// Return true if the entries are the identical
+    void ident_or_addl_fields(bibtex::BibTeXEntry &bt_left,
+			      bibtex::BibTeXEntry &bt_right, int &result);
+
+    /// Merge all fields from RHS not in LHS to the LHS
+    void merge_to_left(bibtex::BibTeXEntry &bt_left,
+		       bibtex::BibTeXEntry &bt_right);
     
     /** \brief Output two entries in a tabular format
      */
     void bib_output_twoup(std::ostream &outs,
 			  bibtex::BibTeXEntry &bt_left,
-			  bibtex::BibTeXEntry &bt_right);
+			  bibtex::BibTeXEntry &bt_right,
+			  std::string left_header,
+			  std::string right_header);
     
     /** \brief Format the field and value into one string for
 	the \ref bib_output_twoup() function
