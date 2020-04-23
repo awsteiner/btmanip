@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2018, Andrew W. Steiner
+  Copyright (C) 2015-2020, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -34,7 +34,7 @@ using namespace o2scl;
 using namespace btmanip;
 
 void btmanip::hdf_output(o2scl_hdf::hdf_file &hf, bibtex::BibTeXEntry &ent, 
-		std::string name) {
+			 std::string name) {
   
   // Start group
   hid_t top=hf.get_current_id();
