@@ -37,6 +37,8 @@
 #include <o2scl/cli_readline.h>
 #include <o2scl/string_conv.h>
 
+#include "json.hpp"
+
 using namespace std;
 using namespace o2scl;
 using namespace btmanip;
@@ -271,7 +273,56 @@ namespace btmanip {
     
       return 0;
     }
-  
+
+    /** \brief Desc
+     */
+    virtual int inspire_get(std::vector<std::string> &sv, bool itive_com) {
+      //for(size_t i=0;i<bf.entries.size();i++) {
+      //bibtex::BibTeXEntry &bt=bf.entries[i];
+      //if (bf.is_field_present(bt,"doi")) {
+      //string doi=bf.get_field(bt,"doi");
+      string doi="10.1103/PhysRevD.99.043010";
+      cout << "doi: " << doi << endl;
+      string cmd=((string)"curl -X GET \"http://old.inspirehep.net/")+
+	"search?action_search=Search&rg=1&of=recjson&"+
+	"ln=en&p=find+doi+"+doi+"&jrec=0\"";
+      string result;
+      cout << cmd << endl;
+      int ret=pipe_cmd_string(cmd,result,false,200000);
+      //cout << result << endl;
+      cout << result.length() << endl;
+      auto j=nlohmann::json::parse(result);
+      cout << "nfields: " << j.size() << endl;
+
+      std::string title=j[0]["title"].begin().value().get<std::string>();
+      cout << title << endl;
+      
+      // References cited
+      //cout << "reference: " << j[0]["reference"] << endl;
+      
+      auto jauthors=j[0]["authors"];
+      cout << jauthors.size() << endl;
+      for(size_t k=0;k<jauthors.size();k++) {
+	auto auth=jauthors[k];
+	for (nlohmann::json::iterator it = auth.begin();
+	     it != auth.end(); ++it) {
+	  std::cout << it.key() << " " << it.value() << std::endl;
+	}
+      }
+      cout << "doi: " << j[0]["doi"] << endl;
+      cout << "arxiv: " << j[0]["primary_report_number"] << endl;
+      cout << "pagination: " << j[0]["publication_info"]["pagination"] << endl;
+      cout << "reference: " << j[0]["publication_info"]["reference"] << endl;
+      cout << "title: " << j[0]["publication_info"]["title"] << endl;
+      cout << "volume: " << j[0]["publication_info"]["volume"] << endl;
+      cout << "year: " << j[0]["publication_info"]["year"] << endl;
+      
+      exit(-1);
+      //}
+      //}
+      return 0;
+    }
+    
     /** \brief Sort the bib file by key
      */
     virtual int sort(std::vector<std::string> &sv, bool itive_com) {
@@ -2124,7 +2175,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=39;
+      static const int nopt=40;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2336,6 +2387,9 @@ namespace btmanip {
 	{0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::inspire_cites),cli::comm_option_both},
+	{0,"inspire-get","Calculate Inspire citations.",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::inspire_get),cli::comm_option_both},
 	{0,"ads-cites","Calculate ADSABS citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::ads_cites),cli::comm_option_both},
