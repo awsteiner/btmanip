@@ -1718,15 +1718,24 @@ void bib_file::fill(std::string &s, size_t len, char ch) {
 
 void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
 
-  std::vector<std::string> sv2, sv3;
-  
+  std::vector<std::string> sv_out, sv_temp;
+
+  // Loop through all entries in sv
   for(std::vector<std::string>::iterator it=sv.begin();it!=sv.end();it++) {
     string stmp=*it;
-    //cout << "Here2: " << stmp << " " << stmp.length() << endl;
+    
     if (stmp.length()<=len) {
-      sv2.push_back(stmp);
+      
+      // If the entry is smaller than the line length, then just
+      // add it to sv_out
+      sv_out.push_back(stmp);
+      
     } else {
-      //cout << "Here4: " << stmp << endl;
+      
+      // Otherwise, the entry is longer so we have to rewrap it
+
+      // Look for a space, beginning at len, and proceeding
+      // towards the beginning of the string
       bool done=false;
       while (stmp.length()>=len && done==false) {
 	bool found=false;
@@ -1739,22 +1748,28 @@ void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
 	  }
 	}
 	if (found==false) {
+	  // If we didn't find a space, then just bail
 	  done=true;
 	} else {
-	  sv3.push_back(stmp.substr(0,k2+1));
+	  // If we found a space, then add the part of the string up
+	  // to the space to the temporary list and continue checking
+	  // the part of the string after the space
+	  sv_temp.push_back(stmp.substr(0,k2+1));
 	  stmp=stmp.substr(k2+1,stmp.length()-k2-1);
 	}
       }
-      sv3.push_back(stmp);
-      //for(size_t j=0;j<sv3.size();j++) {
-      //cout << "sv3: " << j << " " << sv3[j] << endl;
-      //}
-      for(size_t j=0;j<sv3.size();j++) {
-	sv2.push_back(sv3[j]);
+      // Add the last string to the temporary list
+      sv_temp.push_back(stmp);
+
+      // Add all of the lines from sv_temp to the final list in sv_out
+      for(size_t j=0;j<sv_temp.size();j++) {
+	sv_out.push_back(sv_temp[j]);
       }
     }
   }
-  sv=sv2;
+
+  // Replace initial list with final list
+  sv=sv_out;
   
   return;
 }
@@ -1763,6 +1778,11 @@ void bib_file::format_and_output(std::string left, std::string right,
 				 std::ostream &outs, 
 				 std::string sep, size_t len) {
 
+  // Note that in this function, we perform the wrapping at the top,
+  // and only add in the vt100 coloring later, ensuring we don't have
+  // to worry about counting the additional string characters
+  // associated with the vt100 coloring.
+  
   // First, take the value and wrap it 
   vector<string> vs_left={left};
   vector<string> vs_right={right};
@@ -1773,133 +1793,54 @@ void bib_file::format_and_output(std::string left, std::string right,
   while (vs_left.size()<vs_right.size()) vs_left.push_back(" ");
   while (vs_left.size()>vs_right.size()) vs_right.push_back(" ");
 
-  /*
-    if (vs_left.size()>1) {
-    cout << "Iere: " << endl;
-    for(size_t j=0;j<vs_left.size();j++) {
-    cout << "left: " << j << " " << vs_left[j] << endl;
-    }
-    for(size_t j=0;j<vs_right.size();j++) {
-    cout << "right: " << j << " " << vs_right[j] << endl;
-    }
-    cout << "Iere2: " << endl;
-    }
-  */
-
-  // For the first line, pad with spaces to fill up to the
-  // full line length
-  fill(vs_left[0],len);
-  fill(vs_right[0],len);
-  
-  //cout << "2: " << vs_left[0].length() << " "
-  //<< vs_right[0].length() << " " << len << endl;
-
-  if (left!=right) {
-    string left2, right2;
-    
-    bool same=true;
-    if (vs_left[0][0]!=vs_right[0][0]) same=false;
-    if (same==false) {
-      left2+=vt100_cyan_fg();
-      right2+=vt100_cyan_fg();
-    }
-    for(size_t k=0;k<vs_left[0].size() && k<vs_right[0].size();k++) {
-      left2+=vs_left[0][k];
-      right2+=vs_right[0][k];
-      if (same==true && vs_left[0][k]!=vs_right[0][k]) {
-	same=false;
-	left2+=vt100_cyan_fg();
-	right2+=vt100_cyan_fg();
-      } else if (same==false && vs_left[0][k]==vs_right[0][k]) {
-	same=false;
-	left2+=vt100_default();
-	right2+=vt100_default();
-      }
-    }
-    
-    if (vs_left[0].size()<vs_right[0].size()) {
-      
-      if (same==true) {
-	left2+=vt100_cyan_fg();
-	right2+=vt100_cyan_fg();
-      }
-      for(size_t k=vs_left[0].size();k<vs_right[0].size();k++) {
-	left2+=vs_left[0][k];
-	right2+=vs_right[0][k];
-      }
-      left2+=vt100_default();
-      right2+=vt100_default();
-      
-    } else if (vs_left[0].size()>vs_right[0].size()) {
-      
-      if (same==true) {
-	left2+=vt100_cyan_fg();
-	right2+=vt100_cyan_fg();
-      }
-      for(size_t k=vs_right[0].size();k<vs_left[0].size();k++) {
-	left2+=vs_left[0][k];
-	right2+=vs_right[0][k];
-      }
-      left2+=vt100_default();
-      right2+=vt100_default();
-      
-    } else {
-      
-      if (same==false) {
-	left2+=vt100_default();
-	right2+=vt100_default();
-      }
-      
-    }
-    outs << left2 << sep << right2 << endl;
-  } else {
-    outs << vs_left[0] << sep << vs_right[0] << endl;
+  if (verbose>1) {
+    cout << "Function format_and_output():" << endl;
   }
-  /*
-    cout << "4: " << vs_left[0].length() << " " << sep.length() << " "
-    << vs_right[0].length() << endl;
-    for(size_t j=0;j<vs_left[0].length();j++) {
-    cout << ((int)vs_left[0][j]) << " ";
-    }
-    cout << endl;
-    for(size_t j=0;j<vs_right[0].length();j++) {
-    cout << ((int)vs_right[0][j]) << " ";
-    }
-    cout << endl;
-  */
-  
-  for(size_t j=1;j<vs_left.size() && j<5;j++) {
-
-    // For the wrapped lines, pad with spaces up to the
-    // full line minus the LHS margin
-    fill(vs_left[j],len-16);
-    fill(vs_right[j],len-16);
     
-    //cout << "3: " << highlight << " " << vs_left[j].length() << " "
-    //<< vs_right[j].length() << " " << len-16 << endl;
+  for(size_t j=0;j<vs_left.size() && j<5;j++) {
+
+    if (verbose>1) {
+      cout << "\tleft:  " << vs_left[j] << endl;
+      cout << "\tright:  " << vs_right[j] << endl;
+    }
+    
+    if (j==0) {
+      // For the first line, pad with spaces to fill up to the
+      // full line length
+      fill(vs_left[0],len);
+      fill(vs_right[0],len);
+    } else {
+      // For the wrapped lines, pad with spaces up to the
+      // full line minus the LHS margin
+      fill(vs_left[j],len-16);
+      fill(vs_right[j],len-16);
+    }
     
     // Setup highlighting
     if (left!=right) {
       string left2, right2;
-      
+
       bool same=true;
-      if (vs_left[j][0]!=vs_right[j][0]) same=false;
-      if (same==false) {
-	left2+=vt100_cyan_fg();
-	right2+=vt100_cyan_fg();
-      }
+
+      // Proceed character by character, highlighting
+      // differences with vt100 sequences
       for(size_t k=0;k<vs_left[j].size() && k<vs_right[j].size();k++) {
-	left2+=vs_left[j][k];
-	right2+=vs_right[j][k];
+
+	// Modify formatting for the next character if necessary
 	if (same==true && vs_left[j][k]!=vs_right[j][k]) {
 	  same=false;
 	  left2+=vt100_cyan_fg();
 	  right2+=vt100_cyan_fg();
 	} else if (same==false && vs_left[j][k]==vs_right[j][k]) {
-	  same=false;
+	  same=true;
 	  left2+=vt100_default();
 	  right2+=vt100_default();
 	}
+
+	// Add the character to the string
+	left2+=vs_left[j][k];
+	right2+=vs_right[j][k];
+	
       }
       
       if (vs_left[j].size()<vs_right[j].size()) {
@@ -1936,19 +1877,31 @@ void bib_file::format_and_output(std::string left, std::string right,
 	}
 	
       }
-      outs << left2 << sep << right2 << endl;
+
+      // Perform the output
+      if (j==0) {
+	outs << left2 << sep << right2 << endl;
+      } else {
+	for(size_t k=0;k<16;k++) outs << ' ';
+	outs << left2 << sep;
+	for(size_t k=0;k<16;k++) outs << ' ';
+	outs << right2 << endl;
+      }
+      
     } else {
-      outs << vs_left[0] << sep << vs_right[0] << endl;
+
+      // If left and right are the same, then no formatting
+      // change is required, so just output
+      if (j==0) {
+	outs << vs_left[j] << sep << vs_right[j] << endl;
+      } else {
+	for(size_t k=0;k<16;k++) outs << ' ';
+	outs << vs_left[j] << sep;
+	for(size_t k=0;k<16;k++) outs << ' ';
+	outs << vs_right[j] << endl;
+      }
     }
     
-    // Perform the output
-    for(size_t k=0;k<16;k++) outs << ' ';
-    outs << vs_left[j] << sep;
-    for(size_t k=0;k<16;k++) outs << ' ';
-    outs << vs_right[j] << endl;
-    
-    //cout << "3: " << vs_left[j].length() << " "
-    //<< vs_right[j].length() << endl;
   }
 
   return;
@@ -1957,7 +1910,8 @@ void bib_file::format_and_output(std::string left, std::string right,
 void bib_file::format_field_value(std::string field, std::string value,
 				  std::string &outs) {
 
-  // If the field name is too long, then shorten it
+  // If the field name is too long, then shorten it. This happens
+  // typically with the 'collaborations' field, for example.
   if (field.length()>=13) {
     field=field.substr(0,9)+"...";
   }
@@ -2025,7 +1979,7 @@ void bib_file::format_field_value(std::string field, std::string value,
     }
   }
   
-  // Output with braces or a comma as necessary
+  // Output with braces if necessary and a comma
   if (with_braces==false) {
     value=value+",";
   } else {
