@@ -844,7 +844,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       is_field_present(bt,"volume")) {
     std::string volume=get_field(bt,"volume");
     std::string journal=get_field(bt,"journal");
-    if (journal==((std::string)"Phys. Rev.") &&
+    if ((journal==((std::string)"Phys. Rev.") ||
+	 journal==((std::string)"Phys.Rev.")) &&
 	(volume[0]=='A' || volume[0]=='a' ||
 	 volume[0]=='B' || volume[0]=='b' ||
 	 volume[0]=='C' || volume[0]=='c' ||
@@ -856,7 +857,7 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
 		  << journal << ", " << volume << " to ";
       }
       changed=true;
-      journal+=" ";
+      journal="Phys. Rev. ";
       journal+=std::toupper(volume[0]);
       volume=volume.substr(1,volume.length()-1);
       if (verbose>1) {
@@ -865,7 +866,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       get_field(bt,"journal")=journal;
       get_field(bt,"volume")=volume;
     }
-    if (journal==((std::string)"Eur. Phys. J.") &&
+    if ((journal==((std::string)"Eur. Phys. J.") ||
+	 journal==((std::string)"Eur.Phys.J.")) &&
 	(volume[0]=='A' || volume[0]=='a' ||
 	 volume[0]=='B' || volume[0]=='b' ||
 	 volume[0]=='C' || volume[0]=='c' ||
@@ -877,7 +879,7 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
 		  << journal << ", " << volume << " to ";
       }
       changed=true;
-      journal+=" ";
+      journal="Eur. Phys. J. ";
       journal+=std::toupper(volume[0]);
       volume=volume.substr(1,volume.length()-1);
       if (verbose>1) {
@@ -886,16 +888,22 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       get_field(bt,"journal")=journal;
       get_field(bt,"volume")=volume;
     }
-    if (journal==((std::string)"Nucl. Phys.") &&
+    if ((journal==((std::string)"J. Phys.") ||
+	 journal==((std::string)"J.Phys.")) &&
 	(volume[0]=='A' || volume[0]=='a' ||
-	 volume[0]=='B' || volume[0]=='b')) {
+	 volume[0]=='B' || volume[0]=='b' ||
+	 volume[0]=='C' || volume[0]=='c' ||
+	 volume[0]=='D' || volume[0]=='d' ||
+	 volume[0]=='E' || volume[0]=='e' ||
+	 volume[0]=='F' || volume[0]=='f' ||
+	 volume[0]=='G' || volume[0]=='g')) {
       if (verbose>1) {
 	std::cout << "In entry with key " << *bt.key
 		  << " reformatting journal and volume from "
 		  << journal << ", " << volume << " to ";
       }
       changed=true;
-      journal+=" ";
+      journal="J. Phys. ";
       journal+=std::toupper(volume[0]);
       volume=volume.substr(1,volume.length()-1);
       if (verbose>1) {
@@ -904,7 +912,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       get_field(bt,"journal")=journal;
       get_field(bt,"volume")=volume;
     }
-    if (journal==((std::string)"Phys. Lett.") &&
+    if ((journal==((std::string)"Nucl. Phys.") ||
+	 journal==((std::string)"Nucl.Phys.")) &&
 	(volume[0]=='A' || volume[0]=='a' ||
 	 volume[0]=='B' || volume[0]=='b')) {
       if (verbose>1) {
@@ -913,7 +922,26 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
 		  << journal << ", " << volume << " to ";
       }
       changed=true;
-      journal+=" ";
+      journal="Nucl. Phys. ";
+      journal+=std::toupper(volume[0]);
+      volume=volume.substr(1,volume.length()-1);
+      if (verbose>1) {
+	std::cout << journal << ", " << volume << std::endl;
+      }
+      get_field(bt,"journal")=journal;
+      get_field(bt,"volume")=volume;
+    }
+    if ((journal==((std::string)"Phys. Lett.") ||
+	 journal==((std::string)"Phys.Lett.")) &&
+	(volume[0]=='A' || volume[0]=='a' ||
+	 volume[0]=='B' || volume[0]=='b')) {
+      if (verbose>1) {
+	std::cout << "In entry with key " << *bt.key
+		  << " reformatting journal and volume from "
+		  << journal << ", " << volume << " to ";
+      }
+      changed=true;
+      journal="Phys. Lett. ";
       journal+=std::toupper(volume[0]);
       volume=volume.substr(1,volume.length()-1);
       if (verbose>1) {
@@ -1970,7 +1998,10 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 	format_field_value(bt_left.fields[j].first,rx,stmpr);
       }
 
-      if (bt_left.fields[j].second[0]==rx) {
+      string rx2=bt_left.fields[j].second[0];
+      thin_whitespace(rx);
+      thin_whitespace(rx2);
+      if (rx==rx2) {
 	fields_match=true;
       }
       

@@ -274,7 +274,7 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Desc
+    /** \brief Get information from inspirehep.net
      */
     virtual int inspire_get(std::vector<std::string> &sv, bool itive_com) {
 
@@ -287,10 +287,12 @@ namespace btmanip {
 	  
 	  string doi=bf.get_field(bt,"doi");
 	  
-	  cout << "doi: " << doi << endl;
+	  if (verbose>1) {
+	    cout << "doi: " << doi << endl;
+	  }
 	  
-	  string cmd=((string)"curl -X GET \"http://old.inspirehep.net/")+
-	    "search?action_search=Search&rg=1&of=recjson&"+
+	  string cmd=((string)"curl -X GET \"http://old.inspire")+
+	    "hep.net/search?action_search=Search&rg=1&of=recjson&"+
 	    "ln=en&p=find+doi+"+doi+"&jrec=0\"";
 	  string result;
 	  if (verbose>1) {
@@ -298,94 +300,135 @@ namespace btmanip {
 	  }
 	  static const size_t nbuf=200000;
 	  int ret=pipe_cmd_string(cmd,result,false,nbuf);
-	  //cout << result << endl;
 	  if (verbose>1) {
-	    cout << result.length() << endl;
+	    cout << "Result length: " << result.length() << endl;
 	  }
+	  bool dl_failed=false;
 	  if (result.length()>=nbuf-1) {
 	    cerr << "Inspire result was longer than buffer size." << endl;
+	    dl_failed=true;
 	  }
-	  auto j=nlohmann::json::parse(result);
-	  if (verbose>1) {
-	    cout << "nfields: " << j.size() << endl;
-	  }
-	  if (j.size()!=1) {
-	    cerr << "Inspire search led to more than one result." << endl;
-	  } else {
-	    
-	    bibtex::BibTeXEntry bt_new;
-	    bt_new.key=bt.key;
-	    
-	    std::string title=j[0]["title"].begin().value().get<std::string>();
-	    cout << "title: " << title << endl;
-	    bf.set_field_value(bt_new,"title",title);
-	    
-	    // References cited
-	    //cout << "reference: " << j[0]["reference"] << endl;
-	    
-	    auto jauthors=j[0]["authors"];
-	    string auth_list;
-	    bool auth_success=true;
-	    for(size_t k=0;k<jauthors.size();k++) {
-	      auto auth=jauthors[k];
-	      bool found=false;
-	      for (nlohmann::json::iterator it = auth.begin();
-		   it != auth.end(); ++it) {
-		if (it.key()==((string)"full_name")) {
-		  found=true;
-		  string str=it.value().get<std::string>();
-		  if (auth_list.length()==0) {
-		    auth_list+=str;
-		  } else {
-		    auth_list+=((string)" and ")+str;
+	  if (dl_failed==false) {
+	    auto j=nlohmann::json::parse(result);
+	    if (verbose>1) {
+	      cout << "Number of inspirehep.net results: "
+		   << j.size() << endl;
+	    }
+	    if (j.size()!=1) {
+	      cerr << "Inspire search led to more than one result." << endl;
+	    } else {
+	      
+	      bibtex::BibTeXEntry bt_new;
+	      bt_new.key=bt.key;
+	      
+	      // References cited
+	      //cout << "reference: " << j[0]["reference"] << endl;
+	      
+	      auto jauthors=j[0]["authors"];
+	      string auth_list;
+	      bool auth_success=true;
+	      for(size_t k=0;k<jauthors.size();k++) {
+		auto auth=jauthors[k];
+		bool found=false;
+		for (nlohmann::json::iterator it=auth.begin();
+		     it != auth.end();++it) {
+		  if (it.key()==((string)"full_name")) {
+		    found=true;
+		    string str=it.value().get<std::string>();
+		    if (auth_list.length()==0) {
+		      auth_list+=str;
+		    } else {
+		      auth_list+=((string)" and ")+str;
+		    }
 		  }
 		}
+		if (found==false) {
+		  cerr << "Full name for author of index "
+		       << k << " not found." << endl;
+		  auth_success=false;
+		}
 	      }
-	      if (found==false) {
-		cerr << "Full name for author of index " << k << " not found."
-		     << endl;
-		auth_success=false;
+	      if (verbose>1) {
+		cout << "authors: " << auth_list << endl;
 	      }
-	    }
-	    cout << "authors: " << auth_list << endl;
-	    bf.set_field_value(bt_new,"author",auth_list);
-	    
-	    if (auth_success==true) {
-	      std::string doi2=j[0]["doi"].begin().value().get<std::string>();
-	      cout << "doi2: " << doi2 << endl;
-	      bf.set_field_value(bt_new,"doi",doi2);
-	      auto j_eprint=j[0]["primary_report_number"];
-	      std::string eprint=j_eprint.begin().value().get<std::string>();
-	      if (eprint.substr(0,6)==((string)"arXiv:")) {
-		eprint=eprint.substr(6,eprint.length()-6);
-	      }
-	      cout << "eprint: " << eprint << endl;
-	      bf.set_field_value(bt_new,"eprint",eprint);
-	      auto j_pages=j[0]["publication_info"]["pagination"];
-	      std::string pages=j_pages.begin().value().get<std::string>();
-	      cout << "pages: " << pages << endl;
-	      bf.set_field_value(bt_new,"pages",pages);
-	      auto j_title=j[0]["publication_info"]["title"];
-	      std::string journal=j_title.begin().value().get<std::string>();
-	      cout << "journal: " << journal << endl;
-	      bf.set_field_value(bt_new,"journal",journal);
-	      auto j_volume=j[0]["publication_info"]["volume"];
-	      std::string volume=j_volume.begin().value().get<std::string>();
-	      cout << "volume: " << volume << endl;
-	      bf.set_field_value(bt_new,"volume",volume);
-	      auto j_year=j[0]["publication_info"]["year"];
-	      std::string year=j_year.begin().value().get<std::string>();
-	      cout << "year: " << year << endl;
-	      bf.set_field_value(bt_new,"year",year);
-	    }
+	      bf.set_field_value(bt_new,"author",auth_list);
+	      
+	      if (auth_success==true) {
+		
+		auto j_title=j[0]["title"].begin().value();
+		std::string title=j_title.get<std::string>();
+		if (verbose>1) {
+		  cout << "title: " << bf.get_field(bt,"title") << endl;
+		}
+		bf.set_field_value(bt_new,"title",title);
+		
+		auto j_doi2=j[0]["doi"].begin().value();
+		std::string doi2=j_doi2.get<std::string>();
+		if (verbose>1) {
+		  cout << "doi2: " << doi2 << endl;
+		}
+		bf.set_field_value(bt_new,"doi",doi2);
+		
+		auto j_eprint=j[0]["primary_report_number"].begin();
+		std::string eprint=j_eprint.value().get<std::string>();
+		if (eprint.substr(0,6)==((string)"arXiv:")) {
+		  eprint=eprint.substr(6,eprint.length()-6);
+		}
+		if (verbose>1) {
+		  cout << "eprint: " << eprint << endl;
+		}
+		bf.set_field_value(bt_new,"eprint",eprint);
+		
+		auto j_pages=j[0]["publication_info"]["pagination"].begin();
+		std::string pages=j_pages.value().get<std::string>();
+		if (verbose>1) {
+		  cout << "pages: " << pages << endl;
+		}
+		bf.set_field_value(bt_new,"pages",pages);
+		
+		auto j_journal=j[0]["publication_info"]["title"].begin();
+		std::string journal=j_journal.value().get<std::string>();
+		if (verbose>1) {
+		  cout << "journal: " << journal << endl;
+		}
+		bf.set_field_value(bt_new,"journal",journal);
+		
+		auto j_volume=j[0]["publication_info"]["volume"].begin();
+		std::string volume=j_volume.value().get<std::string>();
+		if (verbose>1) {
+		  cout << "volume: " << volume << endl;
+		}
+		bf.set_field_value(bt_new,"volume",volume);
+		
+		auto j_year=j[0]["publication_info"]["year"].begin();
+		std::string year=j_year.value().get<std::string>();
+		if (verbose>1) {
+		  cout << "year: " << year << endl;
+		}
+		bf.set_field_value(bt_new,"year",year);
 
-	    bf.bib_output_twoup(cout,bt,bt_new,"Original",
-				"Inspirehep record");
-	    cout << endl;
-	    cout << "Press a key." << endl;
-	    char ch;
-	    cin >> ch;
-	    
+		// Reformat journal and volume from inspirehep.net
+		bf.entry_remove_vol_letters(bt_new);
+		journal=bf.get_field(bt_new,"journal");
+
+		// Normalize journal abbreviation
+		std::string abbrev;
+		if (bf.find_abbrev(journal,abbrev)==0) {
+		  journal=abbrev;
+		  bf.set_field_value(bt_new,"journal",journal);
+		}
+		
+		bf.bib_output_twoup(cout,bt,bt_new,"Original",
+				    "Inspirehep record");
+		
+		cout << endl;
+		cout << "Press a key." << endl;
+		char ch;
+		cin >> ch;
+		  
+	      }
+	      
+	    }
 	  }
 	} else {
 	  cout << "No DOI present for key: " << *bt.key << endl;
@@ -522,11 +565,7 @@ namespace btmanip {
 		cout << "Possible duplicate between "
 		     << *bt.key << " and " << *bt2.key << endl;
 		cout << endl;
-		//void bib_output_twoup(std::ostream &outs,
-		//bibtex::BibTeXEntry &bt_left,
-		//bibtex::BibTeXEntry &bt_right,
-		//std::string left_header,
-		//std::string right_header);
+		
 		bf.bib_output_twoup(cout,bt,bt2,
 				    ((std::string)"Entry ")+o2scl::szttos(i),
 				    ((std::string)"Entry ")+o2scl::szttos(j));
