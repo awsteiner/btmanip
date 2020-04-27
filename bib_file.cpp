@@ -1760,7 +1760,7 @@ void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
 }
 
 void bib_file::format_and_output(std::string left, std::string right,
-				 std::ostream &outs, int highlight,
+				 std::ostream &outs, 
 				 std::string sep, size_t len) {
 
   // First, take the value and wrap it 
@@ -1794,13 +1794,67 @@ void bib_file::format_and_output(std::string left, std::string right,
   //cout << "2: " << vs_left[0].length() << " "
   //<< vs_right[0].length() << " " << len << endl;
 
-  if (highlight==-1 || highlight==2) {
-    vs_left[0]=vt100_cyan_fg()+vs_left[0]+vt100_default();
+  if (left!=right) {
+    string left2, right2;
+    
+    bool same=true;
+    if (vs_left[0][0]!=vs_right[0][0]) same=false;
+    if (same==false) {
+      left2+=vt100_cyan_fg();
+      right2+=vt100_cyan_fg();
+    }
+    for(size_t k=0;k<vs_left[0].size() && k<vs_right[0].size();k++) {
+      left2+=vs_left[0][k];
+      right2+=vs_right[0][k];
+      if (same==true && vs_left[0][k]!=vs_right[0][k]) {
+	same=false;
+	left2+=vt100_cyan_fg();
+	right2+=vt100_cyan_fg();
+      } else if (same==false && vs_left[0][k]==vs_right[0][k]) {
+	same=false;
+	left2+=vt100_default();
+	right2+=vt100_default();
+      }
+    }
+    
+    if (vs_left[0].size()<vs_right[0].size()) {
+      
+      if (same==true) {
+	left2+=vt100_cyan_fg();
+	right2+=vt100_cyan_fg();
+      }
+      for(size_t k=vs_left[0].size();k<vs_right[0].size();k++) {
+	left2+=vs_left[0][k];
+	right2+=vs_right[0][k];
+      }
+      left2+=vt100_default();
+      right2+=vt100_default();
+      
+    } else if (vs_left[0].size()>vs_right[0].size()) {
+      
+      if (same==true) {
+	left2+=vt100_cyan_fg();
+	right2+=vt100_cyan_fg();
+      }
+      for(size_t k=vs_right[0].size();k<vs_left[0].size();k++) {
+	left2+=vs_left[0][k];
+	right2+=vs_right[0][k];
+      }
+      left2+=vt100_default();
+      right2+=vt100_default();
+      
+    } else {
+      
+      if (same==false) {
+	left2+=vt100_default();
+	right2+=vt100_default();
+      }
+      
+    }
+    outs << left2 << sep << right2 << endl;
+  } else {
+    outs << vs_left[0] << sep << vs_right[0] << endl;
   }
-  if (highlight==1 || highlight==2) {
-    vs_right[0]=vt100_cyan_fg()+vs_right[0]+vt100_default();
-  }
-  outs << vs_left[0] << sep << vs_right[0] << endl;
   /*
     cout << "4: " << vs_left[0].length() << " " << sep.length() << " "
     << vs_right[0].length() << endl;
@@ -1823,15 +1877,70 @@ void bib_file::format_and_output(std::string left, std::string right,
     
     //cout << "3: " << highlight << " " << vs_left[j].length() << " "
     //<< vs_right[j].length() << " " << len-16 << endl;
-
+    
     // Setup highlighting
-    if (highlight==-1 || highlight==2) {
-      vs_left[j]=vt100_cyan_fg()+vs_left[j]+vt100_default();
+    if (left!=right) {
+      string left2, right2;
+      
+      bool same=true;
+      if (vs_left[j][0]!=vs_right[j][0]) same=false;
+      if (same==false) {
+	left2+=vt100_cyan_fg();
+	right2+=vt100_cyan_fg();
+      }
+      for(size_t k=0;k<vs_left[j].size() && k<vs_right[j].size();k++) {
+	left2+=vs_left[j][k];
+	right2+=vs_right[j][k];
+	if (same==true && vs_left[j][k]!=vs_right[j][k]) {
+	  same=false;
+	  left2+=vt100_cyan_fg();
+	  right2+=vt100_cyan_fg();
+	} else if (same==false && vs_left[j][k]==vs_right[j][k]) {
+	  same=false;
+	  left2+=vt100_default();
+	  right2+=vt100_default();
+	}
+      }
+      
+      if (vs_left[j].size()<vs_right[j].size()) {
+	
+	if (same==true) {
+	  left2+=vt100_cyan_fg();
+	  right2+=vt100_cyan_fg();
+	}
+	for(size_t k=vs_left[j].size();k<vs_right[j].size();k++) {
+	  left2+=vs_left[j][k];
+	  right2+=vs_right[j][k];
+	}
+	left2+=vt100_default();
+	right2+=vt100_default();
+	
+      } else if (vs_left[j].size()>vs_right[j].size()) {
+	
+	if (same==true) {
+	  left2+=vt100_cyan_fg();
+	  right2+=vt100_cyan_fg();
+	}
+	for(size_t k=vs_right[j].size();k<vs_left[j].size();k++) {
+	  left2+=vs_left[j][k];
+	  right2+=vs_right[j][k];
+	}
+	left2+=vt100_default();
+	right2+=vt100_default();
+	
+      } else {
+	
+	if (same==false) {
+	  left2+=vt100_default();
+	  right2+=vt100_default();
+	}
+	
+      }
+      outs << left2 << sep << right2 << endl;
+    } else {
+      outs << vs_left[0] << sep << vs_right[0] << endl;
     }
-    if (highlight==1 || highlight==2) {
-      vs_right[j]=vt100_cyan_fg()+vs_right[j]+vt100_default();
-    }
-
+    
     // Perform the output
     for(size_t k=0;k<16;k++) outs << ' ';
     outs << vs_left[j] << sep;
@@ -1862,11 +1971,16 @@ void bib_file::format_field_value(std::string field, std::string value,
   if (field=="year") {
     with_braces=false;
   }
-  if (value[0]=='{' &&
-      value[value.size()-1]=='}' &&
-      value.find('{',1)==std::string::npos) {
+
+  // AWS 4/27/2020: leave double braces in to preserve
+  // fields which have, e.g. upper- and lower-case formatting
+  /*
+    if (value[0]=='{' &&
+    value[value.size()-1]=='}' &&
+    value.find('{',1)==std::string::npos) {
     with_braces=false;
-  }
+    }
+  */
   
   // Don't surround purely numeric values with braces
   // unless they begin with a '0'. 
@@ -1930,11 +2044,6 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 
   string stmpl, stmpr;
 
-  bool key_match=false;
-  if (bt_left.key && bt_right.key && *bt_left.key==*bt_right.key) {
-    key_match=true;
-  }
-  
   // Print out header
   string stmp=left_header+" ( matching ";
   stmp+=vt100_cyan_fg();
@@ -1966,25 +2075,22 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   stmpr=((string)"@")+bt_right.tag+"{";
   stmpr+=(*bt_right.key);
   stmpr+=',';
-  if (key_match) {
-    format_and_output(stmpl,stmpr,outs);
-  } else {
-    // Highlight if the keys don't match
-    format_and_output(stmpl,stmpr,outs,2);
-  }
+  cout << "Here: " << stmpl << " " << stmpr << endl;
+  format_and_output(stmpl,stmpr,outs);
 
   // Loop through all fields on the LHS
   for(size_t j=0;j<bt_left.fields.size();j++) {
 
     stmpr="";
     
-    bool fields_match=false;
-
     // If the value in the field is not empty, construct the string
     // stmpl from the value in the field
     if (bt_left.fields[j].second.size()>0) {
       format_field_value(bt_left.fields[j].first,
 			 bt_left.fields[j].second[0],stmpl);
+      thin_whitespace(stmpl);
+    } else {
+      stmpl="";
     }
 
     // If this field is present on the RHS
@@ -1996,22 +2102,12 @@ void bib_file::bib_output_twoup(std::ostream &outs,
       // If it's not empty, then fill the string stmpr
       if (rx.size()>0) {
 	format_field_value(bt_left.fields[j].first,rx,stmpr);
+	thin_whitespace(stmpr);
       }
 
-      string rx2=bt_left.fields[j].second[0];
-      thin_whitespace(rx);
-      thin_whitespace(rx2);
-      if (rx==rx2) {
-	fields_match=true;
-      }
-      
     }
 
-    if (fields_match) {
-      format_and_output(stmpl,stmpr,outs);
-    } else {
-      format_and_output(stmpl,stmpr,outs,2);
-    }
+    format_and_output(stmpl,stmpr,outs);
     
   }
 
@@ -2236,22 +2332,26 @@ void bib_file::add_bib(std::string fname) {
 	ident_or_addl_fields(bt,entries[list[0]],result);
 	
 	if (result==ia_addl_fields) {
-	  cout << "Quietly merging:" << endl;
-	  bib_output_twoup(std::cout,entries[list[0]],bt,
-			   ((string)"Entry ")+
-			   o2scl::szttos(list[0])+" in current list",
-			   ((string)"Entry ")+
-			   o2scl::szttos(i)+" in "+fname);
+	  if (verbose>1) {
+	    cout << "Quietly merging:" << endl;
+	    bib_output_twoup(std::cout,entries[list[0]],bt,
+			     ((string)"Entry ")+
+			     o2scl::szttos(list[0])+" in current list",
+			     ((string)"Entry ")+
+			     o2scl::szttos(i)+" in "+fname);
+	  }
 	  merge_to_left(bt,entries[list[0]]);
 	  n_auto++;
 	  auto_merge=true;
 	} else if (result==ia_ident) {
-	  cout << "Identical:" << endl;
-	  bib_output_twoup(std::cout,entries[list[0]],bt,
-			   ((string)"Entry ")+
-			   o2scl::szttos(list[0])+" in current list",
-			   ((string)"Entry ")+
-			   o2scl::szttos(i)+" in "+fname);
+	  if (verbose>1) {
+	    cout << "Identical:" << endl;
+	    bib_output_twoup(std::cout,entries[list[0]],bt,
+			     ((string)"Entry ")+
+			     o2scl::szttos(list[0])+" in current list",
+			     ((string)"Entry ")+
+			     o2scl::szttos(i)+" in "+fname);
+	  }
 	  n_ident++;
 	  auto_merge=true;
 	}

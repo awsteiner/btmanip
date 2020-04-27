@@ -320,6 +320,7 @@ namespace btmanip {
 	      
 	      bibtex::BibTeXEntry bt_new;
 	      bt_new.key=bt.key;
+	      bt_new.tag="Article";
 	      
 	      // References cited
 	      //cout << "reference: " << j[0]["reference"] << endl;

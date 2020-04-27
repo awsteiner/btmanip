@@ -65,7 +65,7 @@ namespace btmanip {
 	output with optional highlighting
     */
     void format_and_output(std::string left, std::string right,
-			   std::ostream &outs, int highlight=0,
+			   std::ostream &outs, 
 			   std::string sep=" | ", size_t len=78);
 
     /// \name Desc
