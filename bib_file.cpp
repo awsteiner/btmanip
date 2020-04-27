@@ -1786,7 +1786,7 @@ void bib_file::format_and_output(std::string left, std::string right,
     cout << endl;
   */
   
-  for(size_t j=1;j<vs_left.size();j++) {
+  for(size_t j=1;j<vs_left.size() && j<5;j++) {
 
     // For the wrapped lines, pad with spaces up to the
     // full line minus the LHS margin

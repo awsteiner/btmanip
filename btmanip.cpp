@@ -46,7 +46,7 @@ using namespace btmanip;
 namespace btmanip {
 
   /** \brief Main class for the command-line BibTeX manipulator
-  */
+   */
   class btmanip_class {
 
   protected:
@@ -277,49 +277,120 @@ namespace btmanip {
     /** \brief Desc
      */
     virtual int inspire_get(std::vector<std::string> &sv, bool itive_com) {
-      //for(size_t i=0;i<bf.entries.size();i++) {
-      //bibtex::BibTeXEntry &bt=bf.entries[i];
-      //if (bf.is_field_present(bt,"doi")) {
-      //string doi=bf.get_field(bt,"doi");
-      string doi="10.1103/PhysRevD.99.043010";
-      cout << "doi: " << doi << endl;
-      string cmd=((string)"curl -X GET \"http://old.inspirehep.net/")+
-	"search?action_search=Search&rg=1&of=recjson&"+
-	"ln=en&p=find+doi+"+doi+"&jrec=0\"";
-      string result;
-      cout << cmd << endl;
-      int ret=pipe_cmd_string(cmd,result,false,200000);
-      //cout << result << endl;
-      cout << result.length() << endl;
-      auto j=nlohmann::json::parse(result);
-      cout << "nfields: " << j.size() << endl;
 
-      std::string title=j[0]["title"].begin().value().get<std::string>();
-      cout << title << endl;
+      int verbose=1;
       
-      // References cited
-      //cout << "reference: " << j[0]["reference"] << endl;
-      
-      auto jauthors=j[0]["authors"];
-      cout << jauthors.size() << endl;
-      for(size_t k=0;k<jauthors.size();k++) {
-	auto auth=jauthors[k];
-	for (nlohmann::json::iterator it = auth.begin();
-	     it != auth.end(); ++it) {
-	  std::cout << it.key() << " " << it.value() << std::endl;
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+	
+	if (bf.is_field_present(bt,"doi")) {
+	  
+	  string doi=bf.get_field(bt,"doi");
+	  
+	  cout << "doi: " << doi << endl;
+	  
+	  string cmd=((string)"curl -X GET \"http://old.inspirehep.net/")+
+	    "search?action_search=Search&rg=1&of=recjson&"+
+	    "ln=en&p=find+doi+"+doi+"&jrec=0\"";
+	  string result;
+	  if (verbose>1) {
+	    cout << cmd << endl;
+	  }
+	  static const size_t nbuf=200000;
+	  int ret=pipe_cmd_string(cmd,result,false,nbuf);
+	  //cout << result << endl;
+	  if (verbose>1) {
+	    cout << result.length() << endl;
+	  }
+	  if (result.length()>=nbuf-1) {
+	    cerr << "Inspire result was longer than buffer size." << endl;
+	  }
+	  auto j=nlohmann::json::parse(result);
+	  if (verbose>1) {
+	    cout << "nfields: " << j.size() << endl;
+	  }
+	  if (j.size()!=1) {
+	    cerr << "Inspire search led to more than one result." << endl;
+	  } else {
+	    
+	    bibtex::BibTeXEntry bt_new;
+	    bt_new.key=bt.key;
+	    
+	    std::string title=j[0]["title"].begin().value().get<std::string>();
+	    cout << "title: " << title << endl;
+	    bf.set_field_value(bt_new,"title",title);
+	    
+	    // References cited
+	    //cout << "reference: " << j[0]["reference"] << endl;
+	    
+	    auto jauthors=j[0]["authors"];
+	    string auth_list;
+	    bool auth_success=true;
+	    for(size_t k=0;k<jauthors.size();k++) {
+	      auto auth=jauthors[k];
+	      bool found=false;
+	      for (nlohmann::json::iterator it = auth.begin();
+		   it != auth.end(); ++it) {
+		if (it.key()==((string)"full_name")) {
+		  found=true;
+		  string str=it.value().get<std::string>();
+		  if (auth_list.length()==0) {
+		    auth_list+=str;
+		  } else {
+		    auth_list+=((string)" and ")+str;
+		  }
+		}
+	      }
+	      if (found==false) {
+		cerr << "Full name for author of index " << k << " not found."
+		     << endl;
+		auth_success=false;
+	      }
+	    }
+	    cout << "authors: " << auth_list << endl;
+	    bf.set_field_value(bt_new,"author",auth_list);
+	    
+	    if (auth_success==true) {
+	      std::string doi2=j[0]["doi"].begin().value().get<std::string>();
+	      cout << "doi2: " << doi2 << endl;
+	      bf.set_field_value(bt_new,"doi",doi2);
+	      auto j_eprint=j[0]["primary_report_number"];
+	      std::string eprint=j_eprint.begin().value().get<std::string>();
+	      if (eprint.substr(0,6)==((string)"arXiv:")) {
+		eprint=eprint.substr(6,eprint.length()-6);
+	      }
+	      cout << "eprint: " << eprint << endl;
+	      bf.set_field_value(bt_new,"eprint",eprint);
+	      auto j_pages=j[0]["publication_info"]["pagination"];
+	      std::string pages=j_pages.begin().value().get<std::string>();
+	      cout << "pages: " << pages << endl;
+	      bf.set_field_value(bt_new,"pages",pages);
+	      auto j_title=j[0]["publication_info"]["title"];
+	      std::string journal=j_title.begin().value().get<std::string>();
+	      cout << "journal: " << journal << endl;
+	      bf.set_field_value(bt_new,"journal",journal);
+	      auto j_volume=j[0]["publication_info"]["volume"];
+	      std::string volume=j_volume.begin().value().get<std::string>();
+	      cout << "volume: " << volume << endl;
+	      bf.set_field_value(bt_new,"volume",volume);
+	      auto j_year=j[0]["publication_info"]["year"];
+	      std::string year=j_year.begin().value().get<std::string>();
+	      cout << "year: " << year << endl;
+	      bf.set_field_value(bt_new,"year",year);
+	    }
+
+	    bf.bib_output_twoup(cout,bt,bt_new,"Original",
+				"Inspirehep record");
+	    cout << endl;
+	    cout << "Press a key." << endl;
+	    char ch;
+	    cin >> ch;
+	    
+	  }
+	} else {
+	  cout << "No DOI present for key: " << *bt.key << endl;
 	}
       }
-      cout << "doi: " << j[0]["doi"] << endl;
-      cout << "arxiv: " << j[0]["primary_report_number"] << endl;
-      cout << "pagination: " << j[0]["publication_info"]["pagination"] << endl;
-      cout << "reference: " << j[0]["publication_info"]["reference"] << endl;
-      cout << "title: " << j[0]["publication_info"]["title"] << endl;
-      cout << "volume: " << j[0]["publication_info"]["volume"] << endl;
-      cout << "year: " << j[0]["publication_info"]["year"] << endl;
-      
-      exit(-1);
-      //}
-      //}
       return 0;
     }
     
@@ -1518,7 +1589,7 @@ namespace btmanip {
     }
   
     /** \brief Output the BibTeX data in a longer HTML format
-    */
+     */
     virtual int html(std::vector<std::string> &sv, bool itive_com) {
 
       bool list=false;
@@ -1785,7 +1856,7 @@ namespace btmanip {
     /** \brief Desc
      */
     virtual int ads_cites(std::vector<std::string> &sv,
-			      bool itive_com) {
+			  bool itive_com) {
 
       // Get API token
       std::string token;
