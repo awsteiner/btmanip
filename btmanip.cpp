@@ -274,6 +274,71 @@ namespace btmanip {
       return 0;
     }
 
+    /** \brief Get information from adsabs
+     */
+    virtual int ads_get(std::vector<std::string> &sv, bool itive_com) {
+
+      int verbose=1;
+
+      // Get API token
+      std::string token;
+      char *token_ptr=getenv("ADSABS_TOKEN");
+      if (token_ptr) {
+	token=token_ptr;
+      } else {
+	cerr << "Token not found in \"ads-get\"." << endl;
+	return 1;
+      }
+
+      std::string prefix="curl -X GET -H 'Authorization: Bearer:"+token+
+	"' ";
+      std::string base_url="https://api.adsabs.harvard.edu/v1/";
+            
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+	
+	if (bf.is_field_present(bt,"doi")) {
+	  
+	  string doi=bf.get_field(bt,"doi");
+
+	  while (doi.find("/")!=std::string::npos) {
+	    doi.replace(doi.find("/"),1,"%2F");
+	  }
+
+	  string cmd=prefix+"\""+base_url+"search/query?q=doi:"+
+	    doi+"&fl=bibcode\"";
+	  cout << "cmd: " << cmd << endl;
+
+	  string result;
+	  int ret=pipe_cmd_string(cmd,result,false,1000);
+	  cout << result.size() << " " << result << endl;
+	  
+	  auto j=nlohmann::json::parse(result);
+	  auto j_bibcode=j["response"]["docs"][0]["bibcode"];
+	  string bibcode=j_bibcode.get<std::string>();
+
+	  cout << bibcode << endl;
+
+	  cmd=prefix+"-H \"Content-Type: application/json\" "+
+	    base_url+"export/bibtex -X POST -d '{\"bibcode\":[\""+
+	    bibcode+"\"]}'";
+	  cout << "cmd: " << cmd << endl;
+	  
+	  ret=pipe_cmd_string(cmd,result,false,100000);
+	  cout << result.size() << " " << result << endl;
+
+	  auto j2=nlohmann::json::parse(result);
+	  cout << j2["export"] << endl;
+	  string bib=j2["export"].get<std::string>();
+	  cout << bib << endl;
+	  
+	  exit(-1);
+	  
+	}
+      }
+      return 0;
+    }
+    
     /** \brief Get information from inspirehep.net
      */
     virtual int inspire_get(std::vector<std::string> &sv, bool itive_com) {
@@ -2286,7 +2351,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=40;
+      static const int nopt=41;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2498,12 +2563,15 @@ namespace btmanip {
 	{0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::inspire_cites),cli::comm_option_both},
-	{0,"inspire-get","Calculate Inspire citations.",0,0,"","",
+	{0,"inspire-get","",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::inspire_get),cli::comm_option_both},
 	{0,"ads-cites","Calculate ADSABS citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::ads_cites),cli::comm_option_both},
+	{0,"ads-get","",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::ads_get),cli::comm_option_both},
 	{'s',"search","Search current list for field and pattern pairs.",
 	 2,-1,((std::string)"[\"and\"] [\"or\"] <field 1> ")+
 	 "<pattern 1> [field 2] [pattern 2] ...",
