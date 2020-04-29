@@ -1357,6 +1357,30 @@ void bib_file::parse_bib(std::string fname) {
       
     bibtex::BibTeXEntry &bt=entries[i];
 
+    // Double check that the value list doesn't have
+    // more than one entry
+    for(size_t j=0;j<bt.fields.size();j++) {
+      if (bt.fields[j].second.size()>1) {
+	O2SCL_ERR((((string)"Entry ")+*bt.key+
+		   " resulted in a value list "+
+		   "with more than one entry.").c_str(),o2scl::exc_einval);
+      }
+    }
+
+    // Double check that two fields aren't identical
+    for(size_t j=0;j<bt.fields.size();j++) {
+      for(size_t k=j+1;k<bt.fields.size();k++) {
+	std::string field_j=lower_string(bt.fields[j].first);
+	std::string field_k=lower_string(bt.fields[k].first);
+	if (field_j==field_k) {
+	  O2SCL_ERR((((string)"Entry ")+*bt.key+
+		     " has more than one identical field "+field_j+
+		     ".").c_str(),
+		    o2scl::exc_einval);
+	}
+      }
+    }
+    
     // Insert to the map for sorting
     if (bt.key) {
       if (sort.find(*bt.key)==sort.end()) {
@@ -1775,7 +1799,7 @@ void bib_file::local_wrap(std::vector<std::string> &sv, size_t len) {
 }
 
 void bib_file::format_and_output(std::string left, std::string right,
-				 std::ostream &outs, 
+				 std::ostream &outs, bool bright,
 				 std::string sep, size_t len) {
 
   // Note that in this function, we perform the wrapping at the top,
@@ -1796,7 +1820,7 @@ void bib_file::format_and_output(std::string left, std::string right,
   if (verbose>1) {
     cout << "Function format_and_output():" << endl;
   }
-    
+
   for(size_t j=0;j<vs_left.size() && j<5;j++) {
 
     if (verbose>1) {
@@ -1822,6 +1846,11 @@ void bib_file::format_and_output(std::string left, std::string right,
 
       bool same=true;
 
+      if (bright) {
+	left2+=vt100_bold();
+	right2+=vt100_bold();
+      }
+      
       // Proceed character by character, highlighting
       // differences with vt100 sequences
       for(size_t k=0;k<vs_left[j].size() && k<vs_right[j].size();k++) {
@@ -1835,6 +1864,10 @@ void bib_file::format_and_output(std::string left, std::string right,
 	  same=true;
 	  left2+=vt100_default();
 	  right2+=vt100_default();
+	  if (bright) {
+	    left2+=vt100_bold();
+	    right2+=vt100_bold();
+	  }
 	}
 
 	// Add the character to the string
@@ -1855,6 +1888,10 @@ void bib_file::format_and_output(std::string left, std::string right,
 	}
 	left2+=vt100_default();
 	right2+=vt100_default();
+	if (bright) {
+	  left2+=vt100_bold();
+	  right2+=vt100_bold();
+	}
 	
       } else if (vs_left[j].size()>vs_right[j].size()) {
 	
@@ -1868,6 +1905,10 @@ void bib_file::format_and_output(std::string left, std::string right,
 	}
 	left2+=vt100_default();
 	right2+=vt100_default();
+	if (bright) {
+	  left2+=vt100_bold();
+	  right2+=vt100_bold();
+	}
 	
       } else {
 	
@@ -1926,8 +1967,9 @@ void bib_file::format_field_value(std::string field, std::string value,
     with_braces=false;
   }
 
-  // AWS 4/27/2020: leave double braces in to preserve
-  // fields which have, e.g. upper- and lower-case formatting
+  // AWS 4/27/2020: I commented this section out in order to leave
+  // double braces in to preserve fields which have, e.g. upper- and
+  // lower-case formatting.
   /*
     if (value[0]=='{' &&
     value[value.size()-1]=='}' &&
@@ -1998,6 +2040,8 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 
   string stmpl, stmpr;
 
+  string sep2=vt100_alt_font()+" x "+vt100_normal_font();
+  
   // Print out header
   string stmp=left_header+" ( matching ";
   stmp+=vt100_cyan_fg();
@@ -2007,21 +2051,18 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   // 78 for LHS and 12 for vt100
   if (stmp.length()>86) stmp=stmp.substr(0,87)+"...";
   while (stmp.length()<86) stmp+=' ';
-  stmp+=" | "+right_header;
+  stmp+=sep2+right_header;
   // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
   // is a total of 171
   if (stmp.length()>171) stmp=stmp.substr(0,168)+"...";
-  cout << stmp << endl;
+  outs << stmp << endl;
   
   // Print out line separator
-  stmpl='-';
-  stmpr='-';
-  for(size_t k=0;k<77;k++) {
-    stmpl+='-';
-    stmpr+='-';
-  }
-  format_and_output(stmpl,stmpr,std::cout);
-  
+  stmpl=vt100_hrule(78);
+  stmpr=vt100_hrule(78);
+  string sep3=vt100_alt_font()+"qnq"+vt100_normal_font();
+  format_and_output(stmpl,stmpr,outs,false,sep3);
+
   // Output tag and key
   stmpl=((string)"@")+bt_left.tag+"{";
   stmpl+=(*bt_left.key);
@@ -2029,8 +2070,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   stmpr=((string)"@")+bt_right.tag+"{";
   stmpr+=(*bt_right.key);
   stmpr+=',';
-  cout << "Here: " << stmpl << " " << stmpr << endl;
-  format_and_output(stmpl,stmpr,outs);
+  format_and_output(stmpl,stmpr,outs,false,sep2);
 
   // Loop through all fields on the LHS
   for(size_t j=0;j<bt_left.fields.size();j++) {
@@ -2061,7 +2101,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 
     }
 
-    format_and_output(stmpl,stmpr,outs);
+    format_and_output(stmpl,stmpr,outs,false,sep2);
     
   }
 
@@ -2080,13 +2120,13 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 			   bt_right.fields[j].second[0],stmpr);
       }
       
-      format_and_output(stmpl,stmpr,outs);
+      format_and_output(stmpl,stmpr,outs,false,sep2);
     }
   }
 
   stmpl="}";
   stmpr="}";
-  format_and_output(stmpl,stmpr,outs);
+  format_and_output(stmpl,stmpr,outs,false,sep2);
 
   return;
 }

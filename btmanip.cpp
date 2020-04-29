@@ -487,11 +487,12 @@ namespace btmanip {
 		bf.bib_output_twoup(cout,bt,bt_new,"Original",
 				    "Inspirehep record");
 		
-		cout << endl;
-		cout << "Press a key." << endl;
+		cout << "Keep original ('<' or ','), "
+		     << "use new inspirehep entry ('>' or '.'), "
+		     << "cherry pick ('c'), or quit ('q'): " << endl;
 		char ch;
 		cin >> ch;
-		  
+
 	      }
 	      
 	    }
