@@ -44,6 +44,15 @@
     This namespace is documented in \ref bib_file.h .
 */
 namespace btmanip {
+
+  class bibtex_entry : public bibtex::BibTeXEntry {
+
+  public:
+
+    bibtex_entry() {
+    }
+    
+  };
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
    */
@@ -474,6 +483,11 @@ namespace btmanip {
 	\c bt
     */
     bool is_field_present(bibtex::BibTeXEntry &bt, std::string field);
+
+    /** \brief Count the number of times that field \c field occurs
+	in the entry
+    */
+    size_t count_field_occur(bibtex::BibTeXEntry &bt, std::string field);
     
     /** \brief Return true if field named \c field1 or field named \c
 	field2 is present in entry \c bt
@@ -481,9 +495,15 @@ namespace btmanip {
     bool is_field_present(bibtex::BibTeXEntry &bt, std::string field1,
 			  std::string field2);
     
-    /** \brief Get field named \c field from entry \c bt
+    /** \brief Get field named \c field from entry \c bt (assuming
+	the field occurs only once)
      */
     std::string &get_field(bibtex::BibTeXEntry &bt, std::string field);
+    
+    /** \brief Get all values for field named \c field from entry \c bt
+     */
+    void get_field_all(bibtex::BibTeXEntry &bt, std::string field,
+		      std::vector<std::string> &list);
     
     /** \brief Get field named \c field from entry \c bt
      */

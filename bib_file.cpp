@@ -1334,28 +1334,31 @@ int bib_file::set_field_value(std::string key, std::string field,
     
 void bib_file::parse_bib(std::string fname) {
 
-  // Erase current entries
-  if (entries.size()>0) {
-    entries.clear();
-    sort.clear();
-  }
-      
-  // Main parse call
-  if (verbose>1) std::cout << "Main parse call." << std::endl;
+  // Open file
   wordexp_single_file(fname);
   std::ifstream in(fname.c_str());
   if (!in) {
     std::cerr << "File open failed. Wrong filename?" << std::endl;
     return;
   }
-  bibtex::read(in,entries); 
-  in.close();
-  if (verbose>1) std::cout << "Done with main parse call." << std::endl;
 
-  // Loop over entries
+  // Erase current entries
+  if (entries.size()>0) {
+    entries.clear();
+    sort.clear();
+  }
+      
+  // Parse and close the file
+  if (verbose>1) std::cout << "Starting bibtex::read()." << std::endl;
+  bibtex::read(in,entries); 
+  if (verbose>1) std::cout << "Done with bibtex::read()." << std::endl;
+  in.close();
+
+  // Loop over entries in order to check and sort
   for(size_t i=0;i<entries.size();i++) {
       
     bibtex::BibTeXEntry &bt=entries[i];
+    bibtex_entry &be=static_cast<bibtex_entry &>(entries[i]);
 
     // Double check that the value list doesn't have
     // more than one entry
@@ -1363,20 +1366,25 @@ void bib_file::parse_bib(std::string fname) {
       if (bt.fields[j].second.size()>1) {
 	O2SCL_ERR((((string)"Entry ")+*bt.key+
 		   " resulted in a value list "+
-		   "with more than one entry.").c_str(),o2scl::exc_einval);
+		   "with more than one entry.").c_str(),o2scl::exc_esanity);
       }
     }
 
-    // Double check that two fields aren't identical
+    // Warn if some fields don't occur multiple times
     for(size_t j=0;j<bt.fields.size();j++) {
       for(size_t k=j+1;k<bt.fields.size();k++) {
 	std::string field_j=lower_string(bt.fields[j].first);
 	std::string field_k=lower_string(bt.fields[k].first);
-	if (field_j==field_k) {
-	  O2SCL_ERR((((string)"Entry ")+*bt.key+
-		     " has more than one identical field "+field_j+
-		     ".").c_str(),
-		    o2scl::exc_einval);
+	if (field_j==field_k && (field_j==((string)"title") ||
+				 field_j==((string)"doi") ||
+				 field_j==((string)"year") ||
+				 field_j==((string)"volume") ||
+				 field_j==((string)"pages") ||
+				 field_j==((string)"author") ||
+				 field_j==((string)"journal") ||
+				 field_j==((string)"month"))) {
+	  cerr << "Warning: field " << field_j << " occurs twice "
+	       << "in entry " << *bt.key << endl;
 	}
       }
     }
@@ -1386,8 +1394,9 @@ void bib_file::parse_bib(std::string fname) {
       if (sort.find(*bt.key)==sort.end()) {
 	sort.insert(make_pair(*bt.key,i));
       } else {
-	std::cout << "Warning: multiple copies with key "
-		  << *bt.key << "." << std::endl;
+	std::cerr << "Warning: multiple entries with key "
+		  << *bt.key << ". Keeping only the first entry."
+		  << std::endl;
       }
     } else {
       O2SCL_ERR("This class does not support keyless entries.",
@@ -2072,43 +2081,92 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   stmpr+=',';
   format_and_output(stmpl,stmpr,outs,false,sep2);
 
+  // List of fields which occur multiple times
+  vector<string> fields_mult;
+  
   // Loop through all fields on the LHS
   for(size_t j=0;j<bt_left.fields.size();j++) {
 
-    stmpr="";
-    
-    // If the value in the field is not empty, construct the string
-    // stmpl from the value in the field
-    if (bt_left.fields[j].second.size()>0) {
-      format_field_value(bt_left.fields[j].first,
-			 bt_left.fields[j].second[0],stmpl);
-      thin_whitespace(stmpl);
-    } else {
-      stmpl="";
-    }
+    size_t n_tmp;
+    if (count_field_occur(bt_left,bt_left.fields[j].first)>1) {
 
-    // If this field is present on the RHS
-    if (is_field_present(bt_right,bt_left.fields[j].first)) {
-
-      // Get the value
-      string rx=get_field(bt_right,bt_left.fields[j].first);
-
-      // If it's not empty, then fill the string stmpr
-      if (rx.size()>0) {
-	format_field_value(bt_left.fields[j].first,rx,stmpr);
-	thin_whitespace(stmpr);
+      if (o2scl::vector_search(fields_mult,bt_left.fields[j].first,
+			       n_tmp)==false) {
+	fields_mult.push_back(bt_left.fields[j].first);
       }
+      
+    } else {
+      
+      stmpr="";
+      
+      // If the value in the field is not empty, construct the string
+      // stmpl from the value in the field
+      if (bt_left.fields[j].second.size()==1) {
+	format_field_value(bt_left.fields[j].first,
+			   bt_left.fields[j].second[0],stmpl);
+	thin_whitespace(stmpl);
+      } else if (bt_left.fields[j].second.size()>1) {
+	O2SCL_ERR((((string)"Entry ")+*bt_left.key+
+		   " resulted in a value list "+
+		   "with more than one entry.").c_str(),o2scl::exc_esanity);
+      } else {
+	stmpl="";
+      }
+      
+      // If this field is present on the RHS
+      if (is_field_present(bt_right,bt_left.fields[j].first)) {
+	
+	// Get the value
+	string rx=get_field(bt_right,bt_left.fields[j].first);
+	
+	// If it's not empty, then fill the string stmpr
+	if (rx.size()>0) {
+	  format_field_value(bt_left.fields[j].first,rx,stmpr);
+	  thin_whitespace(stmpr);
+	}
+	
+      }
+      
+      format_and_output(stmpl,stmpr,outs,false,sep2);
 
     }
-
-    format_and_output(stmpl,stmpr,outs,false,sep2);
     
+  }
+
+  // Special handling for fields which occur multiple
+  // times on the left
+  for(size_t j=0;j<fields_mult.size();j++) {
+    vector<string> list_left, list_right;
+    get_field_all(bt_left,fields_mult[j],list_left);
+    get_field_all(bt_right,fields_mult[j],list_right);
+    size_t n_left=list_left.size();
+    size_t n_right=list_right.size();
+    for(size_t k=0;k<n_left || k<n_right;k++) {
+      if (k>=n_right) {
+	stmpl=list_left[k];
+	thin_whitespace(stmpl);
+	stmpr="";
+	format_and_output(stmpl,stmpr,outs,false,sep2);
+      } else if (k>=n_left) {
+	stmpl="";
+	stmpr=list_right[k];
+	thin_whitespace(stmpr);
+	format_and_output(stmpl,stmpr,outs,false,sep2);
+      } else {
+	stmpl=list_left[k];
+	stmpr=list_right[k];
+	thin_whitespace(stmpl);
+	thin_whitespace(stmpr);
+	format_and_output(stmpl,stmpr,outs,false,sep2);
+      }
+    }
   }
 
   stmpl="";
 
   // Now loop through all the extra fields in bt_right which are
-  // not present on the left
+  // not present on the left. No extra handling is necessary this
+  // time for fields present multiple times.
   for(size_t j=0;j<bt_right.fields.size();j++) {
     if (!is_field_present(bt_left,bt_right.fields[j].first)) {
 
@@ -2729,6 +2787,23 @@ std::string bib_file::author_firstlast(std::string s_in,
   return s_in;
 }
     
+size_t bib_file::count_field_occur(bibtex::BibTeXEntry &bt, std::string field) {
+  size_t cnt=0;
+  for(size_t j=0;j<bt.fields.size();j++) {
+    std::string lower=bt.fields[j].first;
+    for(size_t k=0;k<lower.size();k++) {
+      lower[k]=std::tolower(lower[k]);
+    }
+    for(size_t k=0;k<field.size();k++) {
+      field[k]=std::tolower(field[k]);
+    }
+    if (lower==field && bt.fields[j].second.size()>0) {
+      cnt++;
+    }
+  }
+  return cnt;
+}
+
 bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field) {
   for(size_t j=0;j<bt.fields.size();j++) {
     std::string lower=bt.fields[j].first;
@@ -2775,8 +2850,11 @@ std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
       field[k]=std::tolower(field[k]);
     }
     if (lower==field) {
-      if (bt.fields[j].second.size()>0) {
+      if (bt.fields[j].second.size()==1) {
 	return bt.fields[j].second[0];
+      } else if (bt.fields[j].second.size()>1) {
+	O2SCL_ERR("Field had multiple entries.",
+		  o2scl::exc_esanity);
       } else {
 	O2SCL_ERR("Field found but value vector was empty.",
 		  o2scl::exc_einval);
@@ -2793,6 +2871,34 @@ std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
 	     " not found in entry with key "+(*bt.key).c_str()).c_str(),
 	    o2scl::exc_einval);
   return trans_latex[0];
+}
+ 
+void bib_file::get_field_all(bibtex::BibTeXEntry &bt, std::string field,
+			     vector<string> &list) {
+  list.clear();
+  for(size_t j=0;j<bt.fields.size();j++) {
+    std::string lower=bt.fields[j].first;
+    for(size_t k=0;k<lower.size();k++) {
+      lower[k]=std::tolower(lower[k]);
+    }
+    for(size_t k=0;k<field.size();k++) {
+      field[k]=std::tolower(field[k]);
+    }
+    if (lower==field) {
+      if (bt.fields[j].second.size()==1) {
+	list.push_back(bt.fields[j].second[0]);
+      } else if (bt.fields[j].second.size()>1) {
+	O2SCL_ERR("Field had multiple entries.",
+		  o2scl::exc_esanity);
+      }
+    }
+  }
+  if (!bt.key) {
+    O2SCL_ERR((((std::string)"Field ")+field+
+	       " not found in entry with no key ").c_str(),
+	      o2scl::exc_einval);
+  }
+  return;
 }
 
 std::vector<std::string> &bib_file::get_field_list
