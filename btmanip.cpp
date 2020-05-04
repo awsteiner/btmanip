@@ -74,7 +74,31 @@ namespace btmanip {
 
     /// If true, a journal list has been read
     bool jlist_read;
-  
+
+    int get_screen_width() {
+
+      int nrow, ncol=80;
+      
+#ifdef O2SCL_READLINE
+      // Use curses
+      get_screen_size(nrow,ncol);
+#else
+      // If not, attempt to obtain the result from the environment
+      char *ncstring=getenv("COLUMNS");
+      if (ncstring) {
+	int nc2;
+	int sret=o2scl::stoi_nothrow(ncstring,nc2);
+	if (sret==0 && nc2>0) {
+	  ncol=nc2;
+	} else {
+	  cerr << "Failed to interpret COLUMNS value " << ncstring
+	       << " as a positive number of columns." << endl;
+	}
+      }
+      return ncol;
+    }
+
+    
     /** \brief Read journal list file
      */
     virtual int read_jlist(std::vector<std::string> &sv, bool itive_com) {

@@ -130,7 +130,8 @@ namespace btmanip {
 			  bibtex::BibTeXEntry &bt_left,
 			  bibtex::BibTeXEntry &bt_right,
 			  std::string left_header,
-			  std::string right_header);
+			  std::string right_header,
+			  int screen_width);
     
     /** \brief List of journal synonyms
      */

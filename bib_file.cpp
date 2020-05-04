@@ -2045,146 +2045,158 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 				bibtex::BibTeXEntry &bt_left,
 				bibtex::BibTeXEntry &bt_right,
 				std::string left_header,
-				std::string right_header) {
+				std::string right_header,
+				int screen_width=80) {
 
-  string stmpl, stmpr;
-
-  string sep2=vt100_alt_font()+" x "+vt100_normal_font();
-  
-  // Print out header
-  string stmp=left_header+" ( matching ";
-  stmp+=vt100_cyan_fg();
-  stmp+="different";
-  stmp+=vt100_default();
-  stmp+=" )";
-  // 78 for LHS and 12 for vt100
-  if (stmp.length()>86) stmp=stmp.substr(0,87)+"...";
-  while (stmp.length()<86) stmp+=' ';
-  stmp+=sep2+right_header;
+  static const size_t twoup_wid=78;
   // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
-  // is a total of 171
-  if (stmp.length()>171) stmp=stmp.substr(0,168)+"...";
-  outs << stmp << endl;
-  
-  // Print out line separator
-  stmpl=vt100_hrule(78);
-  stmpr=vt100_hrule(78);
-  string sep3=vt100_alt_font()+"qnq"+vt100_normal_font();
-  format_and_output(stmpl,stmpr,outs,false,sep3);
+  // and one more for the return
+  static const size_t min_twoup=172;
 
-  // Output tag and key
-  stmpl=((string)"@")+bt_left.tag+"{";
-  stmpl+=(*bt_left.key);
-  stmpl+=',';
-  stmpr=((string)"@")+bt_right.tag+"{";
-  stmpr+=(*bt_right.key);
-  stmpr+=',';
-  format_and_output(stmpl,stmpr,outs,false,sep2);
+  if (screen_width<min_twoup) {
 
-  // List of fields which occur multiple times
-  vector<string> fields_mult;
-  
-  // Loop through all fields on the LHS
-  for(size_t j=0;j<bt_left.fields.size();j++) {
-
-    size_t n_tmp;
-    if (count_field_occur(bt_left,bt_left.fields[j].first)>1) {
-
-      if (o2scl::vector_search(fields_mult,bt_left.fields[j].first,
-			       n_tmp)==false) {
-	fields_mult.push_back(bt_left.fields[j].first);
-      }
+  } else {
+    
+    string stmpl, stmpr;
+    
+    string sep2=vt100_alt_font()+" x "+vt100_normal_font();
+    
+    // Print out header
+    string stmp=left_header+" ( matching ";
+    stmp+=vt100_cyan_fg();
+    stmp+="different";
+    stmp+=vt100_default();
+    stmp+=" )";
+    // 78 for LHS and 12 for vt100
+    if (stmp.length()>86) stmp=stmp.substr(0,87)+"...";
+    while (stmp.length()<86) stmp+=' ';
+    stmp+=sep2+right_header;
+    // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
+    // is a total of 171
+    if (stmp.length()>171) stmp=stmp.substr(0,168)+"...";
+    outs << stmp << endl;
+    
+    // Print out line separator
+    stmpl=vt100_hrule(78);
+    stmpr=vt100_hrule(78);
+    string sep3=vt100_alt_font()+"qnq"+vt100_normal_font();
+    format_and_output(stmpl,stmpr,outs,false,sep3);
+    
+    // Output tag and key
+    stmpl=((string)"@")+bt_left.tag+"{";
+    stmpl+=(*bt_left.key);
+    stmpl+=',';
+    stmpr=((string)"@")+bt_right.tag+"{";
+    stmpr+=(*bt_right.key);
+    stmpr+=',';
+    format_and_output(stmpl,stmpr,outs,false,sep2);
+    
+    // List of fields which occur multiple times
+    vector<string> fields_mult;
+    
+    // Loop through all fields on the LHS
+    for(size_t j=0;j<bt_left.fields.size();j++) {
       
-    } else {
-      
-      stmpr="";
-      
-      // If the value in the field is not empty, construct the string
-      // stmpl from the value in the field
-      if (bt_left.fields[j].second.size()==1) {
-	format_field_value(bt_left.fields[j].first,
-			   bt_left.fields[j].second[0],stmpl);
-	thin_whitespace(stmpl);
-      } else if (bt_left.fields[j].second.size()>1) {
-	O2SCL_ERR((((string)"Entry ")+*bt_left.key+
-		   " resulted in a value list "+
-		   "with more than one entry.").c_str(),o2scl::exc_esanity);
-      } else {
-	stmpl="";
-      }
-      
-      // If this field is present on the RHS
-      if (is_field_present(bt_right,bt_left.fields[j].first)) {
+      size_t n_tmp;
+      if (count_field_occur(bt_left,bt_left.fields[j].first)>1) {
 	
-	// Get the value
-	string rx=get_field(bt_right,bt_left.fields[j].first);
-	
-	// If it's not empty, then fill the string stmpr
-	if (rx.size()>0) {
-	  format_field_value(bt_left.fields[j].first,rx,stmpr);
-	  thin_whitespace(stmpr);
+	if (o2scl::vector_search(fields_mult,bt_left.fields[j].first,
+				 n_tmp)==false) {
+	  fields_mult.push_back(bt_left.fields[j].first);
 	}
 	
+      } else {
+	
+	stmpr="";
+	
+	// If the value in the field is not empty, construct the string
+	// stmpl from the value in the field
+	if (bt_left.fields[j].second.size()==1) {
+	  format_field_value(bt_left.fields[j].first,
+			     bt_left.fields[j].second[0],stmpl);
+	  thin_whitespace(stmpl);
+	} else if (bt_left.fields[j].second.size()>1) {
+	  O2SCL_ERR((((string)"Entry ")+*bt_left.key+
+		     " resulted in a value list "+
+		     "with more than one entry.").c_str(),o2scl::exc_esanity);
+	} else {
+	  stmpl="";
+	}
+	
+	// If this field is present on the RHS
+	if (is_field_present(bt_right,bt_left.fields[j].first)) {
+	  
+	  // Get the value
+	  string rx=get_field(bt_right,bt_left.fields[j].first);
+	  
+	  // If it's not empty, then fill the string stmpr
+	  if (rx.size()>0) {
+	    format_field_value(bt_left.fields[j].first,rx,stmpr);
+	    thin_whitespace(stmpr);
+	  }
+	  
+	}
+	
+	format_and_output(stmpl,stmpr,outs,false,sep2);
+	
       }
       
-      format_and_output(stmpl,stmpr,outs,false,sep2);
-
     }
     
-  }
-
-  // Special handling for fields which occur multiple
-  // times on the left
-  for(size_t j=0;j<fields_mult.size();j++) {
-    vector<string> list_left, list_right;
-    get_field_all(bt_left,fields_mult[j],list_left);
-    get_field_all(bt_right,fields_mult[j],list_right);
-    size_t n_left=list_left.size();
-    size_t n_right=list_right.size();
-    for(size_t k=0;k<n_left || k<n_right;k++) {
-      if (k>=n_right) {
-	stmpl=list_left[k];
-	thin_whitespace(stmpl);
-	stmpr="";
-	format_and_output(stmpl,stmpr,outs,false,sep2);
-      } else if (k>=n_left) {
-	stmpl="";
-	stmpr=list_right[k];
-	thin_whitespace(stmpr);
-	format_and_output(stmpl,stmpr,outs,false,sep2);
-      } else {
-	stmpl=list_left[k];
-	stmpr=list_right[k];
-	thin_whitespace(stmpl);
-	thin_whitespace(stmpr);
+    // Special handling for fields which occur multiple
+    // times on the left
+    for(size_t j=0;j<fields_mult.size();j++) {
+      vector<string> list_left, list_right;
+      get_field_all(bt_left,fields_mult[j],list_left);
+      get_field_all(bt_right,fields_mult[j],list_right);
+      size_t n_left=list_left.size();
+      size_t n_right=list_right.size();
+      for(size_t k=0;k<n_left || k<n_right;k++) {
+	if (k>=n_right) {
+	  stmpl=list_left[k];
+	  thin_whitespace(stmpl);
+	  stmpr="";
+	  format_and_output(stmpl,stmpr,outs,false,sep2);
+	} else if (k>=n_left) {
+	  stmpl="";
+	  stmpr=list_right[k];
+	  thin_whitespace(stmpr);
+	  format_and_output(stmpl,stmpr,outs,false,sep2);
+	} else {
+	  stmpl=list_left[k];
+	  stmpr=list_right[k];
+	  thin_whitespace(stmpl);
+	  thin_whitespace(stmpr);
+	  format_and_output(stmpl,stmpr,outs,false,sep2);
+	}
+      }
+    }
+    
+    stmpl="";
+    
+    // Now loop through all the extra fields in bt_right which are
+    // not present on the left. No extra handling is necessary this
+    // time for fields present multiple times.
+    for(size_t j=0;j<bt_right.fields.size();j++) {
+      if (!is_field_present(bt_left,bt_right.fields[j].first)) {
+	
+	stmpr=((std::string)"  ")+bt_right.fields[j].first+" =";
+	while (stmpr.length()<16) stmpr+=" ";
+	
+	if (bt_right.fields[j].second.size()>0) {
+	  format_field_value(bt_right.fields[j].first,
+			     bt_right.fields[j].second[0],stmpr);
+	}
+	
 	format_and_output(stmpl,stmpr,outs,false,sep2);
       }
     }
+    
+    stmpl="}";
+    stmpr="}";
+    format_and_output(stmpl,stmpr,outs,false,sep2);
+    
   }
-
-  stmpl="";
-
-  // Now loop through all the extra fields in bt_right which are
-  // not present on the left. No extra handling is necessary this
-  // time for fields present multiple times.
-  for(size_t j=0;j<bt_right.fields.size();j++) {
-    if (!is_field_present(bt_left,bt_right.fields[j].first)) {
-
-      stmpr=((std::string)"  ")+bt_right.fields[j].first+" =";
-      while (stmpr.length()<16) stmpr+=" ";
-      
-      if (bt_right.fields[j].second.size()>0) {
-	format_field_value(bt_right.fields[j].first,
-			   bt_right.fields[j].second[0],stmpr);
-      }
-      
-      format_and_output(stmpl,stmpr,outs,false,sep2);
-    }
-  }
-
-  stmpl="}";
-  stmpr="}";
-  format_and_output(stmpl,stmpr,outs,false,sep2);
 
   return;
 }
