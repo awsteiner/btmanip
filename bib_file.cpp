@@ -2055,6 +2055,13 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 
   if (screen_width<min_twoup) {
 
+    string stmp=left_header+" ( matching ";
+    stmp+=vt100_cyan_fg();
+    stmp+="different";
+    stmp+=vt100_default();
+    stmp+=" )\n";
+    os << stemp << endl;
+
   } else {
     
     string stmpl, stmpr;
