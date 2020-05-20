@@ -78,11 +78,14 @@ namespace btmanip {
     int get_screen_width() {
 
       int nrow, ncol=80;
-      
-#ifdef O2SCL_NCURSES
+
+      // AWS 5/20/20: I think this causes problems when run
+      // in a script
+      //#ifdef O2SCL_NCURSES
       // Use curses
-      get_screen_size(nrow,ncol);
-#endif
+      //get_screen_size(nrow,ncol);
+      //#endif
+      
       // If not, attempt to obtain the result from the environment
       char *ncstring=getenv("COLUMNS");
       if (ncstring) {
