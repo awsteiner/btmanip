@@ -2046,7 +2046,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 				bibtex::BibTeXEntry &bt_right,
 				std::string left_header,
 				std::string right_header,
-				int screen_width=80) {
+				int screen_width) {
 
   static const size_t twoup_wid=78;
   // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
@@ -2060,7 +2060,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     stmp+="different";
     stmp+=vt100_default();
     stmp+=" )\n";
-    os << stemp << endl;
+    outs << stmp << endl;
 
   } else {
     

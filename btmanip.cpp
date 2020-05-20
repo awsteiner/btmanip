@@ -79,10 +79,10 @@ namespace btmanip {
 
       int nrow, ncol=80;
       
-#ifdef O2SCL_READLINE
+#ifdef O2SCL_NCURSES
       // Use curses
       get_screen_size(nrow,ncol);
-#else
+#endif
       // If not, attempt to obtain the result from the environment
       char *ncstring=getenv("COLUMNS");
       if (ncstring) {
