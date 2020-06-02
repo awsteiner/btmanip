@@ -2207,33 +2207,38 @@ namespace btmanip {
 	  
 	    bibtex::BibTeXEntry &bt2=
 	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
-	  
+
+	    // Remove extra whitespace for titles which have more than
+	    // one line because ReST is picky about spacing
+	    string title_temp=bf.get_field(bt2,"title");
+	    bf.thin_whitespace(title_temp);
+	    
 	    if (bf.is_field_present(bt,"author")) {
 	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					      true,true);
 	      auth=bf.spec_char_to_uni(auth);
-	      (*outs) << "    " << auth << ", \""
-		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
+	      (*outs) << "   " << auth << ", \""
+		      << bf.spec_char_to_uni(title_temp)
 		      << "\" in" << endl;
 	    }
 	    if (bf.is_field_present(bt2,"url")) {
 	      (*outs) << "    <a href=\""
 		      << bf.get_field(bt2,"url") << "\">" << endl;
-	      (*outs) << "    "
-		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
+	      (*outs) << "   "
+		      << bf.spec_char_to_uni(title_temp)
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
-	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+	      (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt2,"isbn") << "\">" << endl;
-	      (*outs) << "    "
-		      << bf.spec_char_to_uni(bf.get_field(bt2,"title"))
+	      (*outs) << "   "
+		      << bf.spec_char_to_uni(title_temp)
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    "
-		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+	      (*outs) << "   "
+		      << bf.spec_char_to_uni(title_temp)
 		      << "," << endl;
 	    }
-	    (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
+	    (*outs) << "   (" << bf.get_field(bt2,"year") << ") "
 		    << bf.spec_char_to_uni(bf.get_field(bt2,"publisher"))
 		    << ", p. " << bf.get_field(bt,"pages") << "." << endl;
 	    (*outs) << endl;
@@ -2244,26 +2249,32 @@ namespace btmanip {
 	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					      true,true);
 	      auth=bf.spec_char_to_uni(auth);
-	      (*outs) << "    " << auth << "," << endl;
+	      (*outs) << auth << "," << endl;
 	    }
+	    
+	    // Remove extra whitespace for titles which have more than
+	    // one line because ReST is picky about spacing
+	    string title_temp=bf.get_field(bt,"title");
+	    bf.thin_whitespace(title_temp);
+	    
 	    if (bf.is_field_present(bt,"url")) {
-	      (*outs) << "    <a href=\""
+	      (*outs) << "   <a href=\""
 		      << bf.get_field(bt,"url") << "\">" << endl;
-	      (*outs) << "    "
-		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+	      (*outs) << "   "
+		      << bf.spec_char_to_uni(title_temp)
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
-	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+	      (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << "\">" << endl;
-	      (*outs) << "    "
-		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+	      (*outs) << "   "
+		      << bf.spec_char_to_uni(title_temp)
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    "
-		      << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+	      (*outs) << "   "
+		      << bf.spec_char_to_uni(title_temp)
 		      << "," << endl;
 	    }
-	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+	    (*outs) << "   (" << bf.get_field(bt,"year") << ") "
 		    << bf.spec_char_to_uni(bf.get_field(bt,"publisher"))
 		    << ", p. "
 		    << bf.get_field(bt,"pages") << "." << endl;
@@ -2276,31 +2287,47 @@ namespace btmanip {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
-	    (*outs) << "    " << auth << "," << endl;
+	    (*outs) << auth << "," << endl;
 	  }
 	  if (bf.is_field_present(bt,"url")) {
-	    (*outs) << "    <a href=\""
+	    (*outs) << "   <a href=\""
 		    << bf.get_field(bt,"url") << "\">" << endl;
-	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
+	    // Remove extra whitespace for titles which have more than
+	    // one line because ReST is picky about spacing
+	    string title_temp=bf.get_field(bt,"title");
+	    bf.thin_whitespace(title_temp);
+	    (*outs) << "   "
+		    << title_temp
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
-	    (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+	    (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
 		    << bf.get_field(bt,"isbn") << "\">" << endl;
-	    (*outs) << "    "
-		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+	    // Remove extra whitespace for titles which have more than
+	    // one line because ReST is picky about spacing
+	    string title_temp=bf.get_field(bt,"title");
+	    bf.thin_whitespace(title_temp);
+	    (*outs) << "   "
+		    << bf.spec_char_to_uni(title_temp)
 		    << "</a>," << endl;
 	  } else {
-	    (*outs) << "    "
-		    << bf.spec_char_to_uni(bf.get_field(bt,"title"))
+	    // Remove extra whitespace for titles which have more than
+	    // one line because ReST is picky about spacing
+	    string title_temp=bf.get_field(bt,"title");
+	    bf.thin_whitespace(title_temp);
+	    (*outs) << "   "
+		    << bf.spec_char_to_uni(title_temp)
 		    << "," << endl;
 	  }
-	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
+	  (*outs) << "   (" << bf.get_field(bt,"year") << ") "
 		  << bf.spec_char_to_uni(bf.get_field(bt,"publisher"));
 	  if (bf.is_field_present(bt,"note") &&
 	      bf.get_field(bt,"note").length()>0) {
-	    (*outs) << "\n    ("
-		    << bf.spec_char_to_uni(bf.get_field(bt,"note"))
+
+	    string note_temp=bf.get_field(bt,"note");
+	    bf.thin_whitespace(note_temp);
+	    
+	    (*outs) << "\n   ("
+		    << bf.spec_char_to_uni(note_temp)
 		    << ")";
 	  }
 	  (*outs) << ".\n" << endl;
@@ -2341,7 +2368,7 @@ namespace btmanip {
 		      << ">`_," << endl;
 	    }
 	  } 
-	  (*outs) << "    " << bf.get_field(bt,"title");
+	  (*outs) << "   " << bf.get_field(bt,"title");
 	  (*outs) << "(" << bf.get_field(bt,"year") << ")";
 	  (*outs) << ".\n" << endl;
 	}
