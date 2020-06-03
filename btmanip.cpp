@@ -1685,24 +1685,23 @@ namespace btmanip {
 	} else if (bf.lower_string(bt.tag)==((string)"book")) {
 
 	  if (bf.is_field_present(bt,"author")) {
-	    (*outs) << "    "
-		    << bf.author_firstlast(bf.get_field(bt,"author"))
+	    (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
 		    << "," << endl;
 	  }
 	  if (bf.is_field_present(bt,"url")) {
-	    (*outs) << "    <a href=\""
+	    (*outs) << "<a href=\""
 		    << bf.get_field(bt,"url") << "\">" << endl;
 	    (*outs) << "    "
 		    << bf.get_field(bt,"title")
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
-	    (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
+	    (*outs) << "<a href=\"https://www.worldcat.org/isbn/"
 		    << bf.get_field(bt,"isbn") << "\">" << endl;
 	    (*outs) << "    "
 		    << bf.get_field(bt,"title")
 		    << "</a>," << endl;
 	  } else {
-	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    (*outs) << bf.get_field(bt,"title") << "," << endl;
 	  }
 	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
 		  << bf.get_field(bt,"publisher");
@@ -2157,6 +2156,9 @@ namespace btmanip {
 	prefix=sv[2];
       }
 
+      // In this function, we remove extra whitespace for titles which
+      // have more than one line because ReST is picky about spacing
+      
       for(size_t i=0;i<bf.entries.size();i++) {
 	bibtex::BibTeXEntry &bt=bf.entries[i];
       
@@ -2165,6 +2167,7 @@ namespace btmanip {
 	}
 
 	if (bf.lower_string(bt.tag)==((string)"article")) {
+	  // Create rst output for an article
 
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
@@ -2201,41 +2204,49 @@ namespace btmanip {
 	  (*outs) << endl;
 
 	} else if (bf.lower_string(bt.tag)==((string)"inbook")) {
-
+	  // Create rst output for an inbook entry
+	  
 	  if (bf.is_field_present(bt,"crossref") &&
 	      bf.get_field(bt,"crossref").length()>0) {
+	    // Create rst output for an inbook entry with a crossref
 	  
 	    bibtex::BibTeXEntry &bt2=
 	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
 
 	    // Remove extra whitespace for titles which have more than
 	    // one line because ReST is picky about spacing
-	    string title_temp=bf.get_field(bt2,"title");
+	    string title2_temp=bf.get_field(bt2,"title");
+	    bf.thin_whitespace(title2_temp);
+
+	    string title_temp=bf.get_field(bt,"title");
 	    bf.thin_whitespace(title_temp);
 	    
 	    if (bf.is_field_present(bt,"author")) {
 	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					      true,true);
 	      auth=bf.spec_char_to_uni(auth);
-	      (*outs) << "   " << auth << ", \""
+	      (*outs) << auth << ", "
 		      << bf.spec_char_to_uni(title_temp)
-		      << "\" in" << endl;
+		      << endl;
+	    } else {
+	      (*outs) << endl;
 	    }
+	    
 	    if (bf.is_field_present(bt2,"url")) {
-	      (*outs) << "    <a href=\""
+	      (*outs) << "   <a href=\""
 		      << bf.get_field(bt2,"url") << "\">" << endl;
-	      (*outs) << "   "
-		      << bf.spec_char_to_uni(title_temp)
+	      (*outs) << "   in "
+		      << bf.spec_char_to_uni(title2_temp)
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
 	      (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt2,"isbn") << "\">" << endl;
 	      (*outs) << "   "
-		      << bf.spec_char_to_uni(title_temp)
+		      << bf.spec_char_to_uni(title2_temp)
 		      << "</a>," << endl;
 	    } else {
 	      (*outs) << "   "
-		      << bf.spec_char_to_uni(title_temp)
+		      << bf.spec_char_to_uni(title2_temp)
 		      << "," << endl;
 	    }
 	    (*outs) << "   (" << bf.get_field(bt2,"year") << ") "
@@ -2244,16 +2255,17 @@ namespace btmanip {
 	    (*outs) << endl;
 	    
 	  } else {
+	    // Create rst output for an inbook entry without a crossref
 	    
 	    if (bf.is_field_present(bt,"author")) {
 	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					      true,true);
 	      auth=bf.spec_char_to_uni(auth);
 	      (*outs) << auth << "," << endl;
+	    } else {
+	      (*outs) << endl;
 	    }
 	    
-	    // Remove extra whitespace for titles which have more than
-	    // one line because ReST is picky about spacing
 	    string title_temp=bf.get_field(bt,"title");
 	    bf.thin_whitespace(title_temp);
 	    
@@ -2264,14 +2276,13 @@ namespace btmanip {
 		      << bf.spec_char_to_uni(title_temp)
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
-	      (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
+	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << "\">" << endl;
 	      (*outs) << "   "
 		      << bf.spec_char_to_uni(title_temp)
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "   "
-		      << bf.spec_char_to_uni(title_temp)
+	      (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		      << "," << endl;
 	    }
 	    (*outs) << "   (" << bf.get_field(bt,"year") << ") "
@@ -2282,13 +2293,17 @@ namespace btmanip {
 	  }
 
 	} else if (bf.lower_string(bt.tag)==((string)"book")) {
+	  // Create rst output for a book entry
 
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
 	    (*outs) << auth << "," << endl;
+	  } else {
+	    (*outs) << endl;
 	  }
+	  
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "   <a href=\""
 		    << bf.get_field(bt,"url") << "\">" << endl;
@@ -2333,6 +2348,7 @@ namespace btmanip {
 	  (*outs) << ".\n" << endl;
 
 	} else if (bf.lower_string(bt.tag)==((string)"mastersthesis")) {
+	  // Create rst output for a mastersthesis entry
 	  
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
@@ -2353,6 +2369,7 @@ namespace btmanip {
 	  (*outs) << ".\n" << endl;
 
 	} else if (bf.lower_string(bt.tag)==((string)"misc")) {
+	  // Create rst output for a misc entry
 	  
 	  if (bf.is_field_present(bt,"author")) {
 	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
