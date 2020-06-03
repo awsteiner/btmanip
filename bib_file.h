@@ -437,6 +437,9 @@ namespace btmanip {
     std::string spec_char_to_html(std::string s_in);
     
     /** \brief Reformat special characters to unicode
+
+	This function is particularly useful in generating
+	rst output.
      */
     std::string spec_char_to_uni(std::string s_in);
 

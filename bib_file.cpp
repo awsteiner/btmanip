@@ -55,6 +55,11 @@ bib_file::bib_file() {
   trans_html.push_back("&aacute;");
   trans_uni.push_back("á");
       
+  trans_latex.push_back("{\aa}");
+  trans_latex_alt.push_back("{\aa}");
+  trans_html.push_back("&aring;");
+  trans_uni.push_back("å");
+      
   trans_latex.push_back("{\\'e}");
   trans_latex_alt.push_back("\\'{e}");
   trans_html.push_back("&eacute;");

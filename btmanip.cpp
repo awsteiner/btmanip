@@ -2163,7 +2163,7 @@ namespace btmanip {
 	bibtex::BibTeXEntry &bt=bf.entries[i];
       
 	if (bt.key) {
-	  (*outs) << ".. [" << *bt.key << "] ";
+	  (*outs) << ".. [" << *bt.key << "] : ";
 	}
 
 	if (bf.lower_string(bt.tag)==((string)"article")) {
@@ -2233,17 +2233,14 @@ namespace btmanip {
 	    }
 	    
 	    if (bf.is_field_present(bt2,"url")) {
-	      (*outs) << "   <a href=\""
-		      << bf.get_field(bt2,"url") << "\">" << endl;
-	      (*outs) << "   in "
-		      << bf.spec_char_to_uni(title2_temp)
-		      << "</a>," << endl;
+	      (*outs) << "   in `"
+		      << bf.spec_char_to_uni(title2_temp) << " <"
+		      << bf.get_field(bt2,"url") << ">`," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
-	      (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
-		      << bf.get_field(bt2,"isbn") << "\">" << endl;
-	      (*outs) << "   "
+	      (*outs) << "   `"
 		      << bf.spec_char_to_uni(title2_temp)
-		      << "</a>," << endl;
+		      << " <https://www.worldcat.org/isbn/" 
+		      << bf.get_field(bt2,"isbn") << ">`," << endl;
 	    } else {
 	      (*outs) << "   "
 		      << bf.spec_char_to_uni(title2_temp)
@@ -2270,17 +2267,12 @@ namespace btmanip {
 	    bf.thin_whitespace(title_temp);
 	    
 	    if (bf.is_field_present(bt,"url")) {
-	      (*outs) << "   <a href=\""
-		      << bf.get_field(bt,"url") << "\">" << endl;
-	      (*outs) << "   "
-		      << bf.spec_char_to_uni(title_temp)
-		      << "</a>," << endl;
+	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
+		      << "<" << bf.get_field(bt,"url") << ">`," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
-	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
-		      << bf.get_field(bt,"isbn") << "\">" << endl;
-	      (*outs) << "   "
-		      << bf.spec_char_to_uni(title_temp)
-		      << "</a>," << endl;
+	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
+		      << "<https://www.worldcat.org/isbn/"
+		      << bf.get_field(bt,"isbn") << ">`," << endl;
 	    } else {
 	      (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		      << "," << endl;
@@ -2304,33 +2296,20 @@ namespace btmanip {
 	    (*outs) << endl;
 	  }
 	  
+	  // Remove extra whitespace for titles which have more than
+	  // one line because ReST is picky about spacing
+	  string title_temp=bf.get_field(bt,"title");
+	  bf.thin_whitespace(title_temp);
+	  
 	  if (bf.is_field_present(bt,"url")) {
-	    (*outs) << "   <a href=\""
-		    << bf.get_field(bt,"url") << "\">" << endl;
-	    // Remove extra whitespace for titles which have more than
-	    // one line because ReST is picky about spacing
-	    string title_temp=bf.get_field(bt,"title");
-	    bf.thin_whitespace(title_temp);
-	    (*outs) << "   "
-		    << title_temp
-		    << "</a>," << endl;
+	    (*outs) << "   `" << bf.spec_char_to_uni(title_temp);
+	    (*outs) << " <" << bf.get_field(bt,"url") << ">`," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
-	    (*outs) << "   <a href=\"https://www.worldcat.org/isbn/"
-		    << bf.get_field(bt,"isbn") << "\">" << endl;
-	    // Remove extra whitespace for titles which have more than
-	    // one line because ReST is picky about spacing
-	    string title_temp=bf.get_field(bt,"title");
-	    bf.thin_whitespace(title_temp);
-	    (*outs) << "   "
-		    << bf.spec_char_to_uni(title_temp)
-		    << "</a>," << endl;
+	    (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
+		    << " <https://www.worldcat.org/isbn/"
+		    << bf.get_field(bt,"isbn") << ">`," << endl;
 	  } else {
-	    // Remove extra whitespace for titles which have more than
-	    // one line because ReST is picky about spacing
-	    string title_temp=bf.get_field(bt,"title");
-	    bf.thin_whitespace(title_temp);
-	    (*outs) << "   "
-		    << bf.spec_char_to_uni(title_temp)
+	    (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		    << "," << endl;
 	  }
 	  (*outs) << "   (" << bf.get_field(bt,"year") << ") "
