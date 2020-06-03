@@ -2235,12 +2235,12 @@ namespace btmanip {
 	    if (bf.is_field_present(bt2,"url")) {
 	      (*outs) << "   in `"
 		      << bf.spec_char_to_uni(title2_temp) << " <"
-		      << bf.get_field(bt2,"url") << ">`," << endl;
+		      << bf.get_field(bt2,"url") << ">`_," << endl;
 	    } else if (bf.is_field_present(bt2,"isbn")) {
 	      (*outs) << "   `"
 		      << bf.spec_char_to_uni(title2_temp)
 		      << " <https://www.worldcat.org/isbn/" 
-		      << bf.get_field(bt2,"isbn") << ">`," << endl;
+		      << bf.get_field(bt2,"isbn") << ">`_," << endl;
 	    } else {
 	      (*outs) << "   "
 		      << bf.spec_char_to_uni(title2_temp)
@@ -2268,11 +2268,11 @@ namespace btmanip {
 	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
-		      << "<" << bf.get_field(bt,"url") << ">`," << endl;
+		      << "<" << bf.get_field(bt,"url") << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
 		      << "<https://www.worldcat.org/isbn/"
-		      << bf.get_field(bt,"isbn") << ">`," << endl;
+		      << bf.get_field(bt,"isbn") << ">`_," << endl;
 	    } else {
 	      (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		      << "," << endl;
@@ -2303,11 +2303,11 @@ namespace btmanip {
 	  
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "   `" << bf.spec_char_to_uni(title_temp);
-	    (*outs) << " <" << bf.get_field(bt,"url") << ">`," << endl;
+	    (*outs) << " <" << bf.get_field(bt,"url") << ">`_," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
 	    (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
 		    << " <https://www.worldcat.org/isbn/"
-		    << bf.get_field(bt,"isbn") << ">`," << endl;
+		    << bf.get_field(bt,"isbn") << ">`_," << endl;
 	  } else {
 	    (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		    << "," << endl;
