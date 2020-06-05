@@ -2268,10 +2268,10 @@ namespace btmanip {
 	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
-		      << "<" << bf.get_field(bt,"url") << ">`_," << endl;
+		      << " <" << bf.get_field(bt,"url") << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
-		      << "<https://www.worldcat.org/isbn/"
+		      << " <https://www.worldcat.org/isbn/"
 		      << bf.get_field(bt,"isbn") << ">`_," << endl;
 	    } else {
 	      (*outs) << "   " << bf.spec_char_to_uni(title_temp)
