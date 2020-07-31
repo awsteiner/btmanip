@@ -32,7 +32,7 @@ LIBS = -L/usr/lib -L/usr/lib/x86_64-linux-gnu \
 	-L/usr/lib/x86_64-linux-gnu/hdf5/serial -L/usr/local/lib \
 	-lo2scl_hdf -lo2scl_eos -lo2scl_part \
 	-lo2scl -lgsl -lgslcblas -lhdf5_hl -lhdf5 -lz -lreadline \
-	-lncurses -lm
+	-lncurses -lm -fopenmp
 
 BIN_DIR = /usr/local/bin
 
