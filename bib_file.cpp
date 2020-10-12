@@ -1816,6 +1816,8 @@ void bib_file::format_and_output(std::string left, std::string right,
 				 std::ostream &outs, bool bright,
 				 std::string sep, size_t len) {
 
+  terminal ter;
+  
   // Note that in this function, we perform the wrapping at the top,
   // and only add in the vt100 coloring later, ensuring we don't have
   // to worry about counting the additional string characters
@@ -1861,8 +1863,8 @@ void bib_file::format_and_output(std::string left, std::string right,
       bool same=true;
 
       if (bright) {
-	left2+=vt100_bold();
-	right2+=vt100_bold();
+	left2+=ter.bold();
+	right2+=ter.bold();
       }
       
       // Proceed character by character, highlighting
@@ -1872,15 +1874,15 @@ void bib_file::format_and_output(std::string left, std::string right,
 	// Modify formatting for the next character if necessary
 	if (same==true && vs_left[j][k]!=vs_right[j][k]) {
 	  same=false;
-	  left2+=vt100_cyan_fg();
-	  right2+=vt100_cyan_fg();
+	  left2+=ter.cyan_fg();
+	  right2+=ter.cyan_fg();
 	} else if (same==false && vs_left[j][k]==vs_right[j][k]) {
 	  same=true;
-	  left2+=vt100_default();
-	  right2+=vt100_default();
+	  left2+=ter.default_fg();
+	  right2+=ter.default_fg();
 	  if (bright) {
-	    left2+=vt100_bold();
-	    right2+=vt100_bold();
+	    left2+=ter.bold();
+	    right2+=ter.bold();
 	  }
 	}
 
@@ -1893,42 +1895,42 @@ void bib_file::format_and_output(std::string left, std::string right,
       if (vs_left[j].size()<vs_right[j].size()) {
 	
 	if (same==true) {
-	  left2+=vt100_cyan_fg();
-	  right2+=vt100_cyan_fg();
+	  left2+=ter.cyan_fg();
+	  right2+=ter.cyan_fg();
 	}
 	for(size_t k=vs_left[j].size();k<vs_right[j].size();k++) {
 	  left2+=vs_left[j][k];
 	  right2+=vs_right[j][k];
 	}
-	left2+=vt100_default();
-	right2+=vt100_default();
+	left2+=ter.default_fg();
+	right2+=ter.default_fg();
 	if (bright) {
-	  left2+=vt100_bold();
-	  right2+=vt100_bold();
+	  left2+=ter.bold();
+	  right2+=ter.bold();
 	}
 	
       } else if (vs_left[j].size()>vs_right[j].size()) {
 	
 	if (same==true) {
-	  left2+=vt100_cyan_fg();
-	  right2+=vt100_cyan_fg();
+	  left2+=ter.cyan_fg();
+	  right2+=ter.cyan_fg();
 	}
 	for(size_t k=vs_right[j].size();k<vs_left[j].size();k++) {
 	  left2+=vs_left[j][k];
 	  right2+=vs_right[j][k];
 	}
-	left2+=vt100_default();
-	right2+=vt100_default();
+	left2+=ter.default_fg();
+	right2+=ter.default_fg();
 	if (bright) {
-	  left2+=vt100_bold();
-	  right2+=vt100_bold();
+	  left2+=ter.bold();
+	  right2+=ter.bold();
 	}
 	
       } else {
 	
 	if (same==false) {
-	  left2+=vt100_default();
-	  right2+=vt100_default();
+	  left2+=ter.default_fg();
+	  right2+=ter.default_fg();
 	}
 	
       }
@@ -2053,6 +2055,8 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 				std::string right_header,
 				int screen_width) {
 
+  terminal ter;
+  
   static const size_t twoup_wid=78;
   // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
   // and one more for the return
@@ -2061,9 +2065,9 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   if (screen_width<min_twoup) {
 
     string stmp=left_header+" ( matching ";
-    stmp+=vt100_cyan_fg();
+    stmp+=ter.cyan_fg();
     stmp+="different";
-    stmp+=vt100_default();
+    stmp+=ter.default_fg();
     stmp+=" )\n";
     outs << stmp << endl;
 
@@ -2071,13 +2075,13 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     
     string stmpl, stmpr;
     
-    string sep2=vt100_alt_font()+" x "+vt100_normal_font();
+    string sep2=ter.alt_font()+" x "+ter.normal_font();
     
     // Print out header
     string stmp=left_header+" ( matching ";
-    stmp+=vt100_cyan_fg();
+    stmp+=ter.cyan_fg();
     stmp+="different";
-    stmp+=vt100_default();
+    stmp+=ter.default_fg();
     stmp+=" )";
     // 78 for LHS and 12 for vt100
     if (stmp.length()>86) stmp=stmp.substr(0,87)+"...";
@@ -2089,9 +2093,9 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     outs << stmp << endl;
     
     // Print out line separator
-    stmpl=vt100_hrule(78);
-    stmpr=vt100_hrule(78);
-    string sep3=vt100_alt_font()+"qnq"+vt100_normal_font();
+    stmpl=ter.hrule(78);
+    stmpr=ter.hrule(78);
+    string sep3=ter.alt_font()+"qnq"+ter.normal_font();
     format_and_output(stmpl,stmpr,outs,false,sep3);
     
     // Output tag and key
