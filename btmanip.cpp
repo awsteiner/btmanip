@@ -738,9 +738,9 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Output the BibTeX data as plain text
+    /** \brief Output the full BibTeX data as plain text
      */
-    virtual int text(std::vector<std::string> &sv, bool itive_com) {
+    virtual int text_full(std::vector<std::string> &sv, bool itive_com) {
 
       ostream *outs=&cout;
       ofstream fout;
@@ -1119,9 +1119,9 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Plain output of talks for DOE progress reports 
+    /** \brief Output of talks for DOE progress reports 
      */
-    virtual int plain(std::vector<std::string> &sv, bool itive_com) {
+    virtual int doe_talks(std::vector<std::string> &sv, bool itive_com) {
 
       ostream *outs=&cout;
       ofstream fout;
@@ -1137,21 +1137,29 @@ namespace btmanip {
 	bibtex::BibTeXEntry &bt=bf.entries[i];
 
 	// Authors
-	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
-				 false,false);
-	bf.tilde_to_space(stmp);
-	(*outs) << count+1 << ") ";
-	(*outs) << stmp << ", ";
-	
-	(*outs) << bf.get_field(bt,"month") << " ";
-	(*outs) << bf.get_field(bt,"year") << ", ";
+        if (bf.is_field_present(bt,"author")) {
+          stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+                                   false,false);
+          bf.tilde_to_space(stmp);
+          (*outs) << count+1 << ") ";
+          (*outs) << stmp << ", ";
+        }
+
+        if (bf.is_field_present(bt,"month")) {
+          (*outs) << bf.get_field(bt,"month") << " ";
+        }
+        if (bf.is_field_present(bt,"year")) {
+          (*outs) << bf.get_field(bt,"year") << ", ";
+        }
 	
 	// Title
-	{
+	if (bf.is_field_present(bt,"title")) {
 	  std::string title=bf.get_field(bt,"title");
 	  std::vector<std::string> slist;
 	  rewrap(title,slist,800);
-	  (*outs) << slist[0] << ", ";
+          if (slist.size()>0) {
+            (*outs) << slist[0] << ", ";
+          }
 	}
 
 	// Conference
@@ -1163,7 +1171,6 @@ namespace btmanip {
 	}
 
 	// Institution
-
 	if (bf.is_field_present(bt,"city")) {
 	  (*outs) << bf.get_field(bt,"city") << ", ";
 	}
@@ -1179,6 +1186,83 @@ namespace btmanip {
 	}
 
 	(*outs) << endl;
+	count++;
+      }
+    
+      if (sv.size()>1) {
+	fout.close();
+      }
+
+      return 0;
+    }
+  
+    /** \brief Output in a short text format
+     */
+    virtual int text_short(std::vector<std::string> &sv, bool itive_com) {
+
+      ostream *outs=&cout;
+      ofstream fout;
+      if (sv.size()>1) {
+	std::string fname=sv[1];
+	fout.open(fname);
+	outs=&fout;
+      }
+
+      std::string stmp;
+      int count=0;
+      for(size_t i=0;i<bf.entries.size();i++) {
+	bibtex::BibTeXEntry &bt=bf.entries[i];
+
+        if (bf.lower_string(bt.tag)==((string)"article")) {
+
+          // Authors
+          if (bf.is_field_present(bt,"author")) {
+
+            std::vector<std::string> firstv, lastv;
+            bf.parse_author(bf.get_field(bt,"author"),firstv,lastv,true);
+            for(size_t j=0;j<firstv.size();j++) {
+              firstv[j]=bf.spec_char_to_uni(firstv[j]);
+              lastv[j]=bf.spec_char_to_uni(lastv[j]);
+            }
+
+            if (firstv.size()>3) {
+              (*outs) << firstv[0] << " " << lastv[0] << ", ";
+              (*outs) << firstv[1] << " " << lastv[1] << ", ";
+              (*outs) << firstv[2] << " " << lastv[2] << ", et al., ";
+            } else if (firstv.size()==3) {
+              (*outs) << firstv[0] << " " << lastv[0] << ", ";
+              (*outs) << firstv[1] << " " << lastv[1] << ", and ";
+              (*outs) << firstv[2] << " " << lastv[2] << ", ";
+            } else if (firstv.size()==2) {
+              (*outs) << firstv[0] << " " << lastv[0] << " and ";
+              (*outs) << firstv[1] << " " << lastv[1] << ", ";
+            } else {
+              (*outs) << firstv[0] << " " << lastv[0] << ", ";
+            }
+          }
+          
+          if (bf.is_field_present(bt,"journal")) {
+            (*outs) << bf.spec_char_to_uni(bf.get_field(bt,"journal")) << " ";
+          }
+          
+          if (bf.is_field_present(bt,"volume")) {
+            (*outs) << bf.get_field(bt,"volume") << " ";
+          }
+          
+          if (bf.is_field_present(bt,"year")) {
+            (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+          }
+          
+          if (bf.is_field_present(bt,"pages")) {
+            (*outs) << bf.first_page(bf.get_field(bt,"pages")) << ".";
+          }
+          
+          (*outs) << std::endl;
+
+        } else {
+          
+        }
+        
 	count++;
       }
     
@@ -2402,7 +2486,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=41;
+      static const int nopt=42;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2575,9 +2659,9 @@ namespace btmanip {
 	{0,"parse-hdf5","Parse a bibliography stored in an HDF5 file.",
 	 1,1,"<file>","",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::parse_hdf5),cli::comm_option_both},
-	{0,"plain","Plain text output of talks for DOE progress report.",
+	{0,"doe-talks","Output of talks for DOE progress report.",
 	 0,1,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::plain),
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::doe_talks),
 	 cli::comm_option_both},
 	{0,"prop","Output a proposal .bib file.",0,1,"[file]","",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::proposal),
@@ -2656,8 +2740,15 @@ namespace btmanip {
 	 "If any duplicates are found, they are removed from the "+
 	 "current list.",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::sub),cli::comm_option_both},
-	{'t',"text","Output a text file.",0,1,"[file]","",
-	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text),
+	{0,"text-full","Output full data as a text file.",0,1,"[file]",
+         ((string)"This outputs the bibliography in a simple text-based ")+
+         "format. Typical output is\n\ntag: <tag>\nkey: <key>\n"+
+         "field 1: <value 1>\n"+
+         "field 2: <value 2>\n...\n",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text_full),
+	 cli::comm_option_both},
+	{0,"text-short","Output as text in a short format",0,1,"[file]","",
+	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::text_short),
 	 cli::comm_option_both},
 	{0,"utk-rev","UTK review format.",0,1,
 	 "<file>","",new comm_option_mfptr<btmanip_class>
