@@ -26,7 +26,7 @@
 #include "bib_file.h"
 #include "hdf_bibtex.h"
 
-#include "curses.h"
+#include "o2scl/cursesw.h"
 
 #include <o2scl/cli_readline.h>
 #include <o2scl/string_conv.h>
@@ -2052,8 +2052,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
 				bibtex::BibTeXEntry &bt_left,
 				bibtex::BibTeXEntry &bt_right,
 				std::string left_header,
-				std::string right_header,
-				int screen_width) {
+				std::string right_header) {
 
   terminal ter;
   
@@ -2061,7 +2060,10 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   // 78 for LHS, 12 for vt100, 3 for separator, and 78 for RHS
   // and one more for the return
   static const size_t min_twoup=172;
-
+  
+  int row, screen_width;
+  o2scl::get_screen_size_tput(row,screen_width);
+  
   if (screen_width<min_twoup) {
 
     string stmp=left_header+" ( matching ";
@@ -2070,6 +2072,9 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     stmp+=ter.default_fg();
     stmp+=" )\n";
     outs << stmp << endl;
+
+    cerr << "Function bib_output_twoup() not implemented for "
+         << "this screen width." << endl;
 
   } else {
     
@@ -2439,13 +2444,18 @@ void bib_file::add_bib(std::string fname) {
       }
 
       if (auto_merge==false) {
-	
-	std::cout << "\n" << list.size() << " possible duplicates in the "
-		  << "current list were found:\n" << std::endl;
+
+        if (list.size()==1) {
+          std::cout << "\n" << list.size() << " possible duplicate in the "
+                    << "current list were found:\n" << std::endl;
+        } else {
+          std::cout << "\n" << list.size() << " possible duplicates in the "
+                    << "current list were found:\n" << std::endl;
+        }
 	
 	cout << n_orig << " original, " << n_new << " new, "
 	     << n_add << " added, " << n_ident << " identical, "
-	     << n_auto << " automatically added, " << n_mod
+	     << n_auto << " automatically added,\n  " << n_mod
 	     << " modified, and " << n_process << " processed." << endl;
       
 	for(size_t j=0;j<list.size();j++) {
