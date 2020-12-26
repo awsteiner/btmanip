@@ -711,7 +711,17 @@ namespace btmanip {
     
       return 0;
     }
-  
+
+    /** \brief Parse the o2scl .bib files
+     */
+    virtual int o2scl(std::vector<std::string> &sv, bool itive_com) {
+      std::string data_dir=o2scl_settings.get_data_dir();
+      bf.add_bib(data_dir+"/o2scl.bib");
+      bf.add_bib(data_dir+"/o2scl_part.bib");
+      bf.add_bib(data_dir+"/o2scl_eos.bib");
+      return 0;
+    }
+    
     /** \brief Parse a .bib file
      */
     virtual int parse(std::vector<std::string> &sv, bool itive_com) {
@@ -2486,7 +2496,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=42;
+      static const int nopt=43;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2694,6 +2704,10 @@ namespace btmanip {
 	{0,"cpm","Compute citations per month.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::cites_per_month),
+	 cli::comm_option_both},
+	{0,"o2scl","Parse the o2scl bib files",0,0,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::o2scl),
 	 cli::comm_option_both},
 	{0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
