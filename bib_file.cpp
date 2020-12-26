@@ -2062,7 +2062,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   static const size_t min_twoup=172;
   
   int row, screen_width;
-  o2scl::get_screen_size_tput(row,screen_width);
+  o2scl::get_screen_size_ioctl(row,screen_width);
   
   if (screen_width<min_twoup) {
 
@@ -2070,12 +2070,102 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     stmp+=ter.cyan_fg();
     stmp+="different";
     stmp+=ter.default_fg();
-    stmp+=" )\n";
+    stmp+=" ):\n";
     outs << stmp << endl;
 
-    cerr << "Function bib_output_twoup() not implemented for "
-         << "this screen width." << endl;
+    // Output left tag and key
 
+    if (bt_left.tag==bt_right.tag) {
+      outs << "@" << bt_left.tag << "{";
+    } else {
+      outs << "@" << ter.cyan_fg() << bt_left.tag
+           << ter.default_fg() << "{";
+    }
+    
+    if ((*bt_left.key)==(*bt_right.key)) {
+      outs << (*bt_left.key) << endl;
+    } else {
+      outs << ter.cyan_fg()+(*bt_left.key)+ter.default_fg() << endl;
+    }
+
+    std::vector<std::string> matches;
+    
+    // Loop through all fields on the LHS
+    for(size_t j=0;j<bt_left.fields.size();j++) {
+      // Only test for formatting if the field occurs only
+      // once on each side
+      if (count_field_occur(bt_left,bt_left.fields[j].first)==1 &&
+          count_field_occur(bt_right,bt_left.fields[j].first)==1) {
+        
+        std::string comp_left=bt_left.fields[j].second[0];
+        thin_whitespace(comp_left);
+        std::string comp_right=get_field(bt_right,bt_left.fields[j].first);
+        thin_whitespace(comp_right);
+        
+        if (comp_left==comp_right) {
+          matches.push_back(bt_left.fields[j].first);
+          outs << "  ";
+          outs.width(13);
+          outs.setf(ios::left);
+          outs << bt_left.fields[j].first << " = {";
+          outs.unsetf(ios::left);
+          outs << bt_left.fields[j].second[0] << "}," << endl;
+        } else {
+          outs << "  ";
+          outs.width(13);
+          outs.setf(ios::left);
+          outs << bt_left.fields[j].first << " = {";
+          outs.unsetf(ios::left);
+          outs << ter.cyan_fg();
+          outs << bt_left.fields[j].second[0];
+          outs << ter.default_fg();
+          outs << "}," << endl;
+        }
+      }
+    }
+
+    outs << "}\n" << endl;
+
+    outs << right_header << ":\n" << endl;
+    
+    if (bt_left.tag==bt_right.tag) {
+      outs << "@" << bt_right.tag << "{";
+    } else {
+      outs << "@" << ter.cyan_fg() << bt_right.tag
+           << ter.default_fg() << "{";
+    }
+    
+    if ((*bt_left.key)==(*bt_right.key)) {
+      outs << (*bt_right.key) << endl;
+    } else {
+      outs << ter.cyan_fg()+(*bt_right.key)+ter.default_fg() << endl;
+    }
+    
+    // Loop through all fields on the LHS
+    for(size_t j=0;j<bt_right.fields.size();j++) {
+      if (std::find(matches.begin(),matches.end(),
+                    bt_right.fields[j].first)!=matches.end()) {
+        outs << "  ";
+        outs.width(13);
+        outs.setf(ios::left);
+        outs << bt_right.fields[j].first << " = {";
+        outs.unsetf(ios::left);
+        outs << bt_right.fields[j].second[0] << "}," << endl;
+      } else {
+        outs << "  ";
+        outs.width(13);
+        outs.setf(ios::left);
+        outs << bt_right.fields[j].first << " = {";
+        outs.unsetf(ios::left);
+        outs << ter.cyan_fg();
+        outs << bt_right.fields[j].second[0];
+        outs << ter.default_fg();
+        outs << "}," << endl;
+      }
+    }
+
+    outs << "}\n" << endl;
+    
   } else {
     
     string stmpl, stmpr;
@@ -2244,7 +2334,10 @@ void bib_file::ident_or_addl_fields(bibtex::BibTeXEntry &bt_left,
       string rx=get_field(bt_right,bt_left.fields[j].first);
       // If the values are not equal, then exit, indicating they
       // are different
-      if (bt_left.fields[j].second[0]!=rx) {
+      thin_whitespace(rx);
+      string rx2=bt_left.fields[j].second[0];
+      thin_whitespace(rx2);
+      if (rx2!=rx) {
 	result=ia_diff;
 	return;
       }
