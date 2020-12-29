@@ -77,7 +77,7 @@ namespace btmanip {
 			   std::ostream &outs, bool bright=false, 
 			   std::string sep=" | ", size_t len=78);
 
-    /// \name Desc
+    /// \name Result codes for \ref ident_or_addl_fields()
     //@{
     /// Undetermined or different
     static const int ia_diff=0;
