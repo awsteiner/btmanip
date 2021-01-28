@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2020, Andrew W. Steiner
+  Copyright (C) 2015-2021, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -1330,6 +1330,117 @@ namespace btmanip {
     
       return 0;
     }
+
+    /** \brief Find all duplicate entries cited in a set of bbl files
+     */
+    virtual int bbl_dups(std::vector<std::string> &sv, bool itive_com) {
+
+      vector<string> bbl_filelist;
+      vector<string> bib_filelist;
+      vector<string> bbl_keys;
+
+      for(size_t i=1;i<sv.size();i++) {
+        size_t len=sv[i].length();
+        if (sv[i][len-1]=='.' && sv[i][len-1]=='b' &&
+            sv[i][len-1]=='b' && sv[i][len-1]=='l') {
+          bbl_filelist.push_back(sv[i]);
+        } else if (sv[i][len-1]=='.' && sv[i][len-1]=='b' &&
+                   sv[i][len-1]=='i' && sv[i][len-1]=='b') {
+          bib_filelist.push_back(sv[i]);
+        } else {
+          cerr << "File not .bbl or .bib in bbl-dups." << endl;
+          return 1;
+        }
+      }
+
+      if (bbl_filelist.size()==0 || bib_filelist.size()==0) {
+        cerr << "Missing .bib or .bbl file in bbl-dups." << endl;
+        return 2;
+      }
+
+      for(size_t i=0;i<bbl_filelist.size();i++) {
+        ifstream fin;
+        fin.open(bbl_filelist[i]);
+        std::string stemp;
+        while (!fin.eof()) {
+          getline(fin,stemp);
+          string key;
+          if (stemp.find("\\bibitem")==0) {
+            if (stemp[8]=='[') {
+              int count=0;
+              bool key_started=false;
+              for(size_t j=8;j<stemp.length();j++) {
+                if (key_started==false) {
+                  if (stemp[j]=='[' || stemp[j]=='{') {
+                    count++;
+                  } else if (stemp[j]==']' || stemp[j]=='}') {
+                    count--;
+                  }
+                  if (count==0) {
+                    if (j<stemp.length()-2) {
+                      j++;
+                      if (stemp[j]!='{') {
+                        cerr << "Count is zero but no left brace in "
+                             << "bbl-dups." << endl;
+                        return 5;
+                      }
+                      j++;
+                    } else {
+                      cerr << "Count is zero but line ended in bbl-dups."
+                           << endl;
+                      return 4;
+                    }
+                    key_started=true;
+                  }
+                }
+                if (key_started==true) {
+                  if (stemp[j]=='}') {
+                    j=stemp.length();
+                  } else {
+                    key+=stemp[j];
+                  }
+                }
+              }
+              cout << "Found key 1: " << key << endl;
+              bbl_keys.push_back(key);
+            } else if (stemp[8]=='{') {
+              for(size_t j=8;j<stemp.length() && stemp[j]!='}';j++) {
+                key+=stemp[j];
+              }
+              cout << "Found key 2: " << key << endl;
+              bbl_keys.push_back(key);
+            } else {
+              cerr << "Line:\n  " << stemp << "\n  does not contain "
+                   << "\\bibitem[ or \\bibitem{" << endl;
+              return 3;
+            }
+          }
+        }
+        fin.close();
+      }
+
+      bib_file bf_all;
+      for(size_t i=0;i<bib_filelist.size();i++) {
+        bf_all.parse_bib(bib_filelist[i]);
+      }
+
+      for(size_t i=0;i<bbl_keys.size();i++) {
+        for(size_t j=0;j<bf.entries.size();j++) {
+          bibtex::BibTeXEntry &bt=bf.entries[j];
+          if ((*bt.key)==bbl_keys[i]) {
+            bf.entries.push_back(bt);
+          }
+        }
+      }
+
+      for(size_t j=0;j<bf.entries.size();j++) {
+        bibtex::BibTeXEntry &bt=bf.entries[j];
+        std::vector<size_t> list;
+        bf.list_possible_duplicates(bt,list);
+      }
+      
+      return 0;
+    }
     
     /** \brief Loop over all entries and change keys 
 	to a standard key if possible
@@ -2496,7 +2607,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=43;
+      static const int nopt=44;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2504,6 +2615,9 @@ namespace btmanip {
 	 "handle possible duplicate entries.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::add),
 	 cli::comm_option_both},
+        {0,"bbl-dups","Look for duplicates among all .bbl entries.",0,0,
+         "","",new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::bbl_dups),cli::comm_option_both},
 	{0,"auto-key","Automatically set keys for all entries.",0,0,"",
 	 ((std::string)"This command automatically sets the key ")+
 	 "for all entries equal to the Last name of the first "+
