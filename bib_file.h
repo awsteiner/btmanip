@@ -45,11 +45,101 @@
 */
 namespace btmanip {
 
+  /** \brief A child bibtex entry object with some
+      additional functionality
+   */
   class bibtex_entry : public bibtex::BibTeXEntry {
 
   public:
 
     bibtex_entry() {
+    }
+
+    /** \brief Get field named \c field (case-insensitive)
+     */
+    std::string &get_field(std::string field) {
+
+      // Convert user-specified field to lowercase
+      for(size_t k=0;k<field.size();k++) {
+        field[k]=std::tolower(field[k]);
+      }
+      
+      for(size_t j=0;j<fields.size();j++) {
+
+        std::string lower=fields[j].first;
+        for(size_t k=0;k<lower.size();k++) {
+          lower[k]=std::tolower(lower[k]);
+        }
+        
+        if (lower==field) {
+          if (fields[j].second.size()==1) {
+            return fields[j].second[0];
+          } else if (fields[j].second.size()>1) {
+            O2SCL_ERR("Field had multiple entries.",
+                      o2scl::exc_esanity);
+          } else {
+            O2SCL_ERR("Field found but value vector was empty.",
+                      o2scl::exc_einval);
+          }
+        }
+      }
+      if (!key) {
+        O2SCL_ERR((((std::string)"Field ")+field+
+                   " not found in entry with no key ").c_str(),
+                  o2scl::exc_einval);
+      }
+      O2SCL_ERR((((std::string)"Field ")+field+
+                 " not found in entry with key "+(*key).c_str()).c_str(),
+                o2scl::exc_einval);
+      
+      return fields[0].first;
+    }
+
+    /** \brief Return true if field \c field is present (case-insensitive)
+     */
+    bool is_field_present(std::string field) {
+
+      // Convert user-specified field to lowercase
+      for(size_t k=0;k<field.size();k++) {
+        field[k]=std::tolower(field[k]);
+      }
+      
+      for(size_t j=0;j<fields.size();j++) {
+
+        std::string lower=fields[j].first;
+        for(size_t k=0;k<lower.size();k++) {
+          lower[k]=std::tolower(lower[k]);
+        }
+        
+        if (lower==field && fields[j].second.size()>0) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    /** \brief Return true if field \c field1 or field \c field2 is 
+        present (case-insensitive)
+     */
+    bool is_field_present_or(std::string field1, std::string field2) {
+      
+      for(size_t k=0;k<field1.size();k++) {
+        field1[k]=std::tolower(field1[k]);
+      }
+      for(size_t k=0;k<field2.size();k++) {
+        field2[k]=std::tolower(field2[k]);
+      }
+      
+      for(size_t j=0;j<fields.size();j++) {
+        std::string lower=fields[j].first;
+        for(size_t k=0;k<lower.size();k++) {
+          lower[k]=std::tolower(lower[k]);
+        }
+        if ((lower==field1 || lower==field2) && fields[j].second.size()>0) {
+          return true;
+        }
+      }
+      return false;
     }
     
   };

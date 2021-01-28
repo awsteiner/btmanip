@@ -1364,7 +1364,7 @@ void bib_file::parse_bib(std::string fname) {
       
     bibtex::BibTeXEntry &bt=entries[i];
     bibtex_entry &be=static_cast<bibtex_entry &>(entries[i]);
-
+    
     // Double check that the value list doesn't have
     // more than one entry
     for(size_t j=0;j<bt.fields.size();j++) {
