@@ -105,5 +105,13 @@ test:
 	./btmanip -parse ~/wcs/int6/django/svn/all.bib \
 		-add ~/wcs/group/mamun/paper/paper.bib
 
+test2:
+	./btmanip -bbl-dups ~/wcs/frh/proposal/*.bbl \
+		~/wcs/frh/proposal/*.bib
+
+test3:
+	./btmanip -bbl-dups ~/wcs/comb_ns/*.bbl \
+		~/wcs/comb_ns/*.bib
+
 empty: 
 

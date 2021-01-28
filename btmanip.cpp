@@ -1339,43 +1339,77 @@ namespace btmanip {
       vector<string> bib_filelist;
       vector<string> bbl_keys;
 
+      // Go through all of the arguments and determine if it
+      // ends in .bib or in .bbl
       for(size_t i=1;i<sv.size();i++) {
         size_t len=sv[i].length();
-        if (sv[i][len-1]=='.' && sv[i][len-1]=='b' &&
-            sv[i][len-1]=='b' && sv[i][len-1]=='l') {
+        if (sv[i][len-4]=='.' && sv[i][len-3]=='b' &&
+            sv[i][len-2]=='b' && sv[i][len-1]=='l') {
           bbl_filelist.push_back(sv[i]);
-        } else if (sv[i][len-1]=='.' && sv[i][len-1]=='b' &&
-                   sv[i][len-1]=='i' && sv[i][len-1]=='b') {
+          cout << "Found bbl file: " << sv[i] << endl;
+        } else if (sv[i][len-4]=='.' && sv[i][len-3]=='b' &&
+                   sv[i][len-2]=='i' && sv[i][len-1]=='b') {
           bib_filelist.push_back(sv[i]);
+          cout << "Found bib file: " << sv[i] << endl;
         } else {
+          // Return early if the file is not a .bib or .bbl file
           cerr << "File not .bbl or .bib in bbl-dups." << endl;
           return 1;
         }
       }
 
+      // Return early if there are no .bib or .bbl files
       if (bbl_filelist.size()==0 || bib_filelist.size()==0) {
         cerr << "Missing .bib or .bbl file in bbl-dups." << endl;
         return 2;
       }
 
+      // Parse the .bbl files to find all keys cited
       for(size_t i=0;i<bbl_filelist.size();i++) {
+        
+        cout << "Reading .bbl file: " << bbl_filelist[i] << endl;
         ifstream fin;
         fin.open(bbl_filelist[i]);
+        
         std::string stemp;
         while (!fin.eof()) {
+          
           getline(fin,stemp);
           string key;
+
+          // If the next line does not begin with "\bibitem", then
+          // ignore it
           if (stemp.find("\\bibitem")==0) {
+
+            // If there is a square bracket argument, then handle
+            // it separately
             if (stemp[8]=='[') {
+
+              // Count of square and curly braces in the square
+              // bracet argument, +1 for left and -1 for right
               int count=0;
+
+              // If true, then the square bracket argument has
+              // ended and the key has begun
               bool key_started=false;
+
+              // Proceed through the remaining characters one by one
               for(size_t j=8;j<stemp.length();j++) {
+                
                 if (key_started==false) {
+                  
                   if (stemp[j]=='[' || stemp[j]=='{') {
                     count++;
                   } else if (stemp[j]==']' || stemp[j]=='}') {
                     count--;
                   }
+                  
+                  //cout << "stemp[j]: " << stemp[j] << " count: "
+                  //<< count << endl;
+
+                  // If count is zero, then we should find a curly
+                  // bracket next and then key_started should be set
+                  // to true
                   if (count==0) {
                     if (j<stemp.length()-2) {
                       j++;
@@ -1392,38 +1426,104 @@ namespace btmanip {
                     }
                     key_started=true;
                   }
+
+                  // If the line has ended, it could be because the
+                  // square bracket argument covers multiple lines, so
+                  // we read the next line and set j to zero to
+                  // continue reading.
+                  if (count>0 && j==stemp.length()-1) {
+                    //cout << "Reading next line." << endl;
+                    getline(fin,stemp);
+                    j=0;
+                  }
+
+                  // End of if (key_started==false) 
                 }
+                
                 if (key_started==true) {
+                  // If the key has been started, then start adding
+                  // characters to the key.
                   if (stemp[j]=='}') {
+                    // If we get a right curly brace, then end the
+                    // loop.
                     j=stemp.length();
                   } else {
                     key+=stemp[j];
                   }
                 }
               }
-              cout << "Found key 1: " << key << endl;
+              
+              // Add the key to the list
+              cout << "Found key (with square bracket argument): "
+                   << key << endl;
               bbl_keys.push_back(key);
+              
+              //char ch;
+              //cin >> ch;
+              
             } else if (stemp[8]=='{') {
-              for(size_t j=8;j<stemp.length() && stemp[j]!='}';j++) {
+
+              // If there is no square bracket argument, then
+              // we can just begin adding characters one by one
+              // to the key
+              for(size_t j=9;j<stemp.length() && stemp[j]!='}';j++) {
                 key+=stemp[j];
               }
-              cout << "Found key 2: " << key << endl;
+
+              // If no key was found, then stop early
+              if (key.length()==0) {
+                cerr << "Could not find key in bibitem line." << endl;
+                return 8;
+              }
+
+              // Add the key to the list
+              cout << "Found key (no square bracket argument): " << key << endl;
               bbl_keys.push_back(key);
+              
             } else {
+
+              // There was no square bracket argument and no key, so
+              // return early.
               cerr << "Line:\n  " << stemp << "\n  does not contain "
                    << "\\bibitem[ or \\bibitem{" << endl;
               return 3;
             }
+            
+            // End of if (stemp.find("\\bibitem")==0)
+          }
+
+          // End of while (!fin.eof())
+        }
+
+        // Close the file and move to the next
+        fin.close();
+        cout << endl;
+      }
+
+      // Sort keys and remove duplicate keys
+      o2scl::vector_sort<vector<string>,string>(bbl_keys.size(),bbl_keys);
+      vector<string> bbl_keys_unique;
+      for(size_t i=0;i<bbl_keys.size();i++) {
+        if (i==0) {
+          bbl_keys_unique.push_back(bbl_keys[0]);
+        } else {
+          if (bbl_keys[i]!=bbl_keys_unique[i-1]) {
+            bbl_keys_unique.push_back(bbl_keys[i]);
           }
         }
-        fin.close();
       }
 
-      bib_file bf_all;
+      // Read all of the .bib files into an array. We do this so we
+      // can tell the user which .bib file each bbl key came from.
+      
+      vector<bib_file> bf_arr;
       for(size_t i=0;i<bib_filelist.size();i++) {
-        bf_all.parse_bib(bib_filelist[i]);
+        cout << "Parsing .bib file: " << bib_filelist[i] << endl;
+        bf_arr[i].parse_bib(bib_filelist[i]);
+        cout << endl;
       }
 
+      /*
       for(size_t i=0;i<bbl_keys.size();i++) {
         for(size_t j=0;j<bf.entries.size();j++) {
           bibtex::BibTeXEntry &bt=bf.entries[j];
@@ -1438,6 +1538,7 @@ namespace btmanip {
         std::vector<size_t> list;
         bf.list_possible_duplicates(bt,list);
       }
+      */
       
       return 0;
     }
@@ -2615,7 +2716,7 @@ namespace btmanip {
 	 "handle possible duplicate entries.",
 	 new comm_option_mfptr<btmanip_class>(this,&btmanip_class::add),
 	 cli::comm_option_both},
-        {0,"bbl-dups","Look for duplicates among all .bbl entries.",0,0,
+        {0,"bbl-dups","Look for duplicates among all .bbl entries.",-1,-1,
          "","",new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::bbl_dups),cli::comm_option_both},
 	{0,"auto-key","Automatically set keys for all entries.",0,0,"",
