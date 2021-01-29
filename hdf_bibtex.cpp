@@ -46,7 +46,8 @@ void btmanip::hdf_output(o2scl_hdf::hdf_file &hf, bibtex::BibTeXEntry &ent,
     
   std::ostringstream strout;
   bib_file bf;
-  bf.bib_output_one(strout,ent);
+  bibtex_entry &btx=static_cast<bibtex_entry &>(ent);
+  bf.bib_output_one(strout,btx);
     
   hf.sets(name,strout.str());
 
@@ -76,7 +77,8 @@ void btmanip::hdf_output(o2scl_hdf::hdf_file &hf,
   std::ostringstream strout;
   bib_file bf;
   for(size_t i=0;i<ents.size();i++) {
-    bf.bib_output_one(strout,ents[i]);
+    bibtex_entry &btx=static_cast<bibtex_entry &>(ents[i]);
+    bf.bib_output_one(strout,btx);
     strout << std::endl;
   }
     

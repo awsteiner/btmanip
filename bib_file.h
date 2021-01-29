@@ -45,10 +45,20 @@
 */
 namespace btmanip {
 
+  class bibtex_tools {
+    
+  public:
+    
+    /** \brief Convert all characters in a string to lower case
+     */
+    std::string lower_string(std::string s);
+    
+  };
+  
   /** \brief A child bibtex entry object with some
       additional functionality
-   */
-  class bibtex_entry : public bibtex::BibTeXEntry {
+  */
+  class bibtex_entry : public bibtex::BibTeXEntry, public bibtex_tools {
 
   public:
 
@@ -57,107 +67,37 @@ namespace btmanip {
 
     /** \brief Get field named \c field (case-insensitive)
      */
-    std::string &get_field(std::string field) {
-
-      // Convert user-specified field to lowercase
-      for(size_t k=0;k<field.size();k++) {
-        field[k]=std::tolower(field[k]);
-      }
+    std::string get_field(std::string field);
       
-      for(size_t j=0;j<fields.size();j++) {
-
-        std::string lower=fields[j].first;
-        for(size_t k=0;k<lower.size();k++) {
-          lower[k]=std::tolower(lower[k]);
-        }
-        
-        if (lower==field) {
-          if (fields[j].second.size()==1) {
-            return fields[j].second[0];
-          } else if (fields[j].second.size()>1) {
-            O2SCL_ERR("Field had multiple entries.",
-                      o2scl::exc_esanity);
-          } else {
-            O2SCL_ERR("Field found but value vector was empty.",
-                      o2scl::exc_einval);
-          }
-        }
-      }
-      if (!key) {
-        O2SCL_ERR((((std::string)"Field ")+field+
-                   " not found in entry with no key ").c_str(),
-                  o2scl::exc_einval);
-      }
-      O2SCL_ERR((((std::string)"Field ")+field+
-                 " not found in entry with key "+(*key).c_str()).c_str(),
-                o2scl::exc_einval);
+    /** \brief Get field named \c field (case-insensitive)
+     */
+    std::string &get_field_ref(std::string field);
       
-      return fields[0].first;
-    }
-
     /** \brief Return true if field \c field is present (case-insensitive)
      */
-    bool is_field_present(std::string field) {
-
-      // Convert user-specified field to lowercase
-      for(size_t k=0;k<field.size();k++) {
-        field[k]=std::tolower(field[k]);
-      }
-      
-      for(size_t j=0;j<fields.size();j++) {
-
-        std::string lower=fields[j].first;
-        for(size_t k=0;k<lower.size();k++) {
-          lower[k]=std::tolower(lower[k]);
-        }
-        
-        if (lower==field && fields[j].second.size()>0) {
-          return true;
-        }
-      }
-      return false;
-    }
+    bool is_field_present(std::string field);
     
     /** \brief Return true if field \c field1 or field \c field2 is 
         present (case-insensitive)
-     */
-    bool is_field_present_or(std::string field1, std::string field2) {
-      
-      for(size_t k=0;k<field1.size();k++) {
-        field1[k]=std::tolower(field1[k]);
-      }
-      for(size_t k=0;k<field2.size();k++) {
-        field2[k]=std::tolower(field2[k]);
-      }
-      
-      for(size_t j=0;j<fields.size();j++) {
-        std::string lower=fields[j].first;
-        for(size_t k=0;k<lower.size();k++) {
-          lower[k]=std::tolower(lower[k]);
-        }
-        if ((lower==field1 || lower==field2) && fields[j].second.size()>0) {
-          return true;
-        }
-      }
-      return false;
-    }
-    
+    */
+    bool is_field_present_or(std::string field1, std::string field2);
+
   };
   
   /** \brief Manipulate BibTeX files using bibtex-spirit
    */
-  class bib_file {
+  class bib_file : public bibtex_tools {
 
   protected:
 
     /** \brief Fill a string with chararacter \c ch to ensure
 	its length is \c len
-     */
+    */
     void fill(std::string &s, size_t len=78, char ch=' ');
     
     /** \brief Rewrap a list of strings into a new list with line
 	breaks
-     */
+    */
     void local_wrap(std::vector<std::string> &sv, size_t len=78);
 
     /** \brief Format the left and right strings into tabular
@@ -178,16 +118,16 @@ namespace btmanip {
     //@}
     
     /// Return true if the entries are the identical
-    void ident_or_addl_fields(bibtex::BibTeXEntry &bt_left,
-			      bibtex::BibTeXEntry &bt_right, int &result);
+    void ident_or_addl_fields(bibtex_entry &bt_left,
+			      bibtex_entry &bt_right, int &result);
 
     /// Merge all fields from RHS not in LHS to the LHS
-    void merge_to_left(bibtex::BibTeXEntry &bt_left,
-		       bibtex::BibTeXEntry &bt_right);
+    void merge_to_left(bibtex_entry &bt_left,
+		       bibtex_entry &bt_right);
     
     /** \brief Format the field and value into one string for
 	the \ref bib_output_twoup() function
-     */
+    */
     void format_field_value(std::string field, std::string value,
 			    std::string &outs);
     
@@ -210,22 +150,22 @@ namespace btmanip {
     /** \brief Type for journal name list iterator
      */
     typedef std::map<std::string,std::vector<std::string>,
-      std::greater<std::string> >::iterator journal_it;
+                     std::greater<std::string> >::iterator journal_it;
 
   public:
     
     /** \brief Output two entries in a tabular format
      */
     void bib_output_twoup(std::ostream &outs,
-			  bibtex::BibTeXEntry &bt_left,
-			  bibtex::BibTeXEntry &bt_right,
+			  bibtex_entry &bt_left,
+			  bibtex_entry &bt_right,
 			  std::string left_header,
 			  std::string right_header);
     
     /** \brief List of journal synonyms
      */
     std::map<std::string,std::vector<std::string>,
-      std::greater<std::string> > journals;
+             std::greater<std::string> > journals;
     
     /** \brief Fields automatically removed by parse()
      */
@@ -322,10 +262,6 @@ namespace btmanip {
      */
     bib_file();
 
-    /** \brief Convert all characters in a string to lower case
-     */
-    std::string lower_string(std::string s);
-    
     /** \brief Read a journal name list from file \c fname
 
 	\note If a list was read previously, that list is
@@ -407,24 +343,24 @@ namespace btmanip {
     
     /** \brief Check entry for required fields
      */
-    void entry_check_required(bibtex::BibTeXEntry &bt);
+    void entry_check_required(bibtex_entry &bt);
 
     /** \brief If an 'article' or 'inproceedings' has no
 	title, set the title equal to one space
     */
-    bool entry_add_empty_title(bibtex::BibTeXEntry &bt);
+    bool entry_add_empty_title(bibtex_entry &bt);
     
     /** \brief If DOI number is present, ensure URL matches
 
 	This function returns true if any change has been
 	made to the entry.
     */
-    bool entry_autoformat_url(bibtex::BibTeXEntry &bt);
+    bool entry_autoformat_url(bibtex_entry &bt);
     
     /** \brief Remove volume letters and move to journal names
 	for some journals
     */
-    bool entry_remove_vol_letters(bibtex::BibTeXEntry &bt);
+    bool entry_remove_vol_letters(bibtex_entry &bt);
     
     /** \brief Clean the current BibTeX entries
      */
@@ -433,7 +369,7 @@ namespace btmanip {
     /** \brief In entry \c bt, set the value of \c field
 	equal to \c value
     */
-    int set_field_value(bibtex::BibTeXEntry &bt, std::string field,
+    int set_field_value(bibtex_entry &bt, std::string field,
 			std::string value);
     
     /** \brief In entry with key \c key, set the value of \c field
@@ -472,7 +408,7 @@ namespace btmanip {
     /** \brief Output one entry \c bt to stream \c outs in 
 	.bib format
     */
-    void bib_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt);
+    void bib_output_one(std::ostream &outs, bibtex_entry &bt);
     
     /** \brief Return a positive number if \c bt and \c bt2 are possible
 	duplicates
@@ -482,19 +418,19 @@ namespace btmanip {
 	the keys are different, but the volume pages, and journal are
 	the same. This function returns zero otherwise.
     */
-    int possible_duplicate(bibtex::BibTeXEntry &bt,
-			   bibtex::BibTeXEntry &bt2);
+    int possible_duplicate(bibtex_entry &bt,
+			   bibtex_entry &bt2);
     
     /** \brief Create a list of possible duplicates of \c bt
 	in the current set of BibTeX entries
     */
-    void list_possible_duplicates(bibtex::BibTeXEntry &bt,
+    void list_possible_duplicates(bibtex_entry &bt,
 				  std::vector<size_t> &list);
 
     /** \brief Output one entry \c bt to stream \c outs in 
 	plain text
     */
-    void text_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt);
+    void text_output_one(std::ostream &outs, bibtex_entry &bt);
     
     /** \brief Add entries in a specified BibTeX file to the current
 	list, checking for duplicates and prompting if they're found
@@ -507,7 +443,7 @@ namespace btmanip {
 
     /** \brief Get entry by key name
      */
-    bibtex::BibTeXEntry &get_entry_by_key(std::string key);
+    bibtex_entry &get_entry_by_key(std::string key);
 
     /** \brief Change an entry's key
      */
@@ -529,7 +465,7 @@ namespace btmanip {
 
 	This function is particularly useful in generating
 	rst output.
-     */
+    */
     std::string spec_char_to_uni(std::string s_in);
 
     /** \brief Reformat special characters based on <tt>spec_chars</tt>
@@ -539,11 +475,11 @@ namespace btmanip {
     /** \brief Return the last name of the first author,
 	and "et al." if there is more than one author
     */
-    std::string short_author(bibtex::BibTeXEntry &bt);
+    std::string short_author(bibtex_entry &bt);
     
     /** \brief Return the last name of the first author
      */
-    std::string last_name_first_author(bibtex::BibTeXEntry &bt);
+    std::string last_name_first_author(bibtex_entry &bt);
     
     /** \brief Reformat author string into first and last names
 
@@ -558,7 +494,7 @@ namespace btmanip {
 	them for text-based formats and phase out this 'remove_braces'
 	option (since it only works for authors and we need something
 	that works for titles also). 
-     */
+    */
     void parse_author(std::string s_in,
 		      std::vector<std::string> &firstv, 
 		      std::vector<std::string> &lastv,
@@ -575,33 +511,33 @@ namespace btmanip {
 	differences in field name capitalization) is present in entry
 	\c bt
     */
-    bool is_field_present(bibtex::BibTeXEntry &bt, std::string field);
+    bool is_field_present(bibtex_entry &bt, std::string field);
 
     /** \brief Count the number of times that field \c field occurs
 	in the entry
     */
-    size_t count_field_occur(bibtex::BibTeXEntry &bt, std::string field);
+    size_t count_field_occur(bibtex_entry &bt, std::string field);
     
     /** \brief Return true if field named \c field1 or field named \c
 	field2 is present in entry \c bt
     */
-    bool is_field_present(bibtex::BibTeXEntry &bt, std::string field1,
+    bool is_field_present(bibtex_entry &bt, std::string field1,
 			  std::string field2);
     
     /** \brief Get field named \c field from entry \c bt (assuming
 	the field occurs only once)
-     */
-    std::string &get_field(bibtex::BibTeXEntry &bt, std::string field);
+    */
+    std::string &get_field(bibtex_entry &bt, std::string field);
     
     /** \brief Get all values for field named \c field from entry \c bt
      */
-    void get_field_all(bibtex::BibTeXEntry &bt, std::string field,
-		      std::vector<std::string> &list);
+    void get_field_all(bibtex_entry &bt, std::string field,
+                       std::vector<std::string> &list);
     
     /** \brief Get field named \c field from entry \c bt
      */
     std::vector<std::string> &get_field_list
-      (bibtex::BibTeXEntry &bt, std::string field);
+    (bibtex_entry &bt, std::string field);
 
     /** \brief Convert tildes to spaces
      */
@@ -609,15 +545,15 @@ namespace btmanip {
   
     /** \brief Output an entry in HTML format
      */
-    void output_html(std::ostream &os, bibtex::BibTeXEntry &bt);
+    void output_html(std::ostream &os, bibtex_entry &bt);
     
     /** \brief Output an entry in LaTeX format
      */
-    void output_latex(std::ostream &os, bibtex::BibTeXEntry &bt);
+    void output_latex(std::ostream &os, bibtex_entry &bt);
 
     /** \brief Add an entry to the list
      */
-    void add_entry(bibtex::BibTeXEntry &bt);
+    void add_entry(bibtex_entry &bt);
 
   };
 

@@ -35,6 +35,86 @@ using namespace std;
 using namespace o2scl;
 using namespace btmanip;
 
+std::string bibtex_tools::lower_string(std::string s) {
+  for(size_t i=0;i<s.size();i++) {
+    s[i]=std::tolower(s[i]);
+  }
+  return s;
+}
+
+std::string bibtex_entry::get_field(std::string field) {
+  return get_field_ref(field);
+}
+
+std::string &bibtex_entry::get_field_ref(std::string field) {
+
+  // Convert user-specified field to lowercase
+  field=this->lower_string(field);
+      
+  for(size_t j=0;j<fields.size();j++) {
+
+    std::string lower=fields[j].first;
+    lower=this->lower_string(lower);
+        
+    if (lower==field) {
+      if (fields[j].second.size()==1) {
+        return fields[j].second[0];
+      } else if (fields[j].second.size()>1) {
+        O2SCL_ERR("Field had multiple entries.",
+                  o2scl::exc_esanity);
+      } else {
+        O2SCL_ERR("Field found but value vector was empty.",
+                  o2scl::exc_einval);
+      }
+    }
+  }
+  if (!key) {
+    O2SCL_ERR((((std::string)"Field ")+field+
+               " not found in entry with no key ").c_str(),
+              o2scl::exc_einval);
+  }
+  O2SCL_ERR((((std::string)"Field ")+field+
+             " not found in entry with key "+(*key).c_str()).c_str(),
+            o2scl::exc_einval);
+      
+  return fields[0].first;
+}
+
+/** \brief Return true if field \c field is present (case-insensitive)
+ */
+bool bibtex_entry::is_field_present(std::string field) {
+
+  // Convert user-specified field to lowercase
+  field=this->lower_string(field);
+      
+  for(size_t j=0;j<fields.size();j++) {
+
+    std::string lower=lower_string(fields[j].first);
+    
+    if (lower==field && fields[j].second.size()>0) {
+      return true;
+    }
+  }
+  return false;
+}
+    
+/** \brief Return true if field \c field1 or field \c field2 is 
+    present (case-insensitive)
+*/
+bool bibtex_entry::is_field_present_or(std::string field1, std::string field2) {
+
+  field1=lower_string(field1);
+  field2=lower_string(field2);
+      
+  for(size_t j=0;j<fields.size();j++) {
+    std::string lower=lower_string(fields[j].first);
+    if ((lower==field1 || lower==field2) && fields[j].second.size()>0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bib_file::bib_file() {
   remove_extra_whitespace=false;
   recase_tag=true;
@@ -281,13 +361,6 @@ bib_file::bib_file() {
 	       "Dec."};
 }
 
-std::string bib_file::lower_string(std::string s) {
-  for(size_t i=0;i<s.size();i++) {
-    s[i]=std::tolower(s[i]);
-  }
-  return s;
-}
-
 int bib_file::read_journals(std::string fname) {
   if (journals.size()>0) {
     journals.clear();
@@ -424,7 +497,7 @@ void bib_file::search_keys(std::string pattern,
 			   std::vector<std::string> &list) {
   list.clear();
   for(size_t i=0;i<entries.size();i++) {
-    bibtex::BibTeXEntry &bt=entries[i];
+    bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
     if (fnmatch(pattern.c_str(),(*bt.key).c_str(),0)==0) {
       list.push_back(*bt.key);
     }
@@ -444,7 +517,7 @@ void bib_file::search_or(std::vector<std::string> &args) {
   for(size_t i=0;i<entries.size();i++) {
 
     bool entry_matches=false;
-    bibtex::BibTeXEntry &bt=entries[i];
+    bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
 
     for(size_t k=0;k<args.size();k+=2) {
       std::string field=lower_string(args[k]);
@@ -498,7 +571,7 @@ void bib_file::remove_or(std::vector<std::string> &args) {
     for(std::vector<bibtex::BibTeXEntry>::iterator it=entries.begin();
 	restart_loop==false && it!=entries.end();it++) {
 	  
-      bibtex::BibTeXEntry &bt=*it;
+      bibtex_entry &bt=static_cast<bibtex_entry &>(*it);
 	  
       for(size_t k=0;restart_loop==false && k<args.size();k+=2) {
 	std::string field=lower_string(args[k]);
@@ -545,7 +618,7 @@ void bib_file::search_and(std::vector<std::string> &args) {
 
     for(size_t i=0;i<entries.size();i++) {
       bool entry_matches=false;
-      bibtex::BibTeXEntry &bt=entries[i];
+      bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
       if (field==((string)"key")) {
 	if (fnmatch(pattern.c_str(),(*bt.key).c_str(),0)==0) {
 	  entry_matches=true;
@@ -585,7 +658,7 @@ void bib_file::search_and(std::vector<std::string> &args) {
   return;
 }
 
-void bib_file::entry_check_required(bibtex::BibTeXEntry &bt) {
+void bib_file::entry_check_required(bibtex_entry &bt) {
   if (lower_string(bt.tag)==((std::string)"article")) {
     if (!is_field_present(bt,"author")) {
       O2SCL_ERR("Article missing author field.",
@@ -781,7 +854,7 @@ void bib_file::entry_check_required(bibtex::BibTeXEntry &bt) {
   return;
 }
 
-bool bib_file::entry_add_empty_title(bibtex::BibTeXEntry &bt) {
+bool bib_file::entry_add_empty_title(bibtex_entry &bt) {
       
   bool changed=false;
   if (lower_string(bt.tag)==((std::string)"article") ||
@@ -800,15 +873,15 @@ bool bib_file::entry_add_empty_title(bibtex::BibTeXEntry &bt) {
   return changed;
 }
     
-bool bib_file::entry_autoformat_url(bibtex::BibTeXEntry &bt) {
+bool bib_file::entry_autoformat_url(bibtex_entry &bt) {
   bool changed=false;
   if (lower_string(bt.tag)==((std::string)"article")) {
     if (is_field_present(bt,"doi")) {
       if (is_field_present(bt,"url")) {
-	std::string &url=get_field(bt,"url");
+	std::string &url=bt.get_field_ref("url");
 	if (url.substr(0,15)!=((std::string)"https://doi.org")) {
 	  url=((std::string)"https://doi.org/")+
-	    get_field(bt,"doi");
+	    bt.get_field("doi");
 	  changed=true;
 	  if (verbose>1) {
 	    std::cout << "In entry with key " << *bt.key
@@ -818,7 +891,7 @@ bool bib_file::entry_autoformat_url(bibtex::BibTeXEntry &bt) {
       } else {
 	std::vector<std::string> val;
 	val.push_back(((std::string)"https://doi.org/")+
-		      get_field(bt,"doi"));
+		      bt.get_field("doi"));
 	bt.fields.push_back(std::make_pair("url",val));
 	changed=true;
 	if (verbose>1) {
@@ -831,7 +904,7 @@ bool bib_file::entry_autoformat_url(bibtex::BibTeXEntry &bt) {
     if (is_field_present(bt,"isbn") && !is_field_present(bt,"url")) {
       std::vector<std::string> val;
       val.push_back(((std::string)"http://www.worldcat.org/isbn/")+
-		    get_field(bt,"isbn"));
+		    bt.get_field("isbn"));
       bt.fields.push_back(std::make_pair("url",val));
       changed=true;
       if (verbose>1) {
@@ -843,12 +916,12 @@ bool bib_file::entry_autoformat_url(bibtex::BibTeXEntry &bt) {
   return changed;
 }
     
-bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
+bool bib_file::entry_remove_vol_letters(bibtex_entry &bt) {
   bool changed=false;
   if (is_field_present(bt,"journal") &&
       is_field_present(bt,"volume")) {
-    std::string volume=get_field(bt,"volume");
-    std::string journal=get_field(bt,"journal");
+    std::string volume=bt.get_field("volume");
+    std::string journal=bt.get_field("journal");
     if ((journal==((std::string)"Phys. Rev.") ||
 	 journal==((std::string)"Phys.Rev.")) &&
 	(volume[0]=='A' || volume[0]=='a' ||
@@ -868,8 +941,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       if (verbose>1) {
 	std::cout << journal << ", " << volume << std::endl;
       }
-      get_field(bt,"journal")=journal;
-      get_field(bt,"volume")=volume;
+      bt.get_field("journal")=journal;
+      bt.get_field("volume")=volume;
     }
     if ((journal==((std::string)"Eur. Phys. J.") ||
 	 journal==((std::string)"Eur.Phys.J.")) &&
@@ -890,8 +963,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       if (verbose>1) {
 	std::cout << journal << ", " << volume << std::endl;
       }
-      get_field(bt,"journal")=journal;
-      get_field(bt,"volume")=volume;
+      bt.get_field("journal")=journal;
+      bt.get_field("volume")=volume;
     }
     if ((journal==((std::string)"J. Phys.") ||
 	 journal==((std::string)"J.Phys.")) &&
@@ -914,8 +987,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       if (verbose>1) {
 	std::cout << journal << ", " << volume << std::endl;
       }
-      get_field(bt,"journal")=journal;
-      get_field(bt,"volume")=volume;
+      bt.get_field("journal")=journal;
+      bt.get_field("volume")=volume;
     }
     if ((journal==((std::string)"Nucl. Phys.") ||
 	 journal==((std::string)"Nucl.Phys.")) &&
@@ -933,8 +1006,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       if (verbose>1) {
 	std::cout << journal << ", " << volume << std::endl;
       }
-      get_field(bt,"journal")=journal;
-      get_field(bt,"volume")=volume;
+      bt.get_field("journal")=journal;
+      bt.get_field("volume")=volume;
     }
     if ((journal==((std::string)"Phys. Lett.") ||
 	 journal==((std::string)"Phys.Lett.")) &&
@@ -952,8 +1025,8 @@ bool bib_file::entry_remove_vol_letters(bibtex::BibTeXEntry &bt) {
       if (verbose>1) {
 	std::cout << journal << ", " << volume << std::endl;
       }
-      get_field(bt,"journal")=journal;
-      get_field(bt,"volume")=volume;
+      bt.get_field("journal")=journal;
+      bt.get_field("volume")=volume;
     }
   }
   return changed;
@@ -1004,7 +1077,7 @@ void bib_file::clean(bool prompt) {
     bool this_author_fields_notilde=false;
 
     // Make a copy
-    bibtex::BibTeXEntry bt=entries[i];
+    bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
 
     if (normalize_tags) {
 	  
@@ -1036,7 +1109,7 @@ void bib_file::clean(bool prompt) {
     }
 
     if (remove_author_tildes && is_field_present(bt,"author")) {
-      std::string old_auth=get_field(bt,"author"), auth=old_auth;
+      std::string old_auth=bt.get_field("author"), auth=old_auth;
       tilde_to_space(auth);
       if (auth!=old_auth) {
 	set_field_value(bt,"author",auth);
@@ -1201,7 +1274,8 @@ void bib_file::clean(bool prompt) {
 	  //bib_output_one(std::cout,bt);
 	  //std::cout << std::endl;
 
-	  bib_output_twoup(std::cout,entries[i],bt,
+          bibtex_entry &btx=static_cast<bibtex_entry &>(entries[i]);
+	  bib_output_twoup(std::cout,btx,bt,
 			   "Original entry","Proposed new entry");
 	  
 	  if (this_empty_titles_added) {
@@ -1316,7 +1390,7 @@ void bib_file::clean(bool prompt) {
   return;
 }
 
-int bib_file::set_field_value(bibtex::BibTeXEntry &bt, std::string field,
+int bib_file::set_field_value(bibtex_entry &bt, std::string field,
 			      std::string value) {
   for(size_t j=0;j<bt.fields.size();j++) {
     if (bt.fields[j].first==field) {
@@ -1333,7 +1407,7 @@ int bib_file::set_field_value(bibtex::BibTeXEntry &bt, std::string field,
     
 int bib_file::set_field_value(std::string key, std::string field,
 			      std::string value) {
-  bibtex::BibTeXEntry &bt=get_entry_by_key(key);
+  bibtex_entry &bt=get_entry_by_key(key);
   return set_field_value(bt,field,value);
 }
     
@@ -1362,8 +1436,7 @@ void bib_file::parse_bib(std::string fname) {
   // Loop over entries in order to check and sort
   for(size_t i=0;i<entries.size();i++) {
       
-    bibtex::BibTeXEntry &bt=entries[i];
-    bibtex_entry &be=static_cast<bibtex_entry &>(entries[i]);
+    bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
     
     // Double check that the value list doesn't have
     // more than one entry
@@ -1455,7 +1528,7 @@ void bib_file::refresh_sort() {
   sort.clear();
   // Go through all entries
   for(size_t i=0;i<entries.size();i++) {
-    bibtex::BibTeXEntry &bt=entries[i];
+    bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
     // If the key is not already in the sort map, add it
     if (sort.find(*bt.key)==sort.end()) {
       sort.insert(make_pair(*bt.key,i));
@@ -1491,14 +1564,14 @@ void bib_file::sort_by_date(bool descending) {
     std::map<int,size_t,std::greater<int>>::iterator sbdit;
   
     for(size_t i=0;i<entries.size();i++) {
-      bibtex::BibTeXEntry &bt=entries[i];
+      bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
       int year=3000;
       if (is_field_present(bt,"year")) {
-	year=std::stoi(get_field(bt,"year"));
+	year=std::stoi(bt.get_field("year"));
       }
       int imonth=13;
       if (is_field_present(bt,"month")) {
-	std::string month=get_field(bt,"month");
+	std::string month=bt.get_field("month");
 	if (month.length()==1) {
 	  imonth=std::stoi(month);
 	} else if (month.length()==2 && month[0]=='1') {
@@ -1557,7 +1630,7 @@ void bib_file::sort_by_date(bool descending) {
       }
       int date=40;
       if (is_field_present(bt,"date")) {
-	date=std::stoi(get_field(bt,"date"));
+	date=std::stoi(bt.get_field("date"));
       }
       int sortable_date=year*10000+imonth*100+date;
       sbd.insert(make_pair(sortable_date,i));
@@ -1575,14 +1648,14 @@ void bib_file::sort_by_date(bool descending) {
     std::map<int,size_t,std::less<int>>::iterator sbdit;
   
     for(size_t i=0;i<entries.size();i++) {
-      bibtex::BibTeXEntry &bt=entries[i];
+      bibtex_entry &bt=static_cast<bibtex_entry &>(entries[i]);
       int year=3000;
       if (is_field_present(bt,"year")) {
-	year=std::stoi(get_field(bt,"year"));
+	year=std::stoi(bt.get_field("year"));
       }
       int imonth=13;
       if (is_field_present(bt,"month")) {
-	std::string month=get_field(bt,"month");
+	std::string month=bt.get_field("month");
 	if (month.length()==1) {
 	  imonth=std::stoi(month);
 	} else if (month.length()==2 && month[0]=='1') {
@@ -1641,7 +1714,7 @@ void bib_file::sort_by_date(bool descending) {
       }
       int date=40;
       if (is_field_present(bt,"date")) {
-	date=std::stoi(get_field(bt,"date"));
+	date=std::stoi(bt.get_field("date"));
       }
       int sortable_date=year*10000+imonth*100+date;
       sbd.insert(make_pair(sortable_date,i));
@@ -1672,7 +1745,7 @@ void bib_file::reverse_bib() {
   return;
 }
     
-void bib_file::bib_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
+void bib_file::bib_output_one(std::ostream &outs, bibtex_entry &bt) {
 
   // Output tag and key
   outs << "@" << bt.tag << "{";
@@ -2049,8 +2122,8 @@ void bib_file::format_field_value(std::string field, std::string value,
 }
 
 void bib_file::bib_output_twoup(std::ostream &outs,
-				bibtex::BibTeXEntry &bt_left,
-				bibtex::BibTeXEntry &bt_right,
+				bibtex_entry &bt_left,
+				bibtex_entry &bt_right,
 				std::string left_header,
 				std::string right_header) {
 
@@ -2312,8 +2385,8 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   return;
 }
 
-void bib_file::ident_or_addl_fields(bibtex::BibTeXEntry &bt_left,
-				    bibtex::BibTeXEntry &bt_right,
+void bib_file::ident_or_addl_fields(bibtex_entry &bt_left,
+				    bibtex_entry &bt_right,
 				    int &result) {
 
   // If the keys are not present or different, then presume the
@@ -2363,8 +2436,8 @@ void bib_file::ident_or_addl_fields(bibtex::BibTeXEntry &bt_left,
   return;
 }
 
-void bib_file::merge_to_left(bibtex::BibTeXEntry &bt_left,
-			     bibtex::BibTeXEntry &bt_right) {
+void bib_file::merge_to_left(bibtex_entry &bt_left,
+			     bibtex_entry &bt_right) {
 
   // Loop through all fields on the RHS
   for(size_t j=0;j<bt_right.fields.size();j++) {
@@ -2379,8 +2452,8 @@ void bib_file::merge_to_left(bibtex::BibTeXEntry &bt_left,
   return;
 }
 
-int bib_file::possible_duplicate(bibtex::BibTeXEntry &bt,
-				 bibtex::BibTeXEntry &bt2) {
+int bib_file::possible_duplicate(bibtex_entry &bt,
+				 bibtex_entry &bt2) {
   std::string lower_tag1=bt.tag, lower_tag2=bt2.tag;
   std::string lower_key1=*bt.key, lower_key2=*bt2.key;
   for (size_t k=0;k<lower_tag1.size();k++) {
@@ -2404,13 +2477,13 @@ int bib_file::possible_duplicate(bibtex::BibTeXEntry &bt,
       is_field_present(bt,"pages") &&
       is_field_present(bt2,"volume") &&
       is_field_present(bt2,"pages") &&
-      get_field(bt,"volume")==get_field(bt2,"volume") &&
-      first_page(get_field(bt,"pages"))==
+      bt.get_field("volume")==get_field(bt2,"volume") &&
+      first_page(bt.get_field("pages"))==
       first_page(get_field(bt2,"pages"))) {
     // Then, check that journal fields are present
     if (is_field_present(bt,"journal") &&
 	is_field_present(bt2,"journal")) {
-      std::string j1=get_field(bt,"journal");
+      std::string j1=bt.get_field("journal");
       std::string j2=get_field(bt2,"journal");
       // If we can, get the standard abbreviation for each
       if (journals.size()>0) {
@@ -2426,11 +2499,11 @@ int bib_file::possible_duplicate(bibtex::BibTeXEntry &bt,
   return 0;
 }
 
-void bib_file::list_possible_duplicates(bibtex::BibTeXEntry &bt,
+void bib_file::list_possible_duplicates(bibtex_entry &bt,
 					std::vector<size_t> &list) {
   list.clear();
   for(size_t i=0;i<entries.size();i++) {
-    bibtex::BibTeXEntry &bt2=entries[i];
+    bibtex_entry &bt2=static_cast<bibtex_entry &>(entries[i]);
     if (possible_duplicate(bt,bt2)>0) {
       list.push_back(i);
     }
@@ -2438,7 +2511,7 @@ void bib_file::list_possible_duplicates(bibtex::BibTeXEntry &bt,
   return;
 }
     
-void bib_file::text_output_one(std::ostream &outs, bibtex::BibTeXEntry &bt) {
+void bib_file::text_output_one(std::ostream &outs, bibtex_entry &bt) {
   outs << "tag: " << bt.tag << std::endl;
   if (bt.key) outs << "key: " << *bt.key << std::endl;
   for(size_t j=0;j<bt.fields.size();j++) {
@@ -2482,7 +2555,7 @@ void bib_file::add_bib(std::string fname) {
   // Loop over entries
   for(size_t i=0;i<entries2.size();i++) {
 
-    bibtex::BibTeXEntry &bt=entries2[i];
+    bibtex_entry &bt=static_cast<bibtex_entry &>(entries2[i]);
 
     std::vector<size_t> list;
     list_possible_duplicates(bt,list);
@@ -2507,24 +2580,25 @@ void bib_file::add_bib(std::string fname) {
 	// If there is only one possible matching duplicate,
 	// see if we can auto merge
 	int result;
-	ident_or_addl_fields(bt,entries[list[0]],result);
+        bibtex_entry &btx=static_cast<bibtex_entry &>(entries[list[0]]);
+	ident_or_addl_fields(bt,btx,result);
 	
 	if (result==ia_addl_fields) {
 	  if (verbose>1) {
 	    cout << "Quietly merging:" << endl;
-	    bib_output_twoup(std::cout,entries[list[0]],bt,
+	    bib_output_twoup(std::cout,btx,bt,
 			     ((string)"Entry ")+
 			     o2scl::szttos(list[0])+" in current list",
 			     ((string)"Entry ")+
 			     o2scl::szttos(i)+" in "+fname);
 	  }
-	  merge_to_left(bt,entries[list[0]]);
+	  merge_to_left(bt,btx);
 	  n_auto++;
 	  auto_merge=true;
 	} else if (result==ia_ident) {
 	  if (verbose>1) {
 	    cout << "Identical:" << endl;
-	    bib_output_twoup(std::cout,entries[list[0]],bt,
+	    bib_output_twoup(std::cout,btx,bt,
 			     ((string)"Entry ")+
 			     o2scl::szttos(list[0])+" in current list",
 			     ((string)"Entry ")+
@@ -2553,7 +2627,8 @@ void bib_file::add_bib(std::string fname) {
       
 	for(size_t j=0;j<list.size();j++) {
 	  // Print out entry comparison
-	  bib_output_twoup(std::cout,entries[list[j]],bt,
+          bibtex_entry &bty=static_cast<bibtex_entry &>(entries[list[j]]);
+	  bib_output_twoup(std::cout,bty,bt,
 			   ((string)"Entry ")+
 			   o2scl::szttos(list[j])+" in current list",
 			   ((string)"Entry ")+
@@ -2605,7 +2680,7 @@ void bib_file::add_bib(std::string fname) {
 	  ofstream fout;
 	  fout.open(fname2);
 	  for(size_t i=0;i<entries2.size();i++) {
-	    bibtex::BibTeXEntry &bt=entries2[i];
+            bibtex_entry &bt=static_cast<bibtex_entry &>(entries2[i]);
 	    bib_output_one(fout,bt);
 	    if (i+1<entries2.size()) (fout) << endl;
 	  }
@@ -2651,8 +2726,10 @@ bool bib_file::is_key_present(std::string key) {
   return true;
 }
 
-bibtex::BibTeXEntry &bib_file::get_entry_by_key(std::string key) {
-  return entries[sort.find(key)->second];
+bibtex_entry &bib_file::get_entry_by_key(std::string key) {
+  bibtex::BibTeXEntry &b=entries[sort.find(key)->second];
+  return static_cast<bibtex_entry &>(b);
+  
 }
 
 void bib_file::change_key(std::string key1, std::string key2) {
@@ -2729,8 +2806,8 @@ std::string bib_file::spec_char_auto(std::string s_in) {
   return s_in;
 }
     
-std::string bib_file::short_author(bibtex::BibTeXEntry &bt) {
-  std::string auth=get_field(bt,"author");
+std::string bib_file::short_author(bibtex_entry &bt) {
+  std::string auth=bt.get_field("author");
   std::vector<std::string> firstv, lastv;
   parse_author(auth,firstv,lastv);
   std::string ret;
@@ -2742,8 +2819,8 @@ std::string bib_file::short_author(bibtex::BibTeXEntry &bt) {
   return ret;
 }
     
-std::string bib_file::last_name_first_author(bibtex::BibTeXEntry &bt) {
-  std::string auth=get_field(bt,"author");
+std::string bib_file::last_name_first_author(bibtex_entry &bt) {
+  std::string auth=bt.get_field("author");
   std::vector<std::string> firstv, lastv;
   parse_author(auth,firstv,lastv);
   std::string ret=lastv[0];
@@ -2918,7 +2995,7 @@ std::string bib_file::author_firstlast(std::string s_in,
   return s_in;
 }
     
-size_t bib_file::count_field_occur(bibtex::BibTeXEntry &bt, std::string field) {
+size_t bib_file::count_field_occur(bibtex_entry &bt, std::string field) {
   size_t cnt=0;
   for(size_t j=0;j<bt.fields.size();j++) {
     std::string lower=bt.fields[j].first;
@@ -2935,7 +3012,7 @@ size_t bib_file::count_field_occur(bibtex::BibTeXEntry &bt, std::string field) {
   return cnt;
 }
 
-bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field) {
+bool bib_file::is_field_present(bibtex_entry &bt, std::string field) {
   for(size_t j=0;j<bt.fields.size();j++) {
     std::string lower=bt.fields[j].first;
     for(size_t k=0;k<lower.size();k++) {
@@ -2951,7 +3028,7 @@ bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field) {
   return false;
 }
 
-bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field1,
+bool bib_file::is_field_present(bibtex_entry &bt, std::string field1,
 				std::string field2) {
   for(size_t j=0;j<bt.fields.size();j++) {
     std::string lower=bt.fields[j].first;
@@ -2971,7 +3048,7 @@ bool bib_file::is_field_present(bibtex::BibTeXEntry &bt, std::string field1,
   return false;
 }
   
-std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
+std::string &bib_file::get_field(bibtex_entry &bt, std::string field) {
   for(size_t j=0;j<bt.fields.size();j++) {
     std::string lower=bt.fields[j].first;
     for(size_t k=0;k<lower.size();k++) {
@@ -3004,7 +3081,7 @@ std::string &bib_file::get_field(bibtex::BibTeXEntry &bt, std::string field) {
   return trans_latex[0];
 }
  
-void bib_file::get_field_all(bibtex::BibTeXEntry &bt, std::string field,
+void bib_file::get_field_all(bibtex_entry &bt, std::string field,
 			     vector<string> &list) {
   list.clear();
   for(size_t j=0;j<bt.fields.size();j++) {
@@ -3033,7 +3110,7 @@ void bib_file::get_field_all(bibtex::BibTeXEntry &bt, std::string field,
 }
 
 std::vector<std::string> &bib_file::get_field_list
-(bibtex::BibTeXEntry &bt, std::string field) {
+(bibtex_entry &bt, std::string field) {
   for(size_t j=0;j<bt.fields.size();j++) {
     if (bt.fields[j].first==field) {
       return bt.fields[j].second;
@@ -3050,30 +3127,30 @@ void bib_file::tilde_to_space(std::string &s) {
   return;
 }
   
-void bib_file::output_html(std::ostream &os, bibtex::BibTeXEntry &bt) {
-  std::string s=get_field(bt,"author");
+void bib_file::output_html(std::ostream &os, bibtex_entry &bt) {
+  std::string s=bt.get_field("author");
   std::string s2=author_firstlast(s);
   tilde_to_space(s2);
   os << s2 << ", <em>"
-     << get_field(bt,"journal") << "</em> <b>"
-     << get_field(bt,"volume") << "</b> ("
-     << get_field(bt,"year") << ") "
-     << get_field(bt,"pages") << ".";
+     << bt.get_field("journal") << "</em> <b>"
+     << bt.get_field("volume") << "</b> ("
+     << bt.get_field("year") << ") "
+     << bt.get_field("pages") << ".";
   return;
 }
 
-void bib_file::output_latex(std::ostream &os, bibtex::BibTeXEntry &bt) {
-  std::string s=get_field(bt,"author");
+void bib_file::output_latex(std::ostream &os, bibtex_entry &bt) {
+  std::string s=bt.get_field("author");
   std::string s2=author_firstlast(s);
   os << s2 << ", {\\i"
-     << get_field(bt,"journal") << "} {\\b "
-     << get_field(bt,"volume") << "} ("
-     << get_field(bt,"year") << ") "
-     << get_field(bt,"pages") << ".";
+     << bt.get_field("journal") << "} {\\b "
+     << bt.get_field("volume") << "} ("
+     << bt.get_field("year") << ") "
+     << bt.get_field("pages") << ".";
   return;
 }
 
-void bib_file::add_entry(bibtex::BibTeXEntry &bt) {
+void bib_file::add_entry(bibtex_entry &bt) {
   entries.push_back(bt);
   if (bt.key) sort.insert(make_pair(*bt.key,entries.size()-1));
   return;

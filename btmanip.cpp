@@ -126,7 +126,8 @@ namespace btmanip {
 	bf.set_field_value(sv[1],sv[2],sv[3]);
       } else if (sv.size()==3) {
 	if (bf.entries.size()==1) {
-	  bf.set_field_value(bf.entries[0],sv[1],sv[2]);
+          bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[0]);
+	  bf.set_field_value(bt,sv[1],sv[2]);
 	} else {
 	  cerr << "More than one entry, thus 'set-field' requires three "
 	       << "arguments." << endl;
@@ -322,7 +323,7 @@ namespace btmanip {
       std::string base_url="https://api.adsabs.harvard.edu/v1/";
             
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	
 	if (bf.is_field_present(bt,"doi")) {
 	  
@@ -373,7 +374,7 @@ namespace btmanip {
       int verbose=1;
       
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	
 	if (bf.is_field_present(bt,"doi")) {
 	  
@@ -410,7 +411,8 @@ namespace btmanip {
 	      cerr << "Inspire search led to more than one result." << endl;
 	    } else {
 	      
-	      bibtex::BibTeXEntry bt_new;
+	      bibtex_entry bt_new;
+              //bibtex_entry &bt=static_cast<bibtex_entry &>(bt_new);
 	      bt_new.key=bt.key;
 	      bt_new.tag="Article";
 	      
@@ -602,8 +604,8 @@ namespace btmanip {
 	  restart=false;
 	  for(size_t i=istart;i<bf.entries.size();i++) {
 	    for(size_t j=i+1;j<bf.entries.size();j++) {
-	      bibtex::BibTeXEntry &bt=bf.entries[i];
-	      bibtex::BibTeXEntry &bt2=bf.entries[j];
+              bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
+              bibtex_entry &bt2=static_cast<bibtex_entry &>(bf.entries[j]);
 	      int dup_val=bf.possible_duplicate(bt,bt2);
 	      if (dup_val==1) {
 		cout << "Duplicate tag and key." << endl;
@@ -761,7 +763,7 @@ namespace btmanip {
       }
 
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	bf.text_output_one(*outs,bt);
 	if (i+1<bf.entries.size()) (*outs) << endl;
       }
@@ -790,12 +792,12 @@ namespace btmanip {
       std::string stmp;
       std::vector<std::string> slist;
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	// Title
-	std::string title=bf.get_field(bt,"title");
+	std::string title=bt.get_field("title");
 	if (bf.is_field_present(bt,"title_latex")) {
-	  title=bf.get_field(bt,"title_latex");
+	  title=bt.get_field("title_latex");
 	}
 	stmp=((string)"\\noindent ")+std::to_string(i+1)+". ``"+
 	  title+"'', \\\\";
@@ -806,7 +808,7 @@ namespace btmanip {
 
 	// Arrange authors with only initials for first and
 	// middle names
-	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+	stmp=bf.author_firstlast(bt.get_field("author"),
 				 false,true)+", \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
@@ -817,38 +819,38 @@ namespace btmanip {
 	    bf.is_field_present(bt,"journal")) {
 	  // DOI link and reference
 	  (*outs) << "\\href{https://doi.org/"
-		  << bf.get_field(bt,"doi") << "}" << endl;
-	  (*outs) << "{{\\it " << bf.get_field(bt,"journal")
+		  << bt.get_field("doi") << "}" << endl;
+	  (*outs) << "{{\\it " << bt.get_field("journal")
 		  << "}";
 	  if (bf.is_field_present(bt,"volume")) {
-	    (*outs) << " {\\bf " << bf.get_field(bt,"volume")
+	    (*outs) << " {\\bf " << bt.get_field("volume")
 		    << "}";
 	  }
 	  if (bf.is_field_present(bt,"year")) {
-	    (*outs) << " (" << bf.get_field(bt,"year")
+	    (*outs) << " (" << bt.get_field("year")
 		    << ")";
 	  }
 	  if (bf.is_field_present(bt,"pages")) {
-	    (*outs) << " " << bf.first_page(bf.get_field(bt,"pages"));
+	    (*outs) << " " << bf.first_page(bt.get_field("pages"));
 	  }
 	  (*outs) << ".} \\\\" << endl;
 	} else if (bf.is_field_present(bt,"journal") &&
-		   bf.get_field(bt,"journal").length()>1) {
-	  (*outs) << "{\\it " << bf.get_field(bt,"journal")
+		   bt.get_field("journal").length()>1) {
+	  (*outs) << "{\\it " << bt.get_field("journal")
 		  << "}. \\\\" << endl;
 	}
       
 	if (bf.is_field_present(bt,"eprint")) {
 	  (*outs) << "(\\href{https://www.arxiv.org/abs/"
-		  << bf.get_field(bt,"eprint") << "}{arXiv:"
-		  << bf.get_field(bt,"eprint") << "}";
+		  << bt.get_field("eprint") << "}{arXiv:"
+		  << bt.get_field("eprint") << "}";
 	  if (bf.is_field_present(bt,"citations")
-	      && bf.get_field(bt,"citations")!=((string)"0")) {
-	    if (bf.get_field(bt,"citations")==((string)"1")) {
-	      (*outs) << " - " << bf.get_field(bt,"citations")
+	      && bt.get_field("citations")!=((string)"0")) {
+	    if (bt.get_field("citations")==((string)"1")) {
+	      (*outs) << " - " << bt.get_field("citations")
 		      << " citation";
 	    } else {
-	      (*outs) << " - " << bf.get_field(bt,"citations")
+	      (*outs) << " - " << bt.get_field("citations")
 		      << " citations";
 	    }
 	    if (cite_footnote==false) {
@@ -886,15 +888,15 @@ namespace btmanip {
       std::string stmp;
       std::vector<std::string> slist;
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	// Title
-	std::string title=bf.get_field(bt,"title");
+	std::string title=bt.get_field("title");
 	if (bf.is_field_present(bt,"title_latex")) {
-	  title=bf.get_field(bt,"title_latex");
+	  title=bt.get_field("title_latex");
 	}
 	stmp=((string)"\\noindent ")+std::to_string(i+1)+". ``"+
-	  title+"'' ("+bf.get_field(bt,"type")+"), \\\\";
+	  title+"'' ("+bt.get_field("type")+"), \\\\";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
 	  (*outs) << slist[k] << std::endl;
@@ -902,45 +904,45 @@ namespace btmanip {
 
 	// Conference and institution
 	if (bf.is_field_present(bt,"conference") &&
-	    bf.get_field(bt,"conference").length()>0) {
+	    bt.get_field("conference").length()>0) {
 	  if (bf.is_field_present(bt,"url") &&
-	      bf.get_field(bt,"url").length()>0) {
-	    (*outs) << "{\\bf \\href{" << bf.get_field(bt,"url")
-		    << "}{"<< bf.get_field(bt,"conference")
+	      bt.get_field("url").length()>0) {
+	    (*outs) << "{\\bf \\href{" << bt.get_field("url")
+		    << "}{"<< bt.get_field("conference")
 		    << "}}, \\\\" << endl;
 	  } else {
-	    (*outs) << "{\\bf " << bf.get_field(bt,"conference")
+	    (*outs) << "{\\bf " << bt.get_field("conference")
 		    << "}, \\\\" << endl;
 	  }
 	}
 	if (bf.is_field_present(bt,"institution") &&
-	    bf.get_field(bt,"institution").length()>0) {
-	  (*outs) << bf.get_field(bt,"institution") << ", ";
+	    bt.get_field("institution").length()>0) {
+	  (*outs) << bt.get_field("institution") << ", ";
 	}
 
 	// Location
-	(*outs) << bf.get_field(bt,"city") << ", ";
+	(*outs) << bt.get_field("city") << ", ";
 	if (bf.is_field_present(bt,"state") &&
-	    bf.get_field(bt,"state").length()>0) {
-	  (*outs) << bf.get_field(bt,"state") << ", ";
+	    bt.get_field("state").length()>0) {
+	  (*outs) << bt.get_field("state") << ", ";
 	}
 	if (bf.is_field_present(bt,"country") &&
-	    bf.get_field(bt,"country").length()>0 &&
-	    bf.get_field(bt,"country")!=((string)"USA")) {
-	  (*outs) << bf.get_field(bt,"country") << ", ";
+	    bt.get_field("country").length()>0 &&
+	    bt.get_field("country")!=((string)"USA")) {
+	  (*outs) << bt.get_field("country") << ", ";
 	}
 
 	// Date
-	string mon=bf.get_field(bt,"month");
+	string mon=bt.get_field("month");
 	if (mon.length()<3) {
 	  O2SCL_ERR("Problem in month.",o2scl::exc_einval);
 	}
 	if (mon=="May") {
-	  (*outs) << bf.get_field(bt,"month") << ". ";
+	  (*outs) << bt.get_field("month") << ". ";
 	} else {
 	  (*outs) << mon[0] << mon[1] << mon[2] << ". ";
 	}
-	(*outs) << bf.get_field(bt,"year") << ".\\\\" << endl;
+	(*outs) << bt.get_field("year") << ".\\\\" << endl;
 
 	(*outs) << endl;
       }
@@ -985,25 +987,25 @@ namespace btmanip {
       std::string stmp;
       std::vector<std::string> slist;
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
 	  (*outs) << "\\item \\href{https://doi.org/"
-		  << bf.get_field(bt,"doi") << "}" << endl;
+		  << bt.get_field("doi") << "}" << endl;
 	} else if (bf.is_field_present(bt,"eprint")) {
 	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
-		  << bf.get_field(bt,"eprint") << "}{arXiv:"
-		  << bf.get_field(bt,"eprint") << "}" << endl;
+		  << bt.get_field("eprint") << "}{arXiv:"
+		  << bt.get_field("eprint") << "}" << endl;
 	}
       
 	// Title
 	std::string title;
 	if (bf.is_field_present(bt,"title")) {
-	  title=bf.get_field(bt,"title");
+	  title=bt.get_field("title");
 	}
 	if (bf.is_field_present(bt,"title_latex")) {
-	  title=bf.get_field(bt,"title_latex");
+	  title=bt.get_field("title_latex");
 	}
 	stmp=((string)"{\\emph{")+title+"}} \\\\";
 	rewrap(stmp,slist);
@@ -1013,7 +1015,7 @@ namespace btmanip {
       
 	// Authors
 	if (bf.is_field_present(bt,"author")) {
-	  stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+	  stmp=bf.author_firstlast(bt.get_field("author"),
 				   true,true)+",";
 	  rewrap(stmp,slist);
 	  for(size_t k=0;k<slist.size();k++) {
@@ -1026,18 +1028,18 @@ namespace btmanip {
 	}
 
 	if (bf.is_field_present(bt,"year")) {
-	  (*outs) << bf.get_field(bt,"year") << ", ";
+	  (*outs) << bt.get_field("year") << ", ";
 	}
 	if (bf.is_field_present(bt,"journal")) {
-	  (*outs) << bf.get_field(bt,"journal") << ", \\textbf{";
+	  (*outs) << bt.get_field("journal") << ", \\textbf{";
 	  if (bf.is_field_present(bt,"volume")) {
-	    (*outs) << bf.get_field(bt,"volume") << "}, ";
+	    (*outs) << bt.get_field("volume") << "}, ";
 	  }
 	  if (bf.is_field_present(bt,"volume")) {
-	    (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	    (*outs) << bf.first_page(bt.get_field("pages")) << "." << endl;
 	  }
 	} else if (bf.is_field_present(bt,"eprint")) {
-	  (*outs) << "arXiv:" << bf.get_field(bt,"eprint") << "." << endl;
+	  (*outs) << "arXiv:" << bt.get_field("eprint") << "." << endl;
 	}
 	(*outs) << endl;
       }
@@ -1075,24 +1077,24 @@ namespace btmanip {
       std::vector<std::string> slist;
       (*outs) << "\\begin{enumerate}" << endl;
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	cout << "Formatting entry " << i << " " << *bt.key << endl;
 
 	if (bf.is_field_present(bt,"doi")) {
 	  // DOI link and reference
 	  (*outs) << "\\item \\href{https://doi.org/"
-		  << bf.get_field(bt,"doi") << "}{" << endl;
+		  << bt.get_field("doi") << "}{" << endl;
 	} else if (bf.is_field_present(bt,"eprint")) {
 	  (*outs) << "\\item \\href{https://www.arxiv.org/abs/"
-		  << bf.get_field(bt,"eprint") << "}{" << endl;
+		  << bt.get_field("eprint") << "}{" << endl;
 	} else {
 	  cout << "No doi or eprint for: " << *bt.key << endl;
 	}
       
 	// Title
-	std::string title=bf.get_field(bt,"title");
+	std::string title=bt.get_field("title");
 	if (bf.is_field_present(bt,"title_latex")) {
-	  title=bf.get_field(bt,"title_latex");
+	  title=bt.get_field("title_latex");
 	}
 	stmp=((string)"{\\emph{")+title+"}}} \\\\";
 	rewrap(stmp,slist);
@@ -1101,7 +1103,7 @@ namespace btmanip {
 	}
       
 	// Authors
-	stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+	stmp=bf.author_firstlast(bt.get_field("author"),
 				 false,false)+", ";
 	rewrap(stmp,slist);
 	for(size_t k=0;k<slist.size();k++) {
@@ -1111,14 +1113,14 @@ namespace btmanip {
 	    (*outs) << slist[k] << " ";
 	  }
 	}
-	(*outs) << bf.get_field(bt,"year");
+	(*outs) << bt.get_field("year");
 	if (bf.is_field_present(bt,"journal")) {
-	  (*outs) << ", " << bf.get_field(bt,"journal") << ", \\textbf{";
-	  (*outs) << bf.get_field(bt,"volume") << "}, ";
-	  (*outs) << bf.first_page(bf.get_field(bt,"pages"));
+	  (*outs) << ", " << bt.get_field("journal") << ", \\textbf{";
+	  (*outs) << bt.get_field("volume") << "}, ";
+	  (*outs) << bf.first_page(bt.get_field("pages"));
 	}
 	(*outs) << ". \\\\" << endl;
-	(*outs) << "~[" << bf.get_field(bt,"utknote") << "]~" << endl;
+	(*outs) << "~[" << bt.get_field("utknote") << "]~" << endl;
       }
       (*outs) << "\\end{enumerate}" << endl;
     
@@ -1144,11 +1146,11 @@ namespace btmanip {
       std::string stmp;
       int count=0;
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	// Authors
         if (bf.is_field_present(bt,"author")) {
-          stmp=bf.author_firstlast(bf.get_field(bt,"author"),
+          stmp=bf.author_firstlast(bt.get_field("author"),
                                    false,false);
           bf.tilde_to_space(stmp);
           (*outs) << count+1 << ") ";
@@ -1156,15 +1158,15 @@ namespace btmanip {
         }
 
         if (bf.is_field_present(bt,"month")) {
-          (*outs) << bf.get_field(bt,"month") << " ";
+          (*outs) << bt.get_field("month") << " ";
         }
         if (bf.is_field_present(bt,"year")) {
-          (*outs) << bf.get_field(bt,"year") << ", ";
+          (*outs) << bt.get_field("year") << ", ";
         }
 	
 	// Title
 	if (bf.is_field_present(bt,"title")) {
-	  std::string title=bf.get_field(bt,"title");
+	  std::string title=bt.get_field("title");
 	  std::vector<std::string> slist;
 	  rewrap(title,slist,800);
           if (slist.size()>0) {
@@ -1174,7 +1176,7 @@ namespace btmanip {
 
 	// Conference
 	if (bf.is_field_present(bt,"conference")) {
-	  std::string conf=bf.get_field(bt,"conference");
+	  std::string conf=bt.get_field("conference");
 	  std::vector<std::string> slist;
 	  rewrap(conf,slist,800);
 	  (*outs) << slist[0] << ", ";
@@ -1182,16 +1184,16 @@ namespace btmanip {
 
 	// Institution
 	if (bf.is_field_present(bt,"city")) {
-	  (*outs) << bf.get_field(bt,"city") << ", ";
+	  (*outs) << bt.get_field("city") << ", ";
 	}
 	if (bf.is_field_present(bt,"country")) {
 	  if (bf.is_field_present(bt,"state")) {
-	    (*outs) << bf.get_field(bt,"state") << ", ";
+	    (*outs) << bt.get_field("state") << ", ";
 	  }
-	  (*outs) << bf.get_field(bt,"country") << ".";
+	  (*outs) << bt.get_field("country") << ".";
 	} else {
 	  if (bf.is_field_present(bt,"state")) {
-	    (*outs) << bf.get_field(bt,"state") << ".";
+	    (*outs) << bt.get_field("state") << ".";
 	  }
 	}
 
@@ -1221,7 +1223,7 @@ namespace btmanip {
       std::string stmp;
       int count=0;
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
         if (bf.lower_string(bt.tag)==((string)"article")) {
 
@@ -1229,7 +1231,7 @@ namespace btmanip {
           if (bf.is_field_present(bt,"author")) {
 
             std::vector<std::string> firstv, lastv;
-            bf.parse_author(bf.get_field(bt,"author"),firstv,lastv,true);
+            bf.parse_author(bt.get_field("author"),firstv,lastv,true);
             for(size_t j=0;j<firstv.size();j++) {
               firstv[j]=bf.spec_char_to_uni(firstv[j]);
               lastv[j]=bf.spec_char_to_uni(lastv[j]);
@@ -1252,19 +1254,19 @@ namespace btmanip {
           }
           
           if (bf.is_field_present(bt,"journal")) {
-            (*outs) << bf.spec_char_to_uni(bf.get_field(bt,"journal")) << " ";
+            (*outs) << bf.spec_char_to_uni(bt.get_field("journal")) << " ";
           }
           
           if (bf.is_field_present(bt,"volume")) {
-            (*outs) << bf.get_field(bt,"volume") << " ";
+            (*outs) << bt.get_field("volume") << " ";
           }
           
           if (bf.is_field_present(bt,"year")) {
-            (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+            (*outs) << "(" << bt.get_field("year") << ") ";
           }
           
           if (bf.is_field_present(bt,"pages")) {
-            (*outs) << bf.first_page(bf.get_field(bt,"pages")) << ".";
+            (*outs) << bf.first_page(bt.get_field("pages")) << ".";
           }
           
           (*outs) << std::endl;
@@ -1296,7 +1298,7 @@ namespace btmanip {
       }
     
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	bf.bib_output_one(*outs,bt);
 	if (i+1<bf.entries.size()) (*outs) << endl;
       }
@@ -1324,7 +1326,7 @@ namespace btmanip {
 	return 1;
       }
       for(size_t i=0;i<list.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.get_entry_by_key(list[i]);
+	bibtex_entry &bt=bf.get_entry_by_key(list[i]);
 	bf.bib_output_one(cout,bt);
       }
     
@@ -1552,7 +1554,7 @@ namespace btmanip {
       
       for(size_t i=0;i<bf.entries.size();i++) {
 	
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	// Ensure title, year, and author are present
 	if (bf.is_field_present(bt,"title") &&
@@ -1561,9 +1563,9 @@ namespace btmanip {
 
 	  // Separate the title into words
 	  std::vector<std::string> title_words;
-	  o2scl::split_string(bf.get_field(bt,"title"),title_words);
+	  o2scl::split_string(bt.get_field("title"),title_words);
 	  
-	  if (bf.get_field(bt,"title").length()>5 && title_words.size()>1) {
+	  if (bt.get_field("title").length()>5 && title_words.size()>1) {
 
 	    // Start with the last name of the first author
 	    std::string auth2=bf.last_name_first_author(bt);
@@ -1580,7 +1582,7 @@ namespace btmanip {
 
 	    // Add the year
 	    std::string key2=auth2+
-	      bf.get_field(bt,"year").substr(2,2);
+	      bt.get_field("year").substr(2,2);
 
 	    // Add the first characters of the first two
 	    // title words which begin with alphabetic characters
@@ -1696,7 +1698,7 @@ namespace btmanip {
     
       for(size_t i=0;i<bf.entries.size();i++) {
 
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	// Output tag and key
 	(*outs) << "@" << bt.tag << "{";
@@ -1828,21 +1830,21 @@ namespace btmanip {
       }
 
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	if (bf.is_field_present(bt,"url") &&
-	    bf.get_field(bt,"url").length()>0) {
-	  (*outs) << "<a href=\"" << bf.get_field(bt,"url")
+	    bt.get_field("url").length()>0) {
+	  (*outs) << "<a href=\"" << bt.get_field("url")
 		  << "\">" << bf.spec_char_to_html(bf.short_author(bt))
-		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
+		  << " (" << bt.get_field("year") << ")</a><br>" << endl;
 	} else if (bf.is_field_present(bt,"doi") &&
-		   bf.get_field(bt,"doi").length()>0) {
-	  (*outs) << "<a href=\"https://doi.org/" << bf.get_field(bt,"url")
+		   bt.get_field("doi").length()>0) {
+	  (*outs) << "<a href=\"https://doi.org/" << bt.get_field("url")
 		  << "\">" << bf.spec_char_to_html(bf.short_author(bt))
-		  << " (" << bf.get_field(bt,"year") << ")</a><br>" << endl;
+		  << " (" << bt.get_field("year") << ")</a><br>" << endl;
 	} else {
 	  (*outs) << bf.spec_char_to_html(bf.short_author(bt)) << " ("
-		  << bf.get_field(bt,"year") << ")<br>" << endl;
+		  << bt.get_field("year") << ")<br>" << endl;
 	}
       }
     
@@ -1872,7 +1874,7 @@ namespace btmanip {
       }
 
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
       
 	if (bt.key) {
 	  (*outs) << "    \\anchor " << prefix << *bt.key << " " << *bt.key
@@ -1884,41 +1886,41 @@ namespace btmanip {
 	  if (bf.is_field_present(bt,"author")) {
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "    <a href=\""
-		      << bf.get_field(bt,"url") << "\">" << endl;
+		      << bt.get_field("url") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "    <a href=\"https://doi.org/"
-		      << bf.get_field(bt,"doi") << "\">" << endl;
+		      << bt.get_field("doi") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << "</a>," << endl;
 	    } else {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << "," << endl;
 	    }
 	  }
 	  if (bf.is_field_present(bt,"journal")) {
-	    (*outs) << "    " << bf.get_field(bt,"journal") << " \\b ";
+	    (*outs) << "    " << bt.get_field("journal") << " \\b ";
 	  }
 	  if (bf.is_field_present(bt,"volume")) {
-	    (*outs) << bf.get_field(bt,"volume") << " ";
+	    (*outs) << bt.get_field("volume") << " ";
 	  }
 	  if (bf.is_field_present(bt,"year")) {
-	    (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+	    (*outs) << "(" << bt.get_field("year") << ") ";
 	  }
 	  if (bf.is_field_present(bt,"pages")) {
-	    (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	    (*outs) << bf.first_page(bt.get_field("pages")) << "." << endl;
 	  } else {
 	    (*outs) << "." << endl;
 	  }
 	  if (bf.is_field_present(bt,"title") &&
-	      bf.get_field(bt,"title").length()>1) {
+	      bt.get_field("title").length()>1) {
 	    (*outs) << "    \\comment" << endl;
 	    std::vector<std::string> svx;
-	    rewrap(bf.get_field(bt,"title"),svx,70);
+	    rewrap(bt.get_field("title"),svx,70);
 	    for(size_t kk=0;kk<svx.size();kk++) {
 	      if (kk==0) {
 		(*outs) << "    Title: " << svx[kk] << endl;
@@ -1933,14 +1935,14 @@ namespace btmanip {
 	} else if (bf.lower_string(bt.tag)==((string)"inbook")) {
 
 	  if (bf.is_field_present(bt,"crossref") &&
-	      bf.get_field(bt,"crossref").length()>0) {
+	      bt.get_field("crossref").length()>0) {
 	  
-	    bibtex::BibTeXEntry &bt2=
-	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
+            bibtex_entry &bt2=
+	      bf.get_entry_by_key(bt.get_field("crossref"));
 	  
 	    if (bf.is_field_present(bt,"author")) {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << ", \"" << bf.get_field(bt2,"title")
 		      << "\" in" << endl;
 	    }
@@ -1957,65 +1959,65 @@ namespace btmanip {
 		      << bf.get_field(bt2,"title")
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	      (*outs) << "    " << bt.get_field("title") << "," << endl;
 	    }
 	    (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
 		    << bf.get_field(bt2,"publisher") << ", p. "
-		    << bf.get_field(bt,"pages") << "." << endl;
+		    << bt.get_field("pages") << "." << endl;
 	    (*outs) << endl;
 	  } else {
 	    if (bf.is_field_present(bt,"author")) {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << "," << endl;
 	    }
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "    <a href=\""
-		      << bf.get_field(bt,"url") << "\">" << endl;
+		      << bt.get_field("url") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt,"title")
+		      << bt.get_field("title")
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
-		      << bf.get_field(bt,"isbn") << "\">" << endl;
+		      << bt.get_field("isbn") << "\">" << endl;
 	      (*outs) << "    "
-		      << bf.get_field(bt,"title")
+		      << bt.get_field("title")
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	      (*outs) << "    " << bt.get_field("title") << "," << endl;
 	    }
-	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		    << bf.get_field(bt,"publisher") << ", p. "
-		    << bf.get_field(bt,"pages") << "." << endl;
+	    (*outs) << "    (" << bt.get_field("year") << ") "
+		    << bt.get_field("publisher") << ", p. "
+		    << bt.get_field("pages") << "." << endl;
 	    (*outs) << endl;
 	  }
 
 	} else if (bf.lower_string(bt.tag)==((string)"book")) {
 
 	  if (bf.is_field_present(bt,"author")) {
-	    (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
+	    (*outs) << bf.author_firstlast(bt.get_field("author"))
 		    << "," << endl;
 	  }
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "<a href=\""
-		    << bf.get_field(bt,"url") << "\">" << endl;
+		    << bt.get_field("url") << "\">" << endl;
 	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
+		    << bt.get_field("title")
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
 	    (*outs) << "<a href=\"https://www.worldcat.org/isbn/"
-		    << bf.get_field(bt,"isbn") << "\">" << endl;
+		    << bt.get_field("isbn") << "\">" << endl;
 	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
+		    << bt.get_field("title")
 		    << "</a>," << endl;
 	  } else {
-	    (*outs) << bf.get_field(bt,"title") << "," << endl;
+	    (*outs) << bt.get_field("title") << "," << endl;
 	  }
-	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		  << bf.get_field(bt,"publisher");
+	  (*outs) << "    (" << bt.get_field("year") << ") "
+		  << bt.get_field("publisher");
 	  if (bf.is_field_present(bt,"note") &&
-	      bf.get_field(bt,"note").length()>0) {
-	    (*outs) << "\n    (" << bf.get_field(bt,"note") << ")";
+	      bt.get_field("note").length()>0) {
+	    (*outs) << "\n    (" << bt.get_field("note") << ")";
 	  }
 	  (*outs) << ".\n" << endl;
 	}
@@ -2053,7 +2055,7 @@ namespace btmanip {
       }
 
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 
 	if (list) {
 	  (*outs) << "<li>" << endl;
@@ -2062,7 +2064,7 @@ namespace btmanip {
 	if (bf.lower_string(bt.tag)==((string)"article")) {
 	  
 	  if (bf.is_field_present(bt,"title")) {
-	    std::string	title_temp=bf.get_field(bt,"title");
+	    std::string	title_temp=bt.get_field("title");
 	    // Remove quotes, braces, and spaces if necessary
 	    if (title_temp[0]=='\"' &&
 		title_temp[title_temp.size()-1]=='\"') {
@@ -2081,32 +2083,32 @@ namespace btmanip {
 	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "\"<a href=\""
-		      << bf.get_field(bt,"url") << "\">";
+		      << bt.get_field("url") << "\">";
 	      (*outs) << title_temp << "</a>\", ";
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "\"<a href=\"https://doi.org/"
-		      << bf.get_field(bt,"doi") << "\">";
+		      << bt.get_field("doi") << "\">";
 	      (*outs) << title_temp << "</a>\", ";
 	    } else {
 	      (*outs) << "\"" << title_temp << "\", ";
 	    }
 	  }
-	  (*outs) << bf.author_firstlast(bf.get_field(bt,"author"))
+	  (*outs) << bf.author_firstlast(bt.get_field("author"))
 		  << ", ";
 	  if (bf.is_field_present(bt,"journal")) {
-	    (*outs) << bf.get_field(bt,"journal") << " ";
+	    (*outs) << bt.get_field("journal") << " ";
 	  }
 	  if (bf.is_field_present(bt,"volume")) {
-	    (*outs) << "<b>" << bf.get_field(bt,"volume") << "</b> ";
+	    (*outs) << "<b>" << bt.get_field("volume") << "</b> ";
 	  }
 	  if (bf.is_field_present(bt,"year")) {
-	    (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+	    (*outs) << "(" << bt.get_field("year") << ") ";
 	  }
 	  if (bf.is_field_present(bt,"pages")) {
-	    (*outs) << bf.first_page(bf.get_field(bt,"pages"));
+	    (*outs) << bf.first_page(bt.get_field("pages"));
 	  }
 	  if (bf.is_field_present(bt,"eprint")) {
-	    string eprint_temp=bf.get_field(bt,"eprint");
+	    string eprint_temp=bt.get_field("eprint");
 	    if (eprint_temp[0]==' ') {
 	      eprint_temp=eprint_temp.substr(1,eprint_temp.size()-1);
 	    }
@@ -2123,14 +2125,14 @@ namespace btmanip {
 	} else if (bf.lower_string(bt.tag)==((string)"inbook")) {
 
 	  if (bf.is_field_present(bt,"crossref") &&
-	      bf.get_field(bt,"crossref").length()>0) {
+	      bt.get_field("crossref").length()>0) {
 	  
-	    bibtex::BibTeXEntry &bt2=
-	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
+            bibtex_entry &bt2=
+	      bf.get_entry_by_key(bt.get_field("crossref"));
 	  
 	    if (bf.is_field_present(bt,"author")) {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << ", \"" << bf.get_field(bt2,"title")
 		      << "\" in" << endl;
 	    }
@@ -2147,21 +2149,21 @@ namespace btmanip {
 		      << bf.get_field(bt2,"title")
 		      << "</a>," << endl;
 	    } else {
-	      (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	      (*outs) << "    " << bt.get_field("title") << "," << endl;
 	    }
 	    (*outs) << "    (" << bf.get_field(bt2,"year") << ") "
 		    << bf.get_field(bt2,"publisher") << ", p. "
-		    << bf.get_field(bt,"pages") << "." << endl;
+		    << bt.get_field("pages") << "." << endl;
 	    (*outs) << endl;
 	  } else {
 	    if (bf.is_field_present(bt,"author")) {
 	      (*outs) << "    "
-		      << bf.author_firstlast(bf.get_field(bt,"author"))
+		      << bf.author_firstlast(bt.get_field("author"))
 		      << "," << endl;
 	    }
 	    std::string title_temp;
 	    if (bf.is_field_present(bt,"title")) {
-	      title_temp=bf.get_field(bt,"title");
+	      title_temp=bt.get_field("title");
 	    }
 	    // Remove quotes, braces, and spaces if necessary
 	    if (title_temp[0]=='\"' &&
@@ -2181,22 +2183,22 @@ namespace btmanip {
 	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "    <a href=\""
-		      << bf.get_field(bt,"url") << "\">" << endl;
+		      << bt.get_field("url") << "\">" << endl;
 	      (*outs) << "    "
 		      << title_temp
 		      << "</a>," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
-		      << bf.get_field(bt,"isbn") << "\">" << endl;
+		      << bt.get_field("isbn") << "\">" << endl;
 	      (*outs) << "    "
 		      << title_temp
 		      << "</a>," << endl;
 	    } else {
 	      (*outs) << "    " << title_temp << "," << endl;
 	    }
-	    (*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		    << bf.get_field(bt,"publisher") << ", p. "
-		    << bf.get_field(bt,"pages") << "." << endl;
+	    (*outs) << "    (" << bt.get_field("year") << ") "
+		    << bt.get_field("publisher") << ", p. "
+		    << bt.get_field("pages") << "." << endl;
 	    (*outs) << endl;
 	  }
 
@@ -2204,29 +2206,29 @@ namespace btmanip {
 
 	  if (bf.is_field_present(bt,"author")) {
 	    (*outs) << "    "
-		    << bf.author_firstlast(bf.get_field(bt,"author"))
+		    << bf.author_firstlast(bt.get_field("author"))
 		    << "," << endl;
 	  }
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "    <a href=\""
-		    << bf.get_field(bt,"url") << "\">" << endl;
+		    << bt.get_field("url") << "\">" << endl;
 	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
+		    << bt.get_field("title")
 		    << "</a>," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
 	    (*outs) << "    <a href=\"https://www.worldcat.org/isbn/"
-		    << bf.get_field(bt,"isbn") << "\">" << endl;
+		    << bt.get_field("isbn") << "\">" << endl;
 	    (*outs) << "    "
-		    << bf.get_field(bt,"title")
+		    << bt.get_field("title")
 		    << "</a>," << endl;
 	  } else {
-	    (*outs) << "    " << bf.get_field(bt,"title") << "," << endl;
+	    (*outs) << "    " << bt.get_field("title") << "," << endl;
 	  }
-	  (*outs) << "    (" << bf.get_field(bt,"year") << ") "
-		  << bf.get_field(bt,"publisher");
+	  (*outs) << "    (" << bt.get_field("year") << ") "
+		  << bt.get_field("publisher");
 	  if (bf.is_field_present(bt,"note") &&
-	      bf.get_field(bt,"note").length()>0) {
-	    (*outs) << "\n    (" << bf.get_field(bt,"note") << ")";
+	      bt.get_field("note").length()>0) {
+	    (*outs) << "\n    (" << bt.get_field("note") << ")";
 	  }
 	  (*outs) << ".\n" << endl;
 	}
@@ -2251,11 +2253,11 @@ namespace btmanip {
 
       for(size_t i=0;i<bf.entries.size();i++) {
 	
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	
 	if (bf.is_field_present(bt,"inspireid")) {
 	  
-	  string id=bf.get_field(bt,"inspireid");
+	  string id=bt.get_field("inspireid");
 	  cout << "Found inspireid " << id << " in "
 	       << *bt.key << endl;
 	  
@@ -2277,7 +2279,7 @@ namespace btmanip {
 	    if (bf.is_field_present(bt,"citations")) {
 	      cout << "Current value of citations field for " << *bt.key
 		   << " is: "
-		   << bf.get_field(bt,"citations") << endl;
+		   << bt.get_field("citations") << endl;
 	    }
 	    cout << "Setting citations field of " << *bt.key
 		 << " to " << result << endl;
@@ -2314,11 +2316,11 @@ namespace btmanip {
       
       for(size_t i=0;i<bf.entries.size();i++) {
 	
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	
 	if (bf.is_field_present(bt,"bibcode")) {
 	  
-	  string bibcode=bf.get_field(bt,"bibcode");
+	  string bibcode=bt.get_field("bibcode");
 	  cout << "Found bibcode " << bibcode << " in "
 	       << *bt.key << endl;
 
@@ -2352,7 +2354,7 @@ namespace btmanip {
 	  if (bf.is_field_present(bt,"adscites")) {
 	    cout << "Current value of adscites field for " << *bt.key
 		 << " is: "
-		 << bf.get_field(bt,"adscites") << endl;
+		 << bt.get_field("adscites") << endl;
 	  }
 	  cout << "Setting adscites field of " << *bt.key
 	       << " to " << result << endl;
@@ -2383,13 +2385,13 @@ namespace btmanip {
       */
 
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	if (bf.is_field_present(bt,"year") &&
 	    bf.is_field_present(bt,"month") &&
 	    bf.is_field_present(bt,"citations")) {
-	  int pub_year=std::stoi(bf.get_field(bt,"year"));
+	  int pub_year=std::stoi(bt.get_field("year"));
 	  int delta_year=curr_year-pub_year;
-	  string month_str=bf.get_field(bt,"month");
+	  string month_str=bt.get_field("month");
 	  int pub_month=0;
 	  std::transform(month_str.begin(),month_str.end(),
 			 month_str.begin(),
@@ -2425,7 +2427,7 @@ namespace btmanip {
 	      delta_year--;
 	      delta_month+=12;
 	    }
-	    int citations=std::stoi(bf.get_field(bt,"citations"));
+	    int citations=std::stoi(bt.get_field("citations"));
 	    cout.width(20);
 	    cout << *bt.key << " ";
 	    cout.width(3);
@@ -2468,7 +2470,7 @@ namespace btmanip {
       // have more than one line because ReST is picky about spacing
       
       for(size_t i=0;i<bf.entries.size();i++) {
-	bibtex::BibTeXEntry &bt=bf.entries[i];
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
       
 	if (bt.key) {
 	  (*outs) << ".. [" << *bt.key << "] : ";
@@ -2478,16 +2480,16 @@ namespace btmanip {
 	  // Create rst output for an article
 
 	  if (bf.is_field_present(bt,"author")) {
-	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+	    string auth=bf.author_firstlast(bt.get_field("author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "   <" << bf.get_field(bt,"url") 
+	      (*outs) << "   <" << bt.get_field("url") 
 		      << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "   <https://doi.org/" << bf.get_field(bt,"doi") 
+	      (*outs) << "   <https://doi.org/" << bt.get_field("doi") 
 		      << ">`_," << endl;
 	    } else {
 	      (*outs) << auth << "," << endl;
@@ -2495,17 +2497,17 @@ namespace btmanip {
 	  }
 	  if (bf.is_field_present(bt,"journal")) {
 	    (*outs) << "   "
-		    << bf.spec_char_to_uni(bf.get_field(bt,"journal"))
+		    << bf.spec_char_to_uni(bt.get_field("journal"))
 		    << " **";
 	  }
 	  if (bf.is_field_present(bt,"volume")) {
-	    (*outs) << bf.get_field(bt,"volume") << "** ";
+	    (*outs) << bt.get_field("volume") << "** ";
 	  }
 	  if (bf.is_field_present(bt,"year")) {
-	    (*outs) << "(" << bf.get_field(bt,"year") << ") ";
+	    (*outs) << "(" << bt.get_field("year") << ") ";
 	  }
 	  if (bf.is_field_present(bt,"pages")) {
-	    (*outs) << bf.first_page(bf.get_field(bt,"pages")) << "." << endl;
+	    (*outs) << bf.first_page(bt.get_field("pages")) << "." << endl;
 	  } else {
 	    (*outs) << "." << endl;
 	  }
@@ -2515,22 +2517,22 @@ namespace btmanip {
 	  // Create rst output for an inbook entry
 	  
 	  if (bf.is_field_present(bt,"crossref") &&
-	      bf.get_field(bt,"crossref").length()>0) {
+	      bt.get_field("crossref").length()>0) {
 	    // Create rst output for an inbook entry with a crossref
 	  
-	    bibtex::BibTeXEntry &bt2=
-	      bf.get_entry_by_key(bf.get_field(bt,"crossref"));
+	    bibtex_entry &bt2=
+	      bf.get_entry_by_key(bt.get_field("crossref"));
 
 	    // Remove extra whitespace for titles which have more than
 	    // one line because ReST is picky about spacing
 	    string title2_temp=bf.get_field(bt2,"title");
 	    bf.thin_whitespace(title2_temp);
 
-	    string title_temp=bf.get_field(bt,"title");
+	    string title_temp=bt.get_field("title");
 	    bf.thin_whitespace(title_temp);
 	    
 	    if (bf.is_field_present(bt,"author")) {
-	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+	      string auth=bf.author_firstlast(bt.get_field("author"),
 					      true,true);
 	      auth=bf.spec_char_to_uni(auth);
 	      (*outs) << auth << ", "
@@ -2556,14 +2558,14 @@ namespace btmanip {
 	    }
 	    (*outs) << "   (" << bf.get_field(bt2,"year") << ") "
 		    << bf.spec_char_to_uni(bf.get_field(bt2,"publisher"))
-		    << ", p. " << bf.get_field(bt,"pages") << "." << endl;
+		    << ", p. " << bt.get_field("pages") << "." << endl;
 	    (*outs) << endl;
 	    
 	  } else {
 	    // Create rst output for an inbook entry without a crossref
 	    
 	    if (bf.is_field_present(bt,"author")) {
-	      string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+	      string auth=bf.author_firstlast(bt.get_field("author"),
 					      true,true);
 	      auth=bf.spec_char_to_uni(auth);
 	      (*outs) << auth << "," << endl;
@@ -2571,24 +2573,24 @@ namespace btmanip {
 	      (*outs) << endl;
 	    }
 	    
-	    string title_temp=bf.get_field(bt,"title");
+	    string title_temp=bt.get_field("title");
 	    bf.thin_whitespace(title_temp);
 	    
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
-		      << " <" << bf.get_field(bt,"url") << ">`_," << endl;
+		      << " <" << bt.get_field("url") << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"isbn")) {
 	      (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
 		      << " <https://www.worldcat.org/isbn/"
-		      << bf.get_field(bt,"isbn") << ">`_," << endl;
+		      << bt.get_field("isbn") << ">`_," << endl;
 	    } else {
 	      (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		      << "," << endl;
 	    }
-	    (*outs) << "   (" << bf.get_field(bt,"year") << ") "
-		    << bf.spec_char_to_uni(bf.get_field(bt,"publisher"))
+	    (*outs) << "   (" << bt.get_field("year") << ") "
+		    << bf.spec_char_to_uni(bt.get_field("publisher"))
 		    << ", p. "
-		    << bf.get_field(bt,"pages") << "." << endl;
+		    << bt.get_field("pages") << "." << endl;
 	    (*outs) << endl;
 	  }
 
@@ -2596,7 +2598,7 @@ namespace btmanip {
 	  // Create rst output for a book entry
 
 	  if (bf.is_field_present(bt,"author")) {
-	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+	    string auth=bf.author_firstlast(bt.get_field("author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
 	    (*outs) << auth << "," << endl;
@@ -2606,26 +2608,26 @@ namespace btmanip {
 	  
 	  // Remove extra whitespace for titles which have more than
 	  // one line because ReST is picky about spacing
-	  string title_temp=bf.get_field(bt,"title");
+	  string title_temp=bt.get_field("title");
 	  bf.thin_whitespace(title_temp);
 	  
 	  if (bf.is_field_present(bt,"url")) {
 	    (*outs) << "   `" << bf.spec_char_to_uni(title_temp);
-	    (*outs) << " <" << bf.get_field(bt,"url") << ">`_," << endl;
+	    (*outs) << " <" << bt.get_field("url") << ">`_," << endl;
 	  } else if (bf.is_field_present(bt,"isbn")) {
 	    (*outs) << "   `" << bf.spec_char_to_uni(title_temp)
 		    << " <https://www.worldcat.org/isbn/"
-		    << bf.get_field(bt,"isbn") << ">`_," << endl;
+		    << bt.get_field("isbn") << ">`_," << endl;
 	  } else {
 	    (*outs) << "   " << bf.spec_char_to_uni(title_temp)
 		    << "," << endl;
 	  }
-	  (*outs) << "   (" << bf.get_field(bt,"year") << ") "
-		  << bf.spec_char_to_uni(bf.get_field(bt,"publisher"));
+	  (*outs) << "   (" << bt.get_field("year") << ") "
+		  << bf.spec_char_to_uni(bt.get_field("publisher"));
 	  if (bf.is_field_present(bt,"note") &&
-	      bf.get_field(bt,"note").length()>0) {
+	      bt.get_field("note").length()>0) {
 
-	    string note_temp=bf.get_field(bt,"note");
+	    string note_temp=bt.get_field("note");
 	    bf.thin_whitespace(note_temp);
 	    
 	    (*outs) << "\n   ("
@@ -2638,42 +2640,42 @@ namespace btmanip {
 	  // Create rst output for a mastersthesis entry
 	  
 	  if (bf.is_field_present(bt,"author")) {
-	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+	    string auth=bf.author_firstlast(bt.get_field("author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "    <" << bf.get_field(bt,"url")
+	      (*outs) << "    <" << bt.get_field("url")
 		      << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "    <https://doi.org/" << bf.get_field(bt,"doi")
+	      (*outs) << "    <https://doi.org/" << bt.get_field("doi")
 		      << ">`_," << endl;
 	    }
 	  } 
-	  (*outs) << "    Thesis: " << bf.get_field(bt,"title") << endl;
-	  (*outs) << "    (" << bf.get_field(bt,"year") << ")";
+	  (*outs) << "    Thesis: " << bt.get_field("title") << endl;
+	  (*outs) << "    (" << bt.get_field("year") << ")";
 	  (*outs) << ".\n" << endl;
 
 	} else if (bf.lower_string(bt.tag)==((string)"misc")) {
 	  // Create rst output for a misc entry
 	  
 	  if (bf.is_field_present(bt,"author")) {
-	    string auth=bf.author_firstlast(bf.get_field(bt,"author"),
+	    string auth=bf.author_firstlast(bt.get_field("author"),
 					    true,true);
 	    auth=bf.spec_char_to_uni(auth);
 	    if (bf.is_field_present(bt,"url")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "    <" << bf.get_field(bt,"url")
+	      (*outs) << "    <" << bt.get_field("url")
 		      << ">`_," << endl;
 	    } else if (bf.is_field_present(bt,"doi")) {
 	      (*outs) << "`" << auth << endl;
-	      (*outs) << "    <https://doi.org/" << bf.get_field(bt,"doi")
+	      (*outs) << "    <https://doi.org/" << bt.get_field("doi")
 		      << ">`_," << endl;
 	    }
 	  } 
-	  (*outs) << "   " << bf.get_field(bt,"title");
-	  (*outs) << "(" << bf.get_field(bt,"year") << ")";
+	  (*outs) << "   " << bt.get_field("title");
+	  (*outs) << "(" << bt.get_field("year") << ")";
 	  (*outs) << ".\n" << endl;
 	}
       }
