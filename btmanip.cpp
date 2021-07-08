@@ -533,6 +533,24 @@ namespace btmanip {
       return 0;
     }
     
+    /** \brief Get information from inspirehep.net
+     */
+    virtual int inspire_refersto(std::vector<std::string> &sv, bool itive_com) {
+
+      std::cout << "Here1." << std::endl;
+      
+      int verbose=1;
+
+      std::string recid=sv[1];
+
+      std::string cmd=((string)"curl -H \"Accept: application/x-bibtex\" -X GET \"https://inspirehep.net")+
+        "/api/literature?q=refersto:recid:1814012\" > temp3";
+      
+      int ret=system(cmd.c_str());
+      
+      return 0;
+    }
+    
     /** \brief Sort the bib file by key
      */
     virtual int sort(std::vector<std::string> &sv, bool itive_com) {
@@ -2712,7 +2730,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=44;
+      static const int nopt=45;
       comm_option_s options[nopt]={
 	{'a',"add","Add a specified .bib file.",1,1,"<file>",
 	 ((std::string)"This command adds the entries in <file> to ")+
@@ -2934,6 +2952,9 @@ namespace btmanip {
 	{0,"inspire-get","",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::inspire_get),cli::comm_option_both},
+	{0,"inspire-refersto","",1,1,"","",
+	 new comm_option_mfptr<btmanip_class>
+	 (this,&btmanip_class::inspire_refersto),cli::comm_option_both},
 	{0,"ads-cites","Calculate ADSABS citations.",0,0,"","",
 	 new comm_option_mfptr<btmanip_class>
 	 (this,&btmanip_class::ads_cites),cli::comm_option_both},
