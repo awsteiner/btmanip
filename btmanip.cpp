@@ -379,8 +379,6 @@ namespace btmanip {
      */
     virtual int inspire_get(std::vector<std::string> &sv, bool itive_com) {
 
-      int verbose=1;
-      
       for(size_t i=0;i<bf.entries.size();i++) {
         bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[i]);
 	
@@ -388,7 +386,7 @@ namespace btmanip {
 	  
 	  string doi=bf.get_field(bt,"doi");
 	  
-	  if (verbose>1) {
+	  if (bf.verbose>1) {
 	    cout << "doi: " << doi << endl;
 	  }
 	  
@@ -396,12 +394,12 @@ namespace btmanip {
 	    "hep.net/search?action_search=Search&rg=1&of=recjson&"+
 	    "ln=en&p=find+doi+"+doi+"&jrec=0\"";
 	  string result;
-	  if (verbose>1) {
+	  if (bf.verbose>1) {
 	    cout << cmd << endl;
 	  }
 	  static const size_t nbuf=200000;
 	  int ret=pipe_cmd_string(cmd,result,false,nbuf);
-	  if (verbose>1) {
+	  if (bf.verbose>1) {
 	    cout << "Result length: " << result.length() << endl;
 	  }
 	  bool dl_failed=false;
@@ -411,7 +409,7 @@ namespace btmanip {
 	  }
 	  if (dl_failed==false) {
 	    auto j=nlohmann::json::parse(result);
-	    if (verbose>1) {
+	    if (bf.verbose>1) {
 	      cout << "Number of inspirehep.net results: "
 		   << j.size() << endl;
 	    }
@@ -451,7 +449,7 @@ namespace btmanip {
 		  auth_success=false;
 		}
 	      }
-	      if (verbose>1) {
+	      if (bf.verbose>1) {
 		cout << "authors: " << auth_list << endl;
 	      }
 	      bf.set_field_value(bt_new,"author",auth_list);
@@ -460,14 +458,14 @@ namespace btmanip {
 		
 		auto j_title=j[0]["title"].begin().value();
 		std::string title=j_title.get<std::string>();
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "title: " << bf.get_field(bt,"title") << endl;
 		}
 		bf.set_field_value(bt_new,"title",title);
 		
 		auto j_doi2=j[0]["doi"].begin().value();
 		std::string doi2=j_doi2.get<std::string>();
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "doi2: " << doi2 << endl;
 		}
 		bf.set_field_value(bt_new,"doi",doi2);
@@ -477,35 +475,35 @@ namespace btmanip {
 		if (eprint.substr(0,6)==((string)"arXiv:")) {
 		  eprint=eprint.substr(6,eprint.length()-6);
 		}
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "eprint: " << eprint << endl;
 		}
 		bf.set_field_value(bt_new,"eprint",eprint);
 		
 		auto j_pages=j[0]["publication_info"]["pagination"].begin();
 		std::string pages=j_pages.value().get<std::string>();
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "pages: " << pages << endl;
 		}
 		bf.set_field_value(bt_new,"pages",pages);
 		
 		auto j_journal=j[0]["publication_info"]["title"].begin();
 		std::string journal=j_journal.value().get<std::string>();
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "journal: " << journal << endl;
 		}
 		bf.set_field_value(bt_new,"journal",journal);
 		
 		auto j_volume=j[0]["publication_info"]["volume"].begin();
 		std::string volume=j_volume.value().get<std::string>();
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "volume: " << volume << endl;
 		}
 		bf.set_field_value(bt_new,"volume",volume);
 		
 		auto j_year=j[0]["publication_info"]["year"].begin();
 		std::string year=j_year.value().get<std::string>();
-		if (verbose>1) {
+		if (bf.verbose>1) {
 		  cout << "year: " << year << endl;
 		}
 		bf.set_field_value(bt_new,"year",year);
@@ -546,8 +544,6 @@ namespace btmanip {
     virtual int inspire_refersto(std::vector<std::string> &sv,
                                  bool itive_com) {
 
-      int verbose=2;
-
       std::string recid=sv[1];
 
       int pages=1;
@@ -566,7 +562,7 @@ namespace btmanip {
           o2scl::itos(ip+1)+"&q=refersto:recid:"+sv[1]+
           "\" > /tmp/btmanip.tmp";
           
-        if (verbose>1) {
+        if (bf.verbose>1) {
           cout << "cmd: " << cmd << endl;
         }
         int ret=system(cmd.c_str());
@@ -632,13 +628,6 @@ namespace btmanip {
     virtual int inspire_recent_cites(std::vector<std::string> &sv,
                                      bool itive_com) {
 
-      int verbose=2;
-
-      std::string recid=sv[1];
-
-      int pages=1;
-      int total=1;
-
       bool first_page_only=true;
 
       vector<string> id_list_new;
@@ -655,8 +644,6 @@ namespace btmanip {
         id_list_old.push_back(stmp);
       }
       fin.close();
-      
-      vector_sort<vector<string>,string>(id_list_old.size(),id_list_old);
       
       // Compute new date
       {
@@ -682,6 +669,9 @@ namespace btmanip {
           frecent << line << endl;
         }
       }
+
+      cout << "date_old: " << date_old << endl;
+      cout << "date_new: " << date_new << endl;
       
       // --
       frecent << " <p>From inspirehep.net between "
@@ -695,6 +685,9 @@ namespace btmanip {
         
         bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[ie]);
         
+        int pages=1;
+        int total=1;
+
         if (bf.is_field_present(bt,"inspireid")) {
           string inspire_id=bf.get_field(bt,"inspireid");
           
@@ -707,7 +700,7 @@ namespace btmanip {
               o2scl::itos(ip+1)+"&q=refersto:recid:"+inspire_id+
               "\" > /tmp/btmanip.tmp";
             
-            if (verbose>1) {
+            if (bf.verbose>1) {
               cout << "cmd: " << cmd << endl;
             }
             int ret=system(cmd.c_str());
@@ -749,10 +742,13 @@ namespace btmanip {
               std::string id=j_id.get<std::string>();
               cout << "id: " << id << endl;
               id_list_new.push_back(id);
+              size_t ix_found;
+              if (vector_search<vector<string>,string>(id_list_old.size(),
+                                                       id_list_old,id,
+                                                       ix_found)==false) {
+                cout << "New citation recid: " << id << endl;
+              }
             }
-          
-            char ch;
-            cin >> ch;
           
             if (first_page_only) {
               ip=pages;

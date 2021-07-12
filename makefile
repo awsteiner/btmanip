@@ -116,4 +116,9 @@ test3:
 empty: 
 
 test4:
-	./btmanip -set verbose 2 -inspire-refersto 1710004 -lk
+	./btmanip -set verbose 2 -parse ~/wcs/int7/cv/pubs.bib \
+		-inspire-recent-cites \
+		~/wcs/int7/cites/cache.txt \
+		~/wcs/int7/web/ns/research/recent.shtml \
+		~/wcs/int7/cites/header.html \
+		~/wcs/int7/cites/footer.html
