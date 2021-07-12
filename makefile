@@ -115,3 +115,5 @@ test3:
 
 empty: 
 
+test4:
+	./btmanip -set verbose 2 -inspire-refersto 1710004 -lk
