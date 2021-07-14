@@ -678,7 +678,10 @@ namespace btmanip {
       cout << "date_new: " << date_new << endl;
       
       // --
-      frecent << " <p>From inspirehep.net between "
+      size_t margin=10;
+      
+      for(size_t im=0;im<margin;im++) frecent << ' ';
+      frecent << "<p>From inspirehep.net between "
               << date_old << " and " << date_new << ". </p>" << endl;
       frecent << endl;
       
@@ -719,22 +722,17 @@ namespace btmanip {
               cout << "cmd: " << cmd << endl;
             }
             int ret=system(cmd.c_str());
-            cout << "Hm1." << endl;
-            
-            // Load the file into a string so we can parse the JSON
-            cmd="cat /tmp/btmanip.tmp";
+
+            ifstream fin;
+            fin.open("/tmp/btmanip.tmp");
             std::string result;
-            // 20 MB
-            int max_size=20*1e3*1e3;
-            pipe_cmd_string(cmd,result,false,max_size);
+            getline(fin,result);
+            fin.close();
           
-            cout << "H0." << endl;
             // Parse the JSON 
             auto j=nlohmann::json::parse(result);
 
-            cout << "H1." << endl;
             if (ip==0) {
-              cout << "H2." << endl;
               // Determine the total number of citations
               auto j_total=j["hits"]["total"];
               total=j_total.get<int>();
@@ -756,7 +754,6 @@ namespace btmanip {
             cout << "Number of entries in this page: " << n_arr << endl;
           
             // Get the record ID of each citation
-            cout << "H3." << endl;
             for(int i=0;i<n_arr;i++) {
               auto j_id=j["hits"]["hits"][i]["id"];
               std::string id=j_id.get<std::string>();
@@ -767,9 +764,14 @@ namespace btmanip {
                                                        ix_found)==false) {
                 
                 if (title_written==false) {
-                  frecent << "New citations for article titled \"" << endl;
+                  for(size_t im=0;im<margin;im++) frecent << ' ';
+                  frecent << "<p>New citations for article titled " << endl;
                   for(size_t ik=0;ik<sv.size();ik++) {
-                    frecent << "  " << sv[ik];
+                    if (ik==0) {
+                      frecent << "  \"" << sv[ik];
+                    } else {
+                      frecent << "  " << sv[ik];
+                    }
                     if (ik==sv.size()-1) frecent << "\":";
                     frecent << endl;
                   }
@@ -797,9 +799,11 @@ namespace btmanip {
                 
                 cout << "  Cited by article " << eprint << " titled ";
                 cout << title << " ." << endl;
-                frecent << "  Cited by article " << eprint << " titled ";
+                
+                for(size_t im=0;im<margin;im++) frecent << ' ';
+                frecent << "  <li>Cited by article " << eprint << " titled ";
                 frecent << "<a href=\"https://arxiv.org/abs/" << eprint
-                        << "\">" << title << "</a>." << endl;
+                        << "\">" << title << "</a>.</li>" << endl;
                 
               }
             }
@@ -810,6 +814,11 @@ namespace btmanip {
           
           }
         }
+        
+        if (title_written) {
+          frecent << "</ul></p>" << endl;
+        }
+        
         cout << "Sleeping for a minute." << endl;
         sleep(60);
         cout << "Done sleeping." << endl;
