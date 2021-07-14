@@ -719,6 +719,7 @@ namespace btmanip {
               cout << "cmd: " << cmd << endl;
             }
             int ret=system(cmd.c_str());
+            cout << "Hm1." << endl;
             
             // Load the file into a string so we can parse the JSON
             cmd="cat /tmp/btmanip.tmp";
@@ -727,10 +728,13 @@ namespace btmanip {
             int max_size=20*1e3*1e3;
             pipe_cmd_string(cmd,result,false,max_size);
           
+            cout << "H0." << endl;
             // Parse the JSON 
             auto j=nlohmann::json::parse(result);
-          
+
+            cout << "H1." << endl;
             if (ip==0) {
+              cout << "H2." << endl;
               // Determine the total number of citations
               auto j_total=j["hits"]["total"];
               total=j_total.get<int>();
@@ -752,6 +756,7 @@ namespace btmanip {
             cout << "Number of entries in this page: " << n_arr << endl;
           
             // Get the record ID of each citation
+            cout << "H3." << endl;
             for(int i=0;i<n_arr;i++) {
               auto j_id=j["hits"]["hits"][i]["id"];
               std::string id=j_id.get<std::string>();
