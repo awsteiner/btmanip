@@ -31,6 +31,8 @@
 
 // For time()
 #include <ctime>
+#include <string>
+#include <vector>
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -638,12 +640,14 @@ namespace btmanip {
 
       ifstream fin;
       fin.open(sv[1]);
-      fin >> date_old;
+      getline(fin,date_old);
 
       while (fin >> stmp) {
         id_list_old.push_back(stmp);
       }
       fin.close();
+      cout << "Found " << id_list_old.size()
+           << " entries in cache." << endl;
       
       // Compute new date
       {
@@ -679,11 +683,22 @@ namespace btmanip {
       frecent << endl;
       
       for(size_t ie=0;ie<bf.entries.size();ie++) {
-        
+
+        bool title_written=false;
+
         cout << ie << " of " << bf.entries.size()
              << " publications." << endl;
-        
+
         bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[ie]);
+        
+        cout << "Article titled " << endl;
+        vector<string> sv;
+        o2scl::rewrap(bf.get_field(bt,"title"),sv);
+        for(size_t ik=0;ik<sv.size();ik++) {
+          cout << "  " << sv[ik];
+          if (ik==sv.size()-1) cout << ":";
+          cout << endl;
+        }
         
         int pages=1;
         int total=1;
@@ -741,12 +756,46 @@ namespace btmanip {
               auto j_id=j["hits"]["hits"][i]["id"];
               std::string id=j_id.get<std::string>();
               cout << "id: " << id << endl;
-              id_list_new.push_back(id);
               size_t ix_found;
               if (vector_search<vector<string>,string>(id_list_old.size(),
                                                        id_list_old,id,
                                                        ix_found)==false) {
-                cout << "New citation recid: " << id << endl;
+                
+                if (title_written==false) {
+                  frecent << "New citations for article titled \"" << endl;
+                  for(size_t ik=0;ik<sv.size();ik++) {
+                    frecent << "  " << sv[ik];
+                    if (ik==sv.size()-1) frecent << "\":";
+                    frecent << endl;
+                  }
+                  title_written=true;
+                }
+                //cout << "New citation recid: " << id << endl;
+                id_list_new.push_back(id);
+                auto j_entry=j["hits"]["hits"][i];
+                std::string title="<no title>";
+                auto j_title_list=j_entry["metadata"]["titles"];
+                if (j_title_list.size()>0) {
+                  auto j_title=j_title_list[0]["title"];
+                  title=j_title.get<std::string>();
+                }
+                std::string eprint="<none>";
+                auto j_eprint_list=j_entry["metadata"]["arxiv_eprints"];
+                if (j_eprint_list.size()>0) {
+                  auto j_eprint=j_eprint_list[0]["value"];
+                  eprint=j_eprint.get<std::string>();
+                }
+
+                if (title[0]!='\"' && title[title.length()-1]!='\"') {
+                  title=((string)"\"")+title+"\"";
+                }
+                
+                cout << "  Cited by article " << eprint << " titled ";
+                cout << title << " ." << endl;
+                frecent << "  Cited by article " << eprint << " titled ";
+                frecent << "<a href=\"https://arxiv.org/abs/" << eprint
+                        << "\">" << title << "</a>." << endl;
+                
               }
             }
           
@@ -756,9 +805,10 @@ namespace btmanip {
           
           }
         }
-        cout << "Sleeping." << endl;
+        cout << "Sleeping for a minute." << endl;
         sleep(60);
         cout << "Done sleeping." << endl;
+        cout << endl;
       }
 
       if (sv.size()>=5) {
@@ -769,6 +819,18 @@ namespace btmanip {
           frecent << line << endl;
         }
       }
+
+      // Add entries in id_list_new to id_list_old, but check
+      // for duplicates
+      for(size_t i=0;i<id_list_new.size();i++) {
+        size_t ix_found;
+        if (vector_search<vector<string>,string>(id_list_old.size(),
+                                                 id_list_old,id_list_new[i],
+                                                 ix_found)==false) {
+          id_list_old.push_back(id_list_new[i]);
+        }
+      }
+      id_list_new=id_list_old;
       
       // Update cache
       ofstream foutcache(sv[1]);
@@ -777,10 +839,6 @@ namespace btmanip {
         foutcache << id_list_new[j] << endl;
       }
       foutcache.close();
-      //bf.entries.clear();
-      //bf.sort.clear();
-      
-      //bf.parse_bib("/tmp/btmanip.tmp");
       
       return 0;
     }
