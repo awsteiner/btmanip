@@ -765,7 +765,7 @@ namespace btmanip {
                 
                 if (title_written==false) {
                   for(size_t im=0;im<margin;im++) frecent << ' ';
-                  frecent << "<p>New citations for article titled " << endl;
+                  frecent << "<p>New citations for " << endl;
                   for(size_t ik=0;ik<sv.size();ik++) {
                     if (ik==0) {
                       frecent << "  \"" << sv[ik];
@@ -801,7 +801,7 @@ namespace btmanip {
                 cout << title << " ." << endl;
                 
                 for(size_t im=0;im<margin;im++) frecent << ' ';
-                frecent << "  <li>Cited by article " << eprint << " titled ";
+                frecent << "  <li>arXiv.org/" << eprint << ": ";
                 frecent << "<a href=\"https://arxiv.org/abs/" << eprint
                         << "\">" << title << "</a>.</li>" << endl;
                 
