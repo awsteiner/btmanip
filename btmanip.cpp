@@ -1226,7 +1226,7 @@ namespace btmanip {
 	  (*outs) << slist[k] << std::endl;
 	}
 
-	// Conference and institution
+	// Conference
 	if (bf.is_field_present(bt,"conference") &&
 	    bt.get_field("conference").length()>0) {
 	  if (bf.is_field_present(bt,"url") &&
@@ -1239,13 +1239,18 @@ namespace btmanip {
 		    << "}, \\\\" << endl;
 	  }
 	}
+
+        // Institution
 	if (bf.is_field_present(bt,"institution") &&
 	    bt.get_field("institution").length()>0) {
 	  (*outs) << bt.get_field("institution") << ", ";
 	}
 
 	// Location
-	(*outs) << bt.get_field("city") << ", ";
+	if (bf.is_field_present(bt,"city") &&
+            bt.get_field("city").length()>0) {
+          (*outs) << bt.get_field("city") << ", ";
+        }
 	if (bf.is_field_present(bt,"state") &&
 	    bt.get_field("state").length()>0) {
 	  (*outs) << bt.get_field("state") << ", ";
