@@ -723,11 +723,11 @@ namespace btmanip {
             }
             int ret=system(cmd.c_str());
 
-            ifstream fin;
-            fin.open("/tmp/btmanip.tmp");
+            ifstream fin2;
+            fin2.open("/tmp/btmanip.tmp");
             std::string result;
-            getline(fin,result);
-            fin.close();
+            getline(fin2,result);
+            fin2.close();
           
             // Parse the JSON 
             auto j=nlohmann::json::parse(result);
@@ -969,9 +969,9 @@ namespace btmanip {
 		  // Remake 'sort' object
 		  bf.sort.clear();
 		  for(size_t i2=0;i2<bf.entries.size();i2++) {
-		    bibtex::BibTeXEntry &bt2=bf.entries[i2];
-		    if (bf.sort.find(*bt2.key)==bf.sort.end()) {
-		      bf.sort.insert(make_pair(*bt2.key,i2));
+		    bibtex::BibTeXEntry &bt3=bf.entries[i2];
+		    if (bf.sort.find(*bt3.key)==bf.sort.end()) {
+		      bf.sort.insert(make_pair(*bt3.key,i2));
 		    }
 		  }
 		} else if (ch=='q') {

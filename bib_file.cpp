@@ -2137,7 +2137,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
   int row, screen_width;
   o2scl::get_screen_size_ioctl(row,screen_width);
   
-  if (screen_width<min_twoup) {
+  if (screen_width<((int)min_twoup)) {
 
     string stmp=left_header+" ( matching ";
     stmp+=ter.cyan_fg();
@@ -2680,8 +2680,8 @@ void bib_file::add_bib(std::string fname) {
 	  ofstream fout;
 	  fout.open(fname2);
 	  for(size_t i2=0;i2<entries2.size();i2++) {
-            bibtex_entry &bt=static_cast<bibtex_entry &>(entries2[i2]);
-	    bib_output_one(fout,bt);
+            bibtex_entry &bt3=static_cast<bibtex_entry &>(entries2[i2]);
+	    bib_output_one(fout,bt3);
 	    if (i2+1<entries2.size()) (fout) << endl;
 	  }
 	  fout.close();
