@@ -695,11 +695,11 @@ namespace btmanip {
         bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[ie]);
         
         cout << "Article titled " << endl;
-        vector<string> sv;
-        o2scl::rewrap(bf.get_field(bt,"title"),sv);
-        for(size_t ik=0;ik<sv.size();ik++) {
-          cout << "  " << sv[ik];
-          if (ik==sv.size()-1) cout << ":";
+        vector<string> sv2;
+        o2scl::rewrap(bf.get_field(bt,"title"),sv2);
+        for(size_t ik=0;ik<sv2.size();ik++) {
+          cout << "  " << sv2[ik];
+          if (ik==sv2.size()-1) cout << ":";
           cout << endl;
         }
         
@@ -968,10 +968,10 @@ namespace btmanip {
 		  *bt2.key=new2;
 		  // Remake 'sort' object
 		  bf.sort.clear();
-		  for(size_t i=0;i<bf.entries.size();i++) {
-		    bibtex::BibTeXEntry &bt=bf.entries[i];
-		    if (bf.sort.find(*bt.key)==bf.sort.end()) {
-		      bf.sort.insert(make_pair(*bt.key,i));
+		  for(size_t i2=0;i2<bf.entries.size();i2++) {
+		    bibtex::BibTeXEntry &bt2=bf.entries[i2];
+		    if (bf.sort.find(*bt2.key)==bf.sort.end()) {
+		      bf.sort.insert(make_pair(*bt2.key,i2));
 		    }
 		  }
 		} else if (ch=='q') {

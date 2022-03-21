@@ -1084,8 +1084,8 @@ void bib_file::clean(bool prompt) {
       std::string old_tag=bt.tag;
       // Capitalize first letter and downcase all other letters
       bt.tag[0]=std::toupper(bt.tag[0]);
-      for(size_t i=1;i<bt.tag.size();i++) {
-	bt.tag[i]=std::tolower(bt.tag[i]);
+      for(size_t i2=1;i2<bt.tag.size();i2++) {
+	bt.tag[i2]=std::tolower(bt.tag[i2]);
       }
       // Manually fix tags which normally have more than one
       // uppercase letter
@@ -2679,10 +2679,10 @@ void bib_file::add_bib(std::string fname) {
 
 	  ofstream fout;
 	  fout.open(fname2);
-	  for(size_t i=0;i<entries2.size();i++) {
-            bibtex_entry &bt=static_cast<bibtex_entry &>(entries2[i]);
+	  for(size_t i2=0;i2<entries2.size();i2++) {
+            bibtex_entry &bt=static_cast<bibtex_entry &>(entries2[i2]);
 	    bib_output_one(fout,bt);
-	    if (i+1<entries2.size()) (fout) << endl;
+	    if (i2+1<entries2.size()) (fout) << endl;
 	  }
 	  fout.close();
 	  
