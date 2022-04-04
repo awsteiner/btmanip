@@ -876,7 +876,15 @@ namespace btmanip {
     }
 
     /** \brief Find duplicates between two .bib files
-     */
+
+        [file 1] [file 2]
+
+        If no filenames are specified, then look for duplicates among
+        the current entries. If one filename is specified, then
+        compare the current entries to the specified file to find
+        duplicate entries. Finally, if two filenames are specified,
+        find duplicates between the two files.
+    */
     virtual int dup(std::vector<std::string> &sv, bool itive_com) {
 
       bool found=false;
@@ -1061,7 +1069,13 @@ namespace btmanip {
       return 0;
     }
     
-    /** \brief Add a .bib file
+    /** \brief Add a specified .bib file
+        
+        <filename>
+        
+        This command adds the entries in <filename> to the current
+        list of entries, prompting the user how to handle possible
+        duplicate entries.
      */
     virtual int add(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1100,6 +1114,26 @@ namespace btmanip {
     }
   
     /** \brief Output the BibTeX data as .tex for input in a CV
+
+        [file]
+
+        Output articles in a list format for LaTeX. They
+        are formatted using:
+
+        <pre>
+        \noindent 1. ``Title'',
+        Author list,
+        \href{URL}
+        {{\it Journal} {\bf Volume} (Year) First page.}
+        (\href{Arxiv URL}{arXiv:number} - citations)
+        </pre>
+
+        The title is wrapped to 80 columns. The author list is
+        converted to initials and last names and then wrapped to 80
+        columns. The URL is constructed from the DOI entry, and the
+        citations is taken from a custom field named 'citations'. A
+        footnote is added to the first article with at least one
+        citation.
      */
     virtual int cv(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1195,7 +1229,20 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data as .tex for input in a CV
+    /** \brief Output the BibTeX data for talks as .tex for input in a CV
+
+        [file]
+
+        Output talks in a list format for LaTeX. They are formatted
+        using:
+
+        \\noindent 1. ``Title'',
+        {\\bf \\href{URL}{Conference}},
+        Institution, City, State, Country, Month Year.
+
+        The title is wrapped to 80 columns. If the field 'title_latex'
+        is present it is used for the title. A three-letter
+        abbreviation is used for the month.
      */
     virtual int cv_talks(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1615,6 +1662,11 @@ namespace btmanip {
     }
   
     /** \brief Output the BibTeX data as a new .bib file
+
+        [file]
+
+        Output all of the current entries in .bib format to the
+        screen, or if a file is specified, to the file.
      */
     virtual int bib(std::vector<std::string> &sv, bool itive_com) {
     
@@ -1640,6 +1692,13 @@ namespace btmanip {
     }
   
     /** \brief Get one bibtex entry by it's key
+
+        <key pattern>
+
+        Get a single BibTeX entry from the current list of entries by
+        matching keys to the specified pattern and output that key to
+        the screen in .bib format. If no keys match then an error
+        message is output to the screen.
      */
     virtual int get_key(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1662,7 +1721,11 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Find all duplicate entries cited in a set of bbl files
+    /** \brief Look for duplicates among all .bbl entries.
+
+        <bbl file 1> [bbl file 2] [bbl file 3] ...
+
+        Desc.
      */
     virtual int bbl_dups(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1876,8 +1939,13 @@ namespace btmanip {
       return 0;
     }
     
-    /** \brief Loop over all entries and change keys 
-	to a standard key if possible
+    /** \brief Automatically set keys for all entries.
+
+        (No arguments.)
+
+        This command automatically sets the key for all entries equal
+        to the Last name of the first author, a two-digit year, and
+        the first two letters of the title.
     */
     virtual int auto_key(std::vector<std::string> &sv, bool itive_com) {
       
@@ -1939,8 +2007,15 @@ namespace btmanip {
       }
       return 0;
     }
-  
+
     /** \brief Change the key of an entry
+        
+        <key pattern> <new key>
+        
+        This command searches the current list of BibTeX entries for
+        keys matching <key pattern>. If only one key matches the
+        pattern, then this key is renamed to <new key>. Otherwise, an
+        error message is output and no keys are renamed.
      */
     virtual int change_key(std::vector<std::string> &sv, bool itive_com) {
       
@@ -2140,7 +2215,25 @@ namespace btmanip {
     }
 
     /** \brief Clean the bibliography
-     */
+
+        ["fast"]
+
+        This command cleans up the bibliography in several ways.
+        First, if 'normalize_tags' is true, it ensures all of the tags
+        have the standard capitalization It converts all fields to
+        lowercase if 'lowercase_fields' is true. It removes extra
+        braces ({}) from every field. It removes any unwanted fields
+        (see 'remove-field'). It removes extra whitespace from all all
+        fields. If a journal name list has been loaded it renames the
+        journal to the standard abbreviation. If 'remove_vol_letters'
+        is true, it moves some letters in volume numbers to the end of
+        the journal name. If 'autoformat_urls' is true, it
+        automatically creates a URL from the DOI or ISBN. If
+        'add_empty_titles' is true, it adds empty titles to articles
+        or proceedings which don't have a title. Finally, if
+        'check_required' is true, it checks to make sure that all
+        required fields are included.
+    */
     virtual int clean(std::vector<std::string> &sv, bool itive_com) {
       if (sv.size()>1 && sv[1]==((std::string)"fast")) {
 	bf.clean(false);
@@ -2190,6 +2283,22 @@ namespace btmanip {
   
     /** \brief Output the BibTeX data as a new .bib file 
 	in a doxygen format for O2scl
+
+        [file]
+
+        This outputs articles in the following format:
+
+        \anchor [prefix]key key:
+        <a href=\"URL\">
+        Author List</a>,
+        journal \\\\b volume (year) pages.
+
+        and books in the following format:
+
+        \anchor [prefix]key key:
+        Author List,
+        <a href=\"URL\">title</a>,
+        (year) publisher, p. page.",
     */
     virtual int dox(std::vector<std::string> &sv, bool itive_com) {
     
@@ -2364,6 +2473,23 @@ namespace btmanip {
     }
   
     /** \brief Output the BibTeX data in a longer HTML format
+
+        ["list"] [file]
+
+        This outputs articles in the following format:
+        "<a href="URL">Title</a>", Author List,
+        journal <b>volume</b> (year) pages
+        <a href="arXiv URL">arXiv number</a>.
+
+        and books in the following format:
+
+        \anchor [prefix]key key:
+        Author List,
+        <a href="URL">title</a>,
+        (year) publisher, p. page.
+
+        If the first argument to 'html' is "list", then all entries
+        are preceeded by "<li>" and succeeded by "</li>"
      */
     virtual int html(std::vector<std::string> &sv, bool itive_com) {
 
@@ -3048,134 +3174,70 @@ namespace btmanip {
       static const int nopt=46;
       comm_option_s options[nopt]=
         {
-         {'a',"add","Add a specified .bib file.",1,1,"<file>",
-          ((std::string)"This command adds the entries in <file> to ")+
-          "the current list of entries, prompting the user how to "+
-          "handle possible duplicate entries.",
-          new comm_option_mfptr<btmanip_class>(this,&btmanip_class::add),
-          cli::comm_option_both},
-         {0,"bbl-dups","Look for duplicates among all .bbl entries.",-1,-1,
-          "","",new comm_option_mfptr<btmanip_class>
-          (this,&btmanip_class::bbl_dups),cli::comm_option_both},
-         {0,"auto-key","Automatically set keys for all entries.",0,0,"",
-          ((std::string)"This command automatically sets the key ")+
-          "for all entries equal to the Last name of the first "+
-          "author, a two-digit year, and the first two letters of "+
-          "the title.",new comm_option_mfptr<btmanip_class>
-          (this,&btmanip_class::auto_key),cli::comm_option_both},
-         {'b',"bib","Output a .bib file.",0,1,"[file]",
-          ((std::string)"Output all of the current entries in .bib ")+
-          "format to the screen, or if a file is specified, to the file.",
-          new comm_option_mfptr<btmanip_class>(this,&btmanip_class::bib),
-          cli::comm_option_both},
-         {0,"change-key","Change an entry's key.",2,2,
-          "<key pattern> <new key>",
-          ((std::string)"This command searches the current list of ")+
-          "BibTeX entries for keys matching <key pattern>. If only "+
-          "one key matches the pattern, then this key is renamed to "+
-          "<new key>. Otherwise, an error message is output and no "+
-          "keys are renamed.",
+          {'a',"add","",1,1,"","",
           new comm_option_mfptr<btmanip_class>
-          (this,&btmanip_class::change_key),cli::comm_option_both},
+          (this,&btmanip_class::add),cli::comm_option_both,
+          1,"","btmanip_class","add",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {0,"bbl-dups","",-1,-1,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::bbl_dups),cli::comm_option_both,
+          1,"","btmanip_class","bbl_dups",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {0,"auto-key","",0,0,"","",new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::auto_key),cli::comm_option_both,
+          1,"","btmanip_class","auto_key",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {'b',"bib","",0,1,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::bib),cli::comm_option_both,
+          1,"","btmanip_class","bib",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {0,"change-key","",2,2,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::change_key),cli::comm_option_both,
+          1,"","btmanip_class","change_key",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
          {0,"ck","Change an entry's key (alias of change-key).",2,2,
           "<key before> <key after>",
           "This command is an alias for 'change-key'.",
           new comm_option_mfptr<btmanip_class>
           (this,&btmanip_class::change_key),cli::comm_option_both},
-         {0,"clean","Clean up the bibliography.",0,1,"[\"fast\"]",
-          ((std::string)"This command cleans up the bibliography ")+
-          "in several ways. First, if 'normalize_tags' is true, "+
-          "it ensures all of the tags have the standard capitalization "+
-          "It converts all fields to "+
-          "lowercase if 'lowercase_fields' is true. It removes extra "+
-          "braces ({}) from every field. It removes any unwanted "+
-          "fields (see 'remove-field'). It removes extra whitespace "+
-          "from all all fields. If a journal name list has been loaded "+
-          "it renames the journal to the standard abbreviation. If "+
-          "'remove_vol_letters' is true, it moves some letters in "+
-          "volume numbers to the end of the journal name. If "+
-          "'autoformat_urls' is true, it automatically creates a URL "+
-          "from the DOI or ISBN. If 'add_empty_titles' is true, it adds "+
-          "empty titles to articles or proceedings which don't have a "+
-          "title. Finally, if 'check_required' is true, it checks to make "+
-          "sure that all required fields are included.",
+         {0,"clean","",0,1,"","",
           new comm_option_mfptr<btmanip_class>
-          (this,&btmanip_class::clean),cli::comm_option_both},
-         {'c',"cv","Create output for a LaTeX CV.",0,1,"[file]",
-          ((std::string)"Output articles in a list format for LaTeX. They ")+
-          "are formatted using: \n \n"+
-          "\\noindent 1. ``Title'', \\\\\n"+
-          "Author list, \\\\\n"+
-          "\\href{URL}\n"+
-          "{{\\it Journal} {\\bf Volume} (Year) "+
-          "First page.} \\\\\n"+
-          "(\\href{Arxiv URL}{arXiv:number} - citations)\\\\\n \n"+
-          "The title is wrapped to 80 columns. The "+
-          "author list is converted to initials and "+
-          "last names and then wrapped to 80 columns. "+
-          "The URL is constructed from "+
-          "the DOI entry, and the citations is taken from a custom field "+
-          "named 'citations'. A footnote is added to the first "+
-          "article with at least one citation.",
-          new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv),
-          cli::comm_option_both},
-         {0,"cvt","Create talks output for a LaTeX CV.",0,1,"[file]",
-          ((std::string)"Output talks in a list format for LaTeX. They ")+
-          "are formatted using: \n \n"+
-          "\\noindent 1. ``Title'', \\\\\n"+
-          "{\\bf \\href{URL}{Conference}}, \\\\\n"+
-          "Institution, City, State, Country, Month Year.\n \n"+
-          "The title is wrapped to 80 columns. If the field 'title_latex' "+
-          "is present it is used for the title. A three-letter "+
-          "abbreviation is used for the month.",
-          new comm_option_mfptr<btmanip_class>(this,&btmanip_class::cv_talks),
-          cli::comm_option_both},
-         {0,"dox","Output a doxygen file.",0,2,"[file]",
-          ((std::string)"This outputs articles in the following format: ")+
-          "\n \n\\anchor [prefix]key key:\n"+
-          "<a href=\"URL\">\n"+
-          "Author List</a>,\n"+
-          "journal \\\\b volume (year) pages.\n \n"+
-          "and books in the following format:\n \n"+
-          "\\anchor [prefix]key key:\n"+
-          "Author List,\n"+
-          "<a href=\"URL\">\n"+
-          "title</a>,\n"+
-          "(year) publisher, p. page.",
-          new comm_option_mfptr<btmanip_class>(this,&btmanip_class::dox),
-          cli::comm_option_both},
-         {0,"html","Output HTML.",0,2,"[\"list\"] [file]",
-          ((std::string)"This outputs articles in the following format: ")+
-          "\"<a href=\"URL\">Title</a>\", Author List, "+
-          "journal <b>volume</b> (year) pages "+
-          "<a href=\"arXiv URL\">arXiv number</a>.\n \n"+
-          "and books in the following format:\n \n"+
-          "\\anchor [prefix]key key:\n"+
-          "Author List,\n"+
-          "<a href=\"URL\">\n"+
-          "title</a>,\n"+
-          "(year) publisher, p. page.\n \nIf the first argument to 'html' "+
-          "is \"list\", then all entries are preceeded by \"<li>\" and "+
-          "succeeded by \"</li>\".",
-          new comm_option_mfptr<btmanip_class>(this,&btmanip_class::html),
-          cli::comm_option_both},
-         {'d',"dup","Find duplicates between .bib files.",0,2,
-          "[file 1] [file 2]",
-          ((std::string)"If no filenames are specified, then look for ")+
-          "duplicates among the current entries. If one filename is "+
-          "specified, then compare the current entries to the specified "+
-          "file to find duplicate entries. Finally, if two filenames are "+
-          "specified, find duplicates between the two files.",
+          (this,&btmanip_class::clean),cli::comm_option_both,
+          1,"","btmanip_class","clean",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {'c',"cv","",0,1,"","",
           new comm_option_mfptr<btmanip_class>
-          (this,&btmanip_class::dup),cli::comm_option_both},
-         {'g',"get-key","Get entry by key.",1,1,"<key pattern>",
-          ((std::string)"Get a single BibTeX entry from the current ")+
-          "list of entries by matching keys to the specified pattern "+
-          "and output that key to the screen in .bib format. If no "+
-          "keys match then an error "+
-          "message is output to the screen.",
+          (this,&btmanip_class::cv),cli::comm_option_both,
+          1,"","btmanip_class","cv",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {0,"cvt","",0,1,"","",
           new comm_option_mfptr<btmanip_class>
-          (this,&btmanip_class::get_key),cli::comm_option_both},
+          (this,&btmanip_class::cv_talks),cli::comm_option_both,
+          1,"","btmanip_class","cv_talks",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {0,"dox","",0,2,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::dox),cli::comm_option_both,
+          1,"","btmanip_class","dox",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {0,"html","",0,2,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::html),cli::comm_option_both,
+          1,"","btmanip_class","html",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {'d',"dup","",0,2,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::dup),cli::comm_option_both,
+          1,"","btmanip_class","dup",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+         {'g',"get-key","",1,1,"","",
+          new comm_option_mfptr<btmanip_class>
+          (this,&btmanip_class::get_key),cli::comm_option_both,
+          1,"","btmanip_class","get_key",
+          "doc/xml/classbtmanip_1_1btmanip__class.xml"},
          {0,"gk","Get entry by key (alias for get-key).",1,1,"<key pattern>",
           "This command is an alias for 'get-key'.",
           new comm_option_mfptr<btmanip_class>
@@ -3329,65 +3391,104 @@ namespace btmanip {
           (this,&btmanip_class::utk_review),cli::comm_option_both}
         };
       cl->set_comm_option_vec(nopt,options);    
-    
+
+      cl->doc_o2_file="doc/btmanip_docs.o2";
+      
       p_verbose.i=&bf.verbose;
       p_verbose.help=((string)"Verbosity parameter ")+
 	"(default 1).";
+      p_verbose.doc_class="bib_file";
+      p_verbose.doc_name="verbose";
+      p_verbose.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("verbose",&p_verbose));
 
       p_recase_tag.b=&bf.recase_tag;
       p_recase_tag.help="If true, unify the case of the tags (default true).";
+      p_recase_tag.doc_class="bib_file";
+      p_recase_tag.doc_name="recase_tag";
+      p_recase_tag.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("recase_tag",&p_recase_tag));
     
       p_reformat_journal.b=&bf.reformat_journal;
       p_reformat_journal.help="If true, reformat journal names (default true).";
+      p_reformat_journal.doc_class="bib_file";
+      p_reformat_journal.doc_name="reformat_journal";
+      p_reformat_journal.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("reformat_journal",&p_reformat_journal));
     
       p_trans_latex_html.b=&bf.trans_latex_html;
       p_trans_latex_html.help=((string)"Translate LaTeX symbols to ")+
 	"HTML and vice versa (default true).";
+      p_trans_latex_html.doc_class="bib_file";
+      p_trans_latex_html.doc_name="trans_latex_html";
+      p_trans_latex_html.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("trans_latex_html",&p_trans_latex_html));
     
       p_normalize_tags.b=&bf.normalize_tags;
       p_normalize_tags.help=((string)"If true, convert tag strings ")+
 	"to standard capitalization (default true).";
+      p_normalize_tags.doc_class="bib_file";
+      p_normalize_tags.doc_name="normalize_tags";
+      p_normalize_tags.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("normalize_tags",&p_normalize_tags));
     
       p_lowercase_fields.b=&bf.lowercase_fields;
       p_lowercase_fields.help=((string)"If true, convert fields to ")+
 	"lowercase (default true).";
+      p_lowercase_fields.doc_class="bib_file";
+      p_lowercase_fields.doc_name="lowercase_fields";
+      p_lowercase_fields.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("lowercase_fields",&p_lowercase_fields));
     
       p_check_required.b=&bf.check_required;
       p_check_required.help=((string)"If true, check that all ")+
 	"required fields are present (default false).";
+      p_check_required.doc_class="bib_file";
+      p_check_required.doc_name="check_required";
+      p_check_required.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("check_required",&p_check_required));
 
       p_natbib_jours.b=&bf.natbib_jours;
       p_natbib_jours.help=((string)"Prefer natbib journal ")+
 	"abbreviations (default false).";
+      p_natbib_jours.doc_class="bib_file";
+      p_natbib_jours.doc_name="natbib_jours";
+      p_natbib_jours.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("natbib_jours",&p_natbib_jours));
     
       p_remove_vol_letters.b=&bf.remove_vol_letters;
       p_remove_vol_letters.help=((string)"Move letters in some volumes to")+
 	"journal names (default false).";
+      p_remove_vol_letters.doc_class="bib_file";
+      p_remove_vol_letters.doc_name="remove_vol_letters";
+      p_remove_vol_letters.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("remove_vol_letters",
 				    &p_remove_vol_letters));
 
       p_remove_author_tildes.b=&bf.remove_author_tildes;
       p_remove_author_tildes.help=((string)"Remove tildes from ")+
 	"author fields (default true).";
+      p_remove_author_tildes.doc_class="bib_file";
+      p_remove_author_tildes.doc_name="remove_author_tildes";
+      p_remove_author_tildes.doc_xml_file=
+        "doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("remove_author_tildes",
 				    &p_remove_author_tildes));
 
       p_autoformat_urls.b=&bf.autoformat_urls;
       p_autoformat_urls.help=((string)"If DOI or ISBN is present, ")+
 	"autoformat URLs (default true).";
+      p_autoformat_urls.doc_class="bib_file";
+      p_autoformat_urls.doc_name="autoformat_urls";
+      p_autoformat_urls.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("autoformat_urls",&p_autoformat_urls));
 
       p_add_empty_titles.b=&bf.add_empty_titles;
       p_add_empty_titles.help=((string)"If article titles are not present, ")+
 	"add empty ones (default true).";
+      p_add_empty_titles.doc_class="bib_file";
+      p_add_empty_titles.doc_name="add_empty_titles";
+      p_add_empty_titles.doc_xml_file="doc/xml/classbtmanip_1_1bib__file.xml";
       cl->par_list.insert(make_pair("add_empty_titles",&p_add_empty_titles));
     
       cl->prompt="btmanip> ";
@@ -3407,7 +3508,14 @@ namespace btmanip {
 	"url={},\n"+
 	"type={}\n"+
 	"}";
-
+      
+      if (file_exists(cl->doc_o2_file)) {
+        cl->read_docs();
+      } else {
+        cerr << "Couldn't find file " << cl->doc_o2_file
+             << " for run-time documentation." << endl;
+      }
+      
       char *dc=getenv("BTMANIP_DEFAULTS");
       if (dc) {
 	std::vector<cmd_line_arg> ca;
