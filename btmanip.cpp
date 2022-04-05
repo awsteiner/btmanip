@@ -126,7 +126,13 @@ namespace btmanip {
     }
 
     /** \brief Set the value of one field in one entry
-     */
+
+        <entry> <field> <value> or if one entry, <field> <value>
+
+        Set the value of <field> in <entry> to <value>, or if there is
+        only one entry in the current list and only two arguments are
+        given, set <field> to <value>.
+    */
     virtual int set_field(std::vector<std::string> &sv, bool itive_com) {
       if (sv.size()==4) {
 	bf.set_field_value(sv[1],sv[2],sv[3]);
@@ -145,7 +151,16 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Search among current entries
+    /** \brief Search current list for field and pattern pairs.
+
+        ["and"] ["or"] <field 1> <pattern 1> [field 2] [pattern 2]
+
+        Search the current list for entries which have fields which
+        match a specified pattern. Combine multiple criteria with
+        "or" or "and" if specified. If at least one entry is
+        found, then the current list is replaced with the search
+        results. Replace one of the field arguments with "key" to
+        search by key name.
      */
     virtual int search(std::vector<std::string> &sv, bool itive_com) {
       if (sv.size()==3) {
@@ -204,7 +219,13 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Subtract the current entries from a .bib file
+    /** \brief Subtract a .bib file from the current entries
+
+        <file>
+
+        This takes all entries in <file> and looks for them in the
+        list of current entries. If any duplicates are found, they are
+        removed from the current list.
      */
     virtual int sub(std::vector<std::string> &sv, bool itive_com) {
 
@@ -651,6 +672,10 @@ namespace btmanip {
     }
     
     /** \brief Get information from inspirehep.net
+
+        <cited id list> <recent html> [header] [footer]
+
+        Desc.
      */
     virtual int inspire_recent_cites(std::vector<std::string> &sv,
                                      bool itive_com) {
@@ -882,14 +907,22 @@ namespace btmanip {
       return 0;
     }
     
-    /** \brief Sort the bib file by key
+    /** \brief Sort current BibTeX entries by key.
+
+        (No arguments.)
+
+        Sort current BibTeX entries by key.
      */
     virtual int sort(std::vector<std::string> &sv, bool itive_com) {
       bf.sort_bib();
       return 0;
     }
 
-    /** \brief Sort the bib file by date
+    /** \brief Sort current BibTeX entries by date.
+
+        ["descending"]
+
+        Sort current BibTeX entries by date.
      */
     virtual int sort_by_date(std::vector<std::string> &sv, bool itive_com) {
       if (sv.size()>=2 && sv[1]==((string)"descending")) {
@@ -1072,6 +1105,10 @@ namespace btmanip {
     }
 
     /** \brief Parse the o2scl .bib files
+
+        (No arguments.)
+
+        Desc.
      */
     virtual int o2scl(std::vector<std::string> &sv, bool itive_com) {
       std::string data_dir=o2scl_settings.get_data_dir();
@@ -1120,6 +1157,19 @@ namespace btmanip {
     }
 
     /** \brief Output the full BibTeX data as plain text
+
+        [file]
+
+        This outputs the bibliography in a simple text-based
+        format. Typical output is:
+
+        <pre>
+        tag: <tag>
+        key: <key>
+        field 1: <value 1>
+        field 2: <value 2>
+        ...
+        </pre>
      */
     virtual int text_full(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1472,6 +1522,10 @@ namespace btmanip {
     }
     
     /** \brief A tex format for UTK review
+
+        <file>
+
+        Desc.
      */
     virtual int utk_review(std::vector<std::string> &sv, bool itive_com) {
 
@@ -1626,6 +1680,10 @@ namespace btmanip {
     }
   
     /** \brief Output in a short text format
+
+        [file]
+
+        Desc.
      */
     virtual int text_short(std::vector<std::string> &sv, bool itive_com) {
 
@@ -2772,7 +2830,11 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Desc
+    /** \brief Calculate Inspire citations
+
+        (No arguments.)
+
+        Desc
      */
     virtual int inspire_cites(std::vector<std::string> &sv,
 			      bool itive_com) {
@@ -2821,7 +2883,7 @@ namespace btmanip {
       return 0;
     }
     
-    /** \brief Desc
+    /** \brief Get citation information from ADS
      */
     virtual int ads_cites(std::vector<std::string> &sv,
 			  bool itive_com) {
@@ -2895,6 +2957,12 @@ namespace btmanip {
       return 0;
     }
 
+    /** \brief Compute citations per month
+
+        (No arguments.)
+
+        Desc.
+    */
     virtual int cites_per_month(std::vector<std::string> &sv, bool itive_com) {
 
       // Get current time using C functions
@@ -3392,79 +3460,88 @@ namespace btmanip {
            (this,&btmanip_class::rst),cli::comm_option_both,
            1,"","btmanip_class","rst",
            "doc/xml/classbtmanip_1_1btmanip__class.xml"},
-          {0,"cpm","Compute citations per month.",0,0,"","",
+          {0,"cpm","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
            (this,&btmanip_class::cites_per_month),
-           cli::comm_option_both},
-          {0,"o2scl","Parse the o2scl bib files",0,0,"","",
+           cli::comm_option_both,
+           1,"","btmanip_class","cites_per_month",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"o2scl","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
            (this,&btmanip_class::o2scl),
-           cli::comm_option_both},
-          {0,"inspire-cites","Calculate Inspire citations.",0,0,"","",
+           cli::comm_option_both,
+           1,"","btmanip_class","o2scl",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"inspire-cites","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::inspire_cites),cli::comm_option_both},
+           (this,&btmanip_class::inspire_cites),cli::comm_option_both,
+           1,"","btmanip_class","inspire_cites",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
           {0,"inspire-get","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::inspire_get),cli::comm_option_both},
+           (this,&btmanip_class::inspire_get),cli::comm_option_both,
+           1,"","btmanip_class","inspire_get",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
           {0,"inspire-refersto","",1,1,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::inspire_refersto),cli::comm_option_both},
-          {0,"inspire-recent-cites","",2,4,
-           "<cited id list> <recent html> [header] [footer]","",
+           (this,&btmanip_class::inspire_refersto),cli::comm_option_both,
+           1,"","btmanip_class","inspire_refersto",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"inspire-recent-cites","",2,4,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::inspire_recent_cites),cli::comm_option_both},
-          {0,"ads-cites","Calculate ADSABS citations.",0,0,"","",
+           (this,&btmanip_class::inspire_recent_cites),cli::comm_option_both,
+           1,"","btmanip_class","inspire_recent_cites",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"ads-cites","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::ads_cites),cli::comm_option_both},
+           (this,&btmanip_class::ads_cites),cli::comm_option_both,
+           1,"","btmanip_class","ads_cites",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
           {0,"ads-get","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::ads_get),cli::comm_option_both},
-          {'s',"search","Search current list for field and pattern pairs.",
-           2,-1,((std::string)"[\"and\"] [\"or\"] <field 1> ")+
-           "<pattern 1> [field 2] [pattern 2] ...",
-           ((std::string)"Search the current list for entries ")+
-           "which have fields which match a specified pattern. Combine "+
-           "multiple criteria with \"or\" or \"and\" if specified. If "+
-           "at least one entry is found, then the current list is "+
-           "replaced with the search results. Replace one of the "+
-           "field arguments with \"key\" to search by key name.",
+           (this,&btmanip_class::ads_get),cli::comm_option_both,
+           1,"","btmanip_class","ads_get",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {'s',"search","",2,-1,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::search),cli::comm_option_both},
-          {'f',"set-field",
-           "For entry <key> and field <field>, set its value to <value>.",2,3,
-           "<entry> <field> <value> or if one entry, <field> <value>",
-           ((std::string)"Set the value of <field> in <entry> to ")+
-           "<value>, or if there is only one entry in the current list "+
-           "and only two arguments are given, set <field> to <value>.",
+           (this,&btmanip_class::search),cli::comm_option_both,
+           1,"","btmanip_class","search",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {'f',"set-field","",2,3,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::set_field),cli::comm_option_both},
-          {0,"sort","Sort current BibTeX entries by key.",0,0,
-           "","Sort current BibTeX entries by key.",
+           (this,&btmanip_class::set_field),cli::comm_option_both,
+           1,"","btmanip_class","set_field",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"sort","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::sort),cli::comm_option_both},
-          {0,"sort-by-date","Sort current BibTeX entries by date.",0,1,
-           "[\"descending\"]","Sort current BibTeX entries by date.",
+           (this,&btmanip_class::sort),cli::comm_option_both,
+           1,"","btmanip_class","sort",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"sort-by-date","",0,1,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::sort_by_date),cli::comm_option_both},
-          {'u',"sub","Subtract a .bib file from the current entries.",
-           1,1,"<file>",((std::string)"This takes all entries in ")+
-           "<file> and looks for them in the list of current entries. "+
-           "If any duplicates are found, they are removed from the "+
-           "current list.",new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::sub),cli::comm_option_both},
-          {0,"text-full","Output full data as a text file.",0,1,"[file]",
-           ((string)"This outputs the bibliography in a simple text-based ")+
-           "format. Typical output is\n\ntag: <tag>\nkey: <key>\n"+
-           "field 1: <value 1>\n"+
-           "field 2: <value 2>\n...\n",
+           (this,&btmanip_class::sort_by_date),cli::comm_option_both,
+           1,"","btmanip_class","sort_by_date",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {'u',"sub","",1,1,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::text_full),cli::comm_option_both},
-          {0,"text-short","Output as text in a short format",0,1,"[file]","",
+           (this,&btmanip_class::sub),cli::comm_option_both,
+           1,"","btmanip_class","sub",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"text-full","",0,1,"","",
            new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::text_short),cli::comm_option_both},
-          {0,"utk-rev","UTK review format.",0,1,
-           "<file>","",new comm_option_mfptr<btmanip_class>
-           (this,&btmanip_class::utk_review),cli::comm_option_both}
+           (this,&btmanip_class::text_full),cli::comm_option_both,
+           1,"","btmanip_class","text_full",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"text-short","",0,1,"","",
+           new comm_option_mfptr<btmanip_class>
+           (this,&btmanip_class::text_short),cli::comm_option_both,
+           1,"","btmanip_class","text_short",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"utk-rev","",0,1,"","",
+           new comm_option_mfptr<btmanip_class>
+           (this,&btmanip_class::utk_review),cli::comm_option_both,
+           1,"","btmanip_class","utk_review",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
         };
       cl->set_comm_option_vec(nopt,options);    
       
