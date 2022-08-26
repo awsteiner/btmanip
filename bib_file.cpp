@@ -1951,8 +1951,8 @@ void bib_file::format_and_output(std::string left, std::string right,
 	  right2+=ter.cyan_fg();
 	} else if (same==false && vs_left[j][k]==vs_right[j][k]) {
 	  same=true;
-	  left2+=ter.default_fg();
-	  right2+=ter.default_fg();
+	  left2+=ter.default_fgbg();
+	  right2+=ter.default_fgbg();
 	  if (bright) {
 	    left2+=ter.bold();
 	    right2+=ter.bold();
@@ -1975,8 +1975,8 @@ void bib_file::format_and_output(std::string left, std::string right,
 	  left2+=vs_left[j][k];
 	  right2+=vs_right[j][k];
 	}
-	left2+=ter.default_fg();
-	right2+=ter.default_fg();
+	left2+=ter.default_fgbg();
+	right2+=ter.default_fgbg();
 	if (bright) {
 	  left2+=ter.bold();
 	  right2+=ter.bold();
@@ -1992,8 +1992,8 @@ void bib_file::format_and_output(std::string left, std::string right,
 	  left2+=vs_left[j][k];
 	  right2+=vs_right[j][k];
 	}
-	left2+=ter.default_fg();
-	right2+=ter.default_fg();
+	left2+=ter.default_fgbg();
+	right2+=ter.default_fgbg();
 	if (bright) {
 	  left2+=ter.bold();
 	  right2+=ter.bold();
@@ -2002,8 +2002,8 @@ void bib_file::format_and_output(std::string left, std::string right,
       } else {
 	
 	if (same==false) {
-	  left2+=ter.default_fg();
-	  right2+=ter.default_fg();
+	  left2+=ter.default_fgbg();
+	  right2+=ter.default_fgbg();
 	}
 	
       }
@@ -2142,7 +2142,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     string stmp=left_header+" ( matching ";
     stmp+=ter.cyan_fg();
     stmp+="different";
-    stmp+=ter.default_fg();
+    stmp+=ter.default_fgbg();
     stmp+=" ):\n";
     outs << stmp << endl;
 
@@ -2152,13 +2152,13 @@ void bib_file::bib_output_twoup(std::ostream &outs,
       outs << "@" << bt_left.tag << "{";
     } else {
       outs << "@" << ter.cyan_fg() << bt_left.tag
-           << ter.default_fg() << "{";
+           << ter.default_fgbg() << "{";
     }
     
     if ((*bt_left.key)==(*bt_right.key)) {
       outs << (*bt_left.key) << endl;
     } else {
-      outs << ter.cyan_fg()+(*bt_left.key)+ter.default_fg() << endl;
+      outs << ter.cyan_fg()+(*bt_left.key)+ter.default_fgbg() << endl;
     }
 
     std::vector<std::string> matches;
@@ -2191,7 +2191,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
           outs.unsetf(ios::left);
           outs << ter.cyan_fg();
           outs << bt_left.fields[j].second[0];
-          outs << ter.default_fg();
+          outs << ter.default_fgbg();
           outs << "}," << endl;
         }
       }
@@ -2205,13 +2205,13 @@ void bib_file::bib_output_twoup(std::ostream &outs,
       outs << "@" << bt_right.tag << "{";
     } else {
       outs << "@" << ter.cyan_fg() << bt_right.tag
-           << ter.default_fg() << "{";
+           << ter.default_fgbg() << "{";
     }
     
     if ((*bt_left.key)==(*bt_right.key)) {
       outs << (*bt_right.key) << endl;
     } else {
-      outs << ter.cyan_fg()+(*bt_right.key)+ter.default_fg() << endl;
+      outs << ter.cyan_fg()+(*bt_right.key)+ter.default_fgbg() << endl;
     }
     
     // Loop through all fields on the LHS
@@ -2232,7 +2232,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
         outs.unsetf(ios::left);
         outs << ter.cyan_fg();
         outs << bt_right.fields[j].second[0];
-        outs << ter.default_fg();
+        outs << ter.default_fgbg();
         outs << "}," << endl;
       }
     }
@@ -2249,7 +2249,7 @@ void bib_file::bib_output_twoup(std::ostream &outs,
     string stmp=left_header+" ( matching ";
     stmp+=ter.cyan_fg();
     stmp+="different";
-    stmp+=ter.default_fg();
+    stmp+=ter.default_fgbg();
     stmp+=" )";
     // 78 for LHS and 12 for vt100
     if (stmp.length()>86) stmp=stmp.substr(0,87)+"...";
