@@ -30,7 +30,7 @@ INC_DIRS = -I/usr/include -I/usr/local/include \
 
 # CXX = 
 
-COMPILER_FLAGS = -O3 -Wno-unused
+COMPILER_FLAGS = -O3 -Wno-unused -DBOOST_PHOENIX_STL_TUPLE_H_
 
 # Location of final executable
 
@@ -48,7 +48,7 @@ include $(UTKNA_MAKEFILE)
 LIB_DIRS = $(UTKNA_O2SCL_LIBS) $(UTKNA_PYTHON_LDFLAGS)
 INC_DIRS = $(UTKNA_O2SCL_INCS)
 CXX = $(UTKNA_CXX) 
-COMPILER_FLAGS = $(UTKNA_CFLAGS)
+COMPILER_FLAGS = $(UTKNA_CFLAGS) -DBOOST_PHOENIX_STL_TUPLE_H_
 
 endif
 
