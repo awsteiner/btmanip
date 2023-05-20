@@ -186,7 +186,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Remove fields which match a set of field and pattern pairs.
+    /** \brief Remove fields which match field and pattern pairs.
 
         ["and"] ["or"] <field 1> "<pattern 1> [field 2] [pattern 2] ...",
         
@@ -424,6 +424,11 @@ namespace btmanip {
     }
     
     /** \brief Get information from inspirehep.net
+
+        (no arguments)
+
+        This uses the old inspirehep.net API and probably doesn't
+        work any more.
      */
     virtual int inspire_get(std::vector<std::string> &sv, bool itive_com) {
 
@@ -588,6 +593,10 @@ namespace btmanip {
     }
     
     /** \brief Get information from inspirehep.net
+
+        <inspire id>
+
+        
      */
     virtual int inspire_refersto(std::vector<std::string> &sv,
                                  bool itive_com) {
@@ -675,7 +684,7 @@ namespace btmanip {
 
         <cited id list> <recent html> [header] [footer]
 
-        Desc.
+        This uses the new API and might work?
      */
     virtual int inspire_recent_cites(std::vector<std::string> &sv,
                                      bool itive_com) {
@@ -1310,12 +1319,12 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data for talks as .tex for input in a CV
+    /** \brief Output the BibTeX data for talks as .tex
 
         [file]
 
-        Output talks in a list format for LaTeX. They are formatted
-        using:
+        Output talks in a list format for LaTeX for input in a CV.
+        They are formatted using:
 
         \\noindent 1. ``Title'',
         {\\bf \\href{URL}{Conference}},
@@ -1411,7 +1420,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data as .tex for input in a 
+    /** \brief Output the BibTeX data as .tex for a
 	NSF bio sketch
 
         [file]
@@ -2196,8 +2205,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data as a new .bib file 
-	suitable for proposals
+    /** \brief Output the BibTeX data suitable for proposals
 
         [file]
 
@@ -2406,8 +2414,7 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data as a new .bib file 
-	in a doxygen format for O2scl
+    /** \brief Output the BibTeX data in a doxygen format for O2scl
 
         [file]
 
@@ -2834,7 +2841,8 @@ namespace btmanip {
 
         (No arguments.)
 
-        Desc
+        This uses the old inspirehep.net API and probably doesn't
+        work any more.
      */
     virtual int inspire_cites(std::vector<std::string> &sv,
 			      bool itive_com) {
