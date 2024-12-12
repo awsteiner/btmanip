@@ -435,7 +435,7 @@ namespace btmanip {
     /** \brief Add entries in a specified BibTeX file to the current
 	list, checking for duplicates and prompting if they're found
     */
-    void add_bib(std::string fname);
+    void add_bib(std::string fname, bool prompt_duplicates=true);
     
     /** \brief Get entry by key name
      */

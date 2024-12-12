@@ -2532,7 +2532,7 @@ void bib_file::text_output_one(std::ostream &outs, bibtex_entry &bt) {
   return;
 }
     
-void bib_file::add_bib(std::string fname) {
+void bib_file::add_bib(std::string fname, bool prompt_duplicates) {
 
   std::vector<bibtex::BibTeXEntry> entries2;
 
@@ -2558,17 +2558,25 @@ void bib_file::add_bib(std::string fname) {
     bibtex_entry &bt=static_cast<bibtex_entry &>(entries2[i]);
 
     std::vector<size_t> list;
-    list_possible_duplicates(bt,list);
+    if (prompt_duplicates) {
+      list_possible_duplicates(bt,list);
+    }
 
     if (list.size()==0) {
       
       // If the new entry does not have any apparent duplicates,
       // then just add it.
-      
-      n_add++;
-      entries.push_back(bt);
-      if (bt.key) {
-	cout << "Directly added entry " << *bt.key << endl;
+
+      if (bt.key && is_key_present(*bt.key)) {
+        cout << "Not adding entry with key " << *bt.key
+             << " because it is already present." << endl;
+      } else {
+        entries.push_back(bt);
+	sort.insert(make_pair(*bt.key,entries.size()-1));
+        if (bt.key) {
+          cout << "Directly added entry " << *bt.key << endl;
+        }
+        n_add++;
       }
       
     } else {

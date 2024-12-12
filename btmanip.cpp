@@ -1122,8 +1122,26 @@ namespace btmanip {
     virtual int o2scl(std::vector<std::string> &sv, bool itive_com) {
       std::string data_dir=o2scl_settings.get_data_dir();
       bf.add_bib(data_dir+"/o2scl.bib");
-      bf.add_bib(data_dir+"/o2scl_part.bib");
-      bf.add_bib(data_dir+"/o2scl_eos.bib");
+      return 0;
+    }
+    
+    virtual int open(std::vector<std::string> &sv, bool itive_com) {
+
+      char *env_str=getenv("BTMANIP_BIB");
+      if (env_str) {
+        std::string env_str2=env_str;
+        if (env_str2.length()>0) {
+          bf.add_bib(env_str);
+        }
+      }
+      
+      std::string data_dir=o2scl_settings.get_data_dir();
+      bf.add_bib(data_dir+"/o2scl.bib",true);
+      
+      std::vector<std::string> sv3={"key",sv[1]};
+      bf.search_or(sv3);
+      std::vector<std::string> sv2;
+      list_keys(sv2,itive_com);
       return 0;
     }
     
@@ -3318,7 +3336,7 @@ namespace btmanip {
      */
     virtual int run(int argc, char *argv[]) {
     
-      static const int nopt=46;
+      static const int nopt=47;
       comm_option_s options[nopt]=
         {
           {'a',"add","",1,1,"","",
@@ -3479,6 +3497,12 @@ namespace btmanip {
            (this,&btmanip_class::o2scl),
            cli::comm_option_both,
            1,"","btmanip_class","o2scl",
+           "doc/xml/classbtmanip_1_1btmanip__class.xml"},
+          {0,"open","",1,1,"","",
+           new comm_option_mfptr<btmanip_class>
+           (this,&btmanip_class::open),
+           cli::comm_option_both,
+           1,"","btmanip_class","open",
            "doc/xml/classbtmanip_1_1btmanip__class.xml"},
           {0,"inspire-cites","",0,0,"","",
            new comm_option_mfptr<btmanip_class>
