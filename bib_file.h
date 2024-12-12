@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2022, Andrew W. Steiner
+  Copyright (C) 2015-2025, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -325,7 +325,7 @@ namespace btmanip {
 	If the number of arguments to this function is zero or
 	an odd number, then the error handler is called.
     */
-    void search_or(std::vector<std::string> &args);
+    int search_or(std::vector<std::string> &args);
     
     /** \brief Remove matching entries using 'or'
 

@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2022, Andrew W. Steiner
+  Copyright (C) 2015-2025, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -505,7 +505,7 @@ void bib_file::search_keys(std::string pattern,
   return;
 }
 
-void bib_file::search_or(std::vector<std::string> &args) {
+int bib_file::search_or(std::vector<std::string> &args) {
 
   if (args.size()==0 || args.size()%2!=0) {
     O2SCL_ERR("Need a set of field and pattern pairs in search_or().",
@@ -540,6 +540,7 @@ void bib_file::search_or(std::vector<std::string> &args) {
       entries2.push_back(bt);
     }
   }
+  int n_matches=entries2.size();
   if (entries2.size()>0) {
     if (verbose>0) {
       if (entries2.size()==1) {
@@ -554,7 +555,7 @@ void bib_file::search_or(std::vector<std::string> &args) {
       std::cout << "No records found." << std::endl;
     }
   }
-  return;
+  return n_matches;
 }
     
 void bib_file::remove_or(std::vector<std::string> &args) {
@@ -2573,7 +2574,7 @@ void bib_file::add_bib(std::string fname, bool prompt_duplicates) {
       } else {
         entries.push_back(bt);
 	sort.insert(make_pair(*bt.key,entries.size()-1));
-        if (bt.key) {
+        if (verbose>0 && bt.key) {
           cout << "Directly added entry " << *bt.key << endl;
         }
         n_add++;

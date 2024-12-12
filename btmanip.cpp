@@ -1,7 +1,7 @@
 /*
   -------------------------------------------------------------------
 
-  Copyright (C) 2015-2022, Andrew W. Steiner
+  Copyright (C) 2015-2025, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -1127,21 +1127,77 @@ namespace btmanip {
     
     virtual int open(std::vector<std::string> &sv, bool itive_com) {
 
+      bf.verbose=0;
       char *env_str=getenv("BTMANIP_BIB");
       if (env_str) {
         std::string env_str2=env_str;
         if (env_str2.length()>0) {
-          bf.add_bib(env_str);
+          std::vector<std::string> vs;
+          split_string_delim(env_str,vs,':');
+          for(size_t j=0;j<vs.size();j++) {
+            cout << "Adding .bib file " << vs[j] << endl;
+            bf.add_bib(vs[j],false);
+          }
         }
       }
       
       std::string data_dir=o2scl_settings.get_data_dir();
-      bf.add_bib(data_dir+"/o2scl.bib",true);
+      cout << "Adding .bib file " << data_dir+"/o2scl.bib" << endl;
+      bf.add_bib(data_dir+"/o2scl.bib",false);
       
       std::vector<std::string> sv3={"key",sv[1]};
-      bf.search_or(sv3);
-      std::vector<std::string> sv2;
-      list_keys(sv2,itive_com);
+      int n_matches=bf.search_or(sv3);
+      if (n_matches==0 && sv[1][sv[1].length()-1]!='*') {
+        sv3[1]=sv[1]+'*';
+        cout << "Found no matches for \"" << sv[1]
+             << "\" so trying \"" << sv3[1] << "\" instead." << endl;
+        n_matches=bf.search_or(sv3);
+      }
+      if (n_matches==0) {
+        cout << "Couldn't find a matching reference." << endl;
+      }
+      
+      if (bf.entries.size()==0) {
+        cout << "No matches found." << endl;
+      } else if (bf.entries.size()==1) {
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[0]);
+
+        cout << "\nOpening browser with link from following entry:" << endl;
+        bf.bib_output_one(cout,bt);
+        if (bt.is_field_present("doi")) {
+          int sret=system((((std::string)"xdg-open https://dx.doi.org/")+
+                  bt.get_field("doi")).c_str());
+        } else if (bt.is_field_present("url")) {
+          int sret=system((((std::string)"xdg-open ")+
+                  bt.get_field("url")).c_str());
+        }
+      } else if (bf.entries.size()<=10) {
+        for(size_t j=0;j<bf.entries.size();j++) {
+          cout << "Entry " << j+1 << endl;
+          bibtex_entry &btx=static_cast<bibtex_entry &>(bf.entries[j]);
+          bf.bib_output_one(cout,btx);
+          cout << endl;
+        }
+        int select=0;
+        while (select<=0 || select>=((int)bf.entries.size())) {
+          cout << "Select one of the above entries:" << endl;
+          cin >> select;
+        }
+        bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[select-1]);
+        cout << "\nOpening browser with link from following entry:" << endl;
+        bf.bib_output_one(cout,bt);
+        if (bt.is_field_present("doi")) {
+          int sret=system((((std::string)"xdg-open https://dx.doi.org/")+
+                  bt.get_field("doi")).c_str());
+        } else if (bt.is_field_present("url")) {
+          int sret=system((((std::string)"xdg-open ")+
+                  bt.get_field("url")).c_str());
+        }
+      } else {
+        std::vector<std::string> vs2;
+        cout << "Found too many matches." << endl;
+        list_keys(vs2,itive_com);
+      }
       return 0;
     }
     
