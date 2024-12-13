@@ -98,7 +98,7 @@ Class btmanip_class
    :undoc-members:
 
 Class bib_file
--------------------
+--------------
 
 .. doxygenclass:: btmanip::bib_file
    :members:
