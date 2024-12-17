@@ -1124,9 +1124,31 @@ namespace btmanip {
       bf.add_bib(data_dir+"/o2scl.bib");
       return 0;
     }
-    
+
+    /** \brief Open article with specified key in browser
+
+        <key or pattern>
+
+        This command uses \c open or \c xdg-open to open the article
+        associated with the specified key. The bib files in
+        BTMANIP_BIB are used, as well as the O2scl bib file. If more
+        than one article matches, the user is prompted to select
+        which article to open.
+
+        In order to construct the link, the "doi" field is used first.
+        If that is not present, then the "url", "adsurl", or "eprint"
+        fields are used, in order, until one is found.
+     */
     virtual int open(std::vector<std::string> &sv, bool itive_com) {
 
+      kwargs kw;
+      if (sv.size()>3) {
+        kw.set(sv[2]);
+      }
+
+      string format=kw.get_string("format","html");
+      std::string url=kw.get_string("url","doi");
+      
       bf.verbose=0;
       char *env_str=getenv("BTMANIP_BIB");
       if (env_str) {
@@ -1162,14 +1184,28 @@ namespace btmanip {
       } else if (bf.entries.size()==1) {
         bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[0]);
 
-        cout << "\nOpening browser with link from following entry:" << endl;
-        bf.bib_output_one(cout,bt);
-        if (bt.is_field_present("doi")) {
-          int sret=system((((std::string)"xdg-open https://dx.doi.org/")+
-                  bt.get_field("doi")).c_str());
-        } else if (bt.is_field_present("url")) {
-          int sret=system((((std::string)"xdg-open ")+
-                  bt.get_field("url")).c_str());
+        if (format=="bib") {
+          bf.bib_output_one(cout,bt);
+        } else {
+          cout << "\nOpening browser with link from following entry:" << endl;
+          bf.bib_output_one(cout,bt);
+          cout << endl;
+          if (bt.is_field_present("doi")) {
+            int sret=system((((std::string)"xdg-open https://dx.doi.org/")+
+                             bt.get_field("doi")).c_str());
+          } else if (bt.is_field_present("url")) {
+            int sret=system((((std::string)"xdg-open ")+
+                             bt.get_field("url")).c_str());
+          } else if (bt.is_field_present("adsurl")) {
+            int sret=system((((std::string)"xdg-open ")+
+                             bt.get_field("adsurl")).c_str());
+          } else if (bt.is_field_present("eprint")) {
+            int sret=system((((std::string)"xdg-open ")+
+                             "https://www.arxiv.org/abs"+
+                             bt.get_field("eprint")).c_str());
+          } else {
+            cerr << "Could not find a URL." << endl;
+          }
         }
       } else if (bf.entries.size()<=10) {
         for(size_t j=0;j<bf.entries.size();j++) {
@@ -1184,14 +1220,29 @@ namespace btmanip {
           cin >> select;
         }
         bibtex_entry &bt=static_cast<bibtex_entry &>(bf.entries[select-1]);
-        cout << "\nOpening browser with link from following entry:" << endl;
-        bf.bib_output_one(cout,bt);
-        if (bt.is_field_present("doi")) {
-          int sret=system((((std::string)"xdg-open https://dx.doi.org/")+
-                  bt.get_field("doi")).c_str());
-        } else if (bt.is_field_present("url")) {
-          int sret=system((((std::string)"xdg-open ")+
-                  bt.get_field("url")).c_str());
+
+        if (format=="bib") {
+          bf.bib_output_one(cout,bt);
+        } else {
+          cout << "\nOpening browser with link from following entry:" << endl;
+          bf.bib_output_one(cout,bt);
+          cout << endl;
+          if (bt.is_field_present("doi")) {
+            int sret=system((((std::string)"xdg-open https://dx.doi.org/")+
+                             bt.get_field("doi")).c_str());
+          } else if (bt.is_field_present("url")) {
+            int sret=system((((std::string)"xdg-open ")+
+                             bt.get_field("url")).c_str());
+          } else if (bt.is_field_present("adsurl")) {
+            int sret=system((((std::string)"xdg-open ")+
+                             bt.get_field("adsurl")).c_str());
+          } else if (bt.is_field_present("eprint")) {
+            int sret=system((((std::string)"xdg-open ")+
+                             "https://www.arxiv.org/abs"+
+                             bt.get_field("eprint")).c_str());
+          } else {
+            cerr << "Could not find a URL." << endl;
+          }
         }
       } else {
         std::vector<std::string> vs2;
@@ -1220,7 +1271,7 @@ namespace btmanip {
       return 0;
     }
     
-    /** \brief Add a specified .bib file
+    /** \brief Add a specified bib file
         
         <filename>
         
@@ -1843,11 +1894,11 @@ namespace btmanip {
       return 0;
     }
   
-    /** \brief Output the BibTeX data as a new .bib file
+    /** \brief Output the BibTeX data as a new bib file
 
         [file]
 
-        Output all of the current entries in .bib format to the
+        Output all of the current entries in bib format to the
         screen, or if a file is specified, to the file.
      */
     virtual int bib(std::vector<std::string> &sv, bool itive_com) {
@@ -1879,7 +1930,7 @@ namespace btmanip {
 
         Get a single BibTeX entry from the current list of entries by
         matching keys to the specified pattern and output that key to
-        the screen in .bib format. If no keys match then an error
+        the screen in bib format. If no keys match then an error
         message is output to the screen.
      */
     virtual int get_key(std::vector<std::string> &sv, bool itive_com) {
@@ -1903,7 +1954,7 @@ namespace btmanip {
       return 0;
     }
 
-    /** \brief Look for duplicates among all .bbl entries.
+    /** \brief Look for duplicates among all bbl entries.
 
         <bbl file 1> [bbl file 2] [bbl file 3] ...
 
@@ -2283,7 +2334,7 @@ namespace btmanip {
 
         [file]
 
-        Output a proposal .bib file.
+        Output a proposal bib file.
     */
     virtual int proposal(std::vector<std::string> &sv, bool itive_com) {
 
@@ -3632,8 +3683,16 @@ namespace btmanip {
            "doc/xml/classbtmanip_1_1btmanip__class.xml"},
         };
       cl->set_comm_option_vec(nopt,options);    
-      
-      cl->doc_o2_file="doc/btmanip_docs.o2";
+
+      {
+        std::string doc_file=".";
+        char *ncstring=getenv("BTMANIP_HOME");
+        if (ncstring) {
+          doc_file=ncstring;
+	}
+        doc_file+="/doc/btmanip_docs.o2";
+        cl->doc_o2_file=doc_file;
+      }
       
       p_verbose.i=&bf.verbose;
       p_verbose.help=((string)"Verbosity parameter ")+
