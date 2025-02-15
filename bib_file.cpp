@@ -2906,7 +2906,6 @@ void bib_file::parse_author(std::string s_in,
       stmp=stmp2;
     }
     lastv.push_back(stmp);
-
   }
 
   // Remove extra curly braces from all last names
@@ -2957,7 +2956,8 @@ std::string bib_file::author_firstlast(std::string s_in,
 	  // Count lowercase characters immediately after
 	  size_t lower_count=0;
 	  for(size_t jj=j+1;jj<firstv[k].length();jj++) {
-	    if (islower(firstv[k][jj])) {
+	    if (islower(firstv[k][jj]) || firstv[k][jj]=='\\' ||
+                firstv[k][jj]=='\'') {
 	      lower_count++;
 	    } else {
 	      jj=firstv[k].length();
