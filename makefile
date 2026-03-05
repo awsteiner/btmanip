@@ -15,16 +15,17 @@
 
 LIB_DIRS = -L/usr/lib -L/usr/lib/x86_64-linux-gnu \
 	-L/usr/lib/x86_64-linux-gnu/hdf5/serial -L/usr/local/lib \
-	-lo2scl_hdf -lo2scl_eos -lo2scl_part \
-	-lo2scl -lgsl -lgslcblas -lhdf5_hl -lhdf5 -lz -lreadline \
-	-lm
+	-lo2scl -lgsl -lgslcblas -lpython3.12 \
+	-lhdf5_hl -lhdf5 -lz -lreadline -lm
 
 # This variable may need to be modified to specify the include
 # directories for the GSL, Boost, HDF5, and O2scl header files. By
 # default this is taken from the environment variable CXXFLAGS.
 
 INC_DIRS = -I/usr/include -I/usr/local/include \
-	-I/usr/lib/x86_64-linux-gnu/hdf5/serial/include
+	-I/usr/lib/x86_64-linux-gnu/hdf5/serial/include \
+	-I/usr/include/python3.12 \
+	-I/usr/local/lib/python3.12/dist-packages/numpy/_core/include
 
 # Generic (no MPI necessary) C++ compiler (e.g. g++)
 
