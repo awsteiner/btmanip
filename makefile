@@ -13,7 +13,8 @@
 # HDF5 libraries. By default, this is taken from the enviroment
 # variable LDFLAGS.
 
-LIB_DIRS = -L/usr/lib -L/usr/lib/x86_64-linux-gnu \
+LIB_DIRS = -L/HDF_Group/HDF5/1.14.6/lib \
+	-L/usr/lib -L/usr/lib/x86_64-linux-gnu \
 	-L/usr/lib/x86_64-linux-gnu/hdf5/serial -L/usr/local/lib \
 	-lo2scl -lgsl -lgslcblas -lpython3.12 \
 	-lhdf5_hl -lhdf5 -lz -lreadline -lm
