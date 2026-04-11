@@ -33,9 +33,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <bibtexentry.hpp>
-#include <bibtexreader.hpp>
-#include <bibtexwriter.hpp>
+#include <bt_reader.h>
 
 #include <o2scl/err_hnd.h>
 

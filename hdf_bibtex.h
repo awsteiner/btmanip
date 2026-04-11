@@ -29,7 +29,7 @@
 
 #include <boost/numeric/ublas/vector.hpp>
 
-#include "bibtexentry.hpp"
+#include "bt_entry.h"
 #include "bib_file.h"
 
 #include <o2scl/hdf_file.h>
