@@ -27,6 +27,8 @@
 
 #include <istream>
 #include <numeric>
+
+#include <boost/variant.hpp>
 #include <string>
 
 #include <boost/fusion/include/at_c.hpp>
@@ -50,28 +52,51 @@ namespace x3 = boost::spirit::x3;
 
 namespace detail {
 
-/// @brief Concatenates a vector of strings into @p _val.
+/// @brief Visitor that concatenates a @c std::vector<std::string>
+///        into a single @c std::string.
+struct ConcatStrings : boost::static_visitor<std::string>
+{
+    std::string operator()(
+        std::vector<std::string> const& v) const
+    {
+        return std::accumulate(
+            v.begin(), v.end(), std::string());
+    }
+};
+
+/// @brief Concatenates a vector of strings (or variant thereof)
+///        into @c _val.
+///
+/// X3 alternation can wrap identical attribute types in a
+/// @c boost::variant even when all branches have the same type.
+/// This functor handles both a plain @c vector<string> and a
+/// @c variant<vector<string>, vector<string>> that arises from
+/// the two branches of @c quoted_def.
 struct AccumulateStrings
 {
-    /// @param ctx X3 parse context carrying a vector<string> attr.
+    /// @param ctx X3 parse context.
     template<typename Context>
     void operator()(Context& ctx) const
     {
-        x3::_val(ctx) = std::accumulate(
-            x3::_attr(ctx).begin(),
-            x3::_attr(ctx).end(),
-            std::string());
+        x3::_val(ctx) =
+            boost::apply_visitor(ConcatStrings(),
+                                 x3::_attr(ctx));
     }
 };
 
 /// @brief Assigns the tag string to @c BibTeXEntry::tag.
+///
+/// Works with both @c std::string attributes (from typed rules)
+/// and iterator-range attributes (from @c x3::raw[]).
 struct AssignTag
 {
     /// @param ctx X3 parse context.
     template<typename Context>
     void operator()(Context& ctx) const
     {
-        x3::_val(ctx).tag = x3::_attr(ctx);
+        x3::_val(ctx).tag =
+            std::string(x3::_attr(ctx).begin(),
+                        x3::_attr(ctx).end());
     }
 };
 
@@ -220,25 +245,25 @@ typedef x3::rule<StartId,       BibTeXEntry> StartRule;
 // underscore), which does not exist.
 //------------------------------------------------------------------
 
-TagRule           const tag          = "tag";
-EntryKeyRule      const entryKey     = "entry key";
-KeyRule           const key          = "key";
-EscapedTextRule   const escapedText  = "escaped text";
-QuoteTextRule     const quoteText    = "quote text";
-InnerBraceTextRule const innerBraceText = "inner brace text";
-InnerQuoteTextRule const innerQuoteText = "inner quote text";
-QuotedRule        const quoted       = "quoted value";
-ValueRule         const value        = "value";
-ValuesRule        const values       = "values";
-FieldRule         const field        = "field";
-FieldsRule        const fields       = "fields";
-BodyRule          const body         = "body";
-GenericRule       const generic      = "generic entry";
-StringEntryRule   const stringEntry  = "string entry";
-SimpleRule        const simple       = "simple entry";
-EntryRule         const entry        = "entry";
-JunkRule          const junk         = "junk";
-StartRule         const start        = "start";
+inline TagRule           const tag          = "tag";
+inline EntryKeyRule      const entryKey     = "entry key";
+inline KeyRule           const key          = "key";
+inline EscapedTextRule   const escapedText  = "escaped text";
+inline QuoteTextRule     const quoteText    = "quote text";
+inline InnerBraceTextRule const innerBraceText = "inner brace text";
+inline InnerQuoteTextRule const innerQuoteText = "inner quote text";
+inline QuotedRule        const quoted       = "quoted value";
+inline ValueRule         const value        = "value";
+inline ValuesRule        const values       = "values";
+inline FieldRule         const field        = "field";
+inline FieldsRule        const fields       = "fields";
+inline BodyRule          const body         = "body";
+inline GenericRule       const generic      = "generic entry";
+inline StringEntryRule   const stringEntry  = "string entry";
+inline SimpleRule        const simple       = "simple entry";
+inline EntryRule         const entry        = "entry";
+inline JunkRule          const junk         = "junk";
+inline StartRule         const start        = "start";
 
 //------------------------------------------------------------------
 // Symbol tables for escape sequences
@@ -251,7 +276,8 @@ struct EscapedBraces_ : x3::symbols<char>
         add("\\{", '{')
            ("\\}", '}');
     }
-} const escapedBrace;
+};
+inline EscapedBraces_ const escapedBrace;
 
 struct EscapedQuotes_ : x3::symbols<char>
 {
@@ -259,7 +285,8 @@ struct EscapedQuotes_ : x3::symbols<char>
     {
         add("\\\"", '"');
     }
-} const escapedQuote;
+};
+inline EscapedQuotes_ const escapedQuote;
 
 //------------------------------------------------------------------
 // Rule definitions
@@ -273,113 +300,112 @@ struct EscapedQuotes_ : x3::symbols<char>
 //------------------------------------------------------------------
 
 /// @brief One or more alphanumeric characters.
-auto const tag_def =
+inline auto const tag_def =
     +x3::ascii::alnum;
 
 /// @brief Non-comma, non-space characters (citation key).
-auto const entryKey_def =
+inline auto const entryKey_def =
     x3::lexeme[+(~x3::char_(',') - x3::ascii::space)];
 
 /// @brief Characters excluding @c =,}) and whitespace (field key).
-auto const key_def =
+inline auto const key_def =
     x3::lexeme[+(~x3::char_("=,})") - x3::ascii::space)];
 
 /// @brief Text not starting with @c { and containing no bare braces.
-auto const escapedText_def =
+inline auto const escapedText_def =
     !x3::lit('{')
     >> +(escapedBrace | ~x3::char_("{}"));
 
 /// @brief Text inside double quotes (no bare quotes or braces).
-auto const quoteText_def =
+inline auto const quoteText_def =
     +(escapedQuote | ~x3::char_("\"{}"));
 
 /// @brief Recursive brace-delimited text or escaped text.
-auto const innerBraceText_def =
-    x3::as_string[
-        x3::char_('{')
+inline auto const innerBraceText_def =
+    (   x3::char_('{')
         >> *(innerBraceText | escapedText)
         >> x3::char_('}')
-    ]
+    )
     | escapedText;
 
 /// @brief Recursive brace-delimited text inside a quoted value.
-auto const innerQuoteText_def =
-    x3::as_string[
-        x3::char_('{')
+inline auto const innerQuoteText_def =
+    (   x3::char_('{')
         >> *(innerQuoteText | escapedText)
         >> x3::char_('}')
-    ]
+    )
     | quoteText;
 
 /// @brief Quoted (double-quote or brace-delimited) field value.
-auto const quoted_def =
+inline auto const quoted_def =
     x3::lexeme[
         ('"' >> *innerQuoteText >> '"')
         | ('{' >> *innerBraceText >> '}')
     ][AccumulateStrings()];
 
 /// @brief A single value: quoted string or bare non-delimiter text.
-auto const value_def =
+inline auto const value_def =
     quoted
     | +~x3::char_(",})#");
 
 /// @brief A @c '#'-separated sequence of values.
-auto const values_def =
+inline auto const values_def =
     value % '#';
 
 /// @brief A field: @c key = values.
-auto const field_def =
+inline auto const field_def =
     key >> '=' >> values;
 
 /// @brief Zero or more fields separated by commas.
-auto const fields_def =
+inline auto const fields_def =
     -(field % ',');
 
 /// @brief Entry body: optional key, comma, fields, optional comma.
-auto const body_def =
+inline auto const body_def =
     -entryKey >> ','
     >> fields
     >> -x3::lit(',');
 
 /// @brief Generic BibTeX entry (@type{key, fields}).
-auto const generic_def =
-    '@' >> tag[AssignTag()]
+inline auto const generic_def =
+    '@' >> x3::raw[tag][AssignTag()]
     >> (
         ('{' >> body[AssignBody()] >> '}')
         | ('(' >> body[AssignBody()] >> ')')
        );
 
 /// @brief @string entry (@string{key=value}).
-auto const stringEntry_def =
-    '@' >> x3::ascii::no_case[x3::string("string")][AssignTag()]
+inline auto const stringEntry_def =
+    '@'
+    >> x3::raw[x3::no_case[x3::lit("string")]][AssignTag()]
     >> (
         ('{' >> field[AssignSingleField()] >> '}')
         | ('(' >> field[AssignSingleField()] >> ')')
        );
 
 /// @brief Simple entries: @comment, @include, @preamble.
-auto const simple_def =
-    '@' >> x3::ascii::no_case[
-        (x3::string("comment")
-         | x3::string("include")
-         | x3::string("preamble"))
-        [AssignTag()]
-    ]
+inline auto const simple_def =
+    '@'
+    >> x3::raw[x3::no_case[
+           x3::lit("comment")
+           | x3::lit("include")
+           | x3::lit("preamble")
+       ]][AssignTag()]
     >> (
         ('{' >> values[AssignSimpleValues()] >> '}')
         | ('(' >> values[AssignSimpleValues()] >> ')')
        );
 
 /// @brief Dispatches to stringEntry, simple, or generic.
-auto const entry_def =
+inline auto const entry_def =
     stringEntry | simple | generic;
 
 /// @brief Skips all characters before the first @c \@.
-auto const junk_def =
+inline auto const junk_def =
     *~x3::lit('@');
 
 /// @brief Top-level: skip junk, then parse one entry.
-auto const start_def =
+inline auto const start_def =
     junk >> entry;
 
 BOOST_SPIRIT_DEFINE(

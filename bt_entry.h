@@ -81,12 +81,12 @@ namespace bibtex {
     /// Named @c skip (no trailing underscore) so that
     /// BOOST_SPIRIT_DEFINE(skip) correctly generates @c skip_def
     /// and not @c skip__def.
-    SkipRule const skip = "bibtex skipper";
+    inline SkipRule const skip = "bibtex skipper";
 
     // 'auto' is unavoidable here: the type of a composed X3 parser
     // expression is an unspellable recursive template instantiation.
     // It is confined to this one internal definition variable.
-    auto const skip_def =
+    inline auto const skip_def =
         x3::ascii::space
         | ('%' >> *(x3::char_ - x3::eol) >> x3::eol);
 
@@ -98,7 +98,7 @@ namespace bibtex {
   typedef detail::SkipRule Space;
 
   /// @brief The BibTeX skipper instance (whitespace + % comments).
-  detail::SkipRule const& space = detail::skip;
+  inline detail::SkipRule const& space = detail::skip;
 
   //------------------------------------------------------------------
   // BibTeXEntry

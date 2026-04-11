@@ -34,6 +34,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <bt_reader.h>
+#include <map>
 
 #include <o2scl/err_hnd.h>
 
