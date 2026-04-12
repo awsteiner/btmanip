@@ -1,7 +1,7 @@
 /*
-  -------------------------------------------------------------------
+  ───────────────────────────────────────────────────────────────────
 
-  Copyright (C) 2015-2025, Andrew W. Steiner
+  Copyright (C) 2015-2026, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -18,7 +18,7 @@
   You should have received a copy of the GNU General Public License
   along with btmanip. If not, see <http://www.gnu.org/licenses/>.
 
-  -------------------------------------------------------------------
+  ───────────────────────────────────────────────────────────────────
 */
 /** \file bib_file.h
     \brief File defining \ref bib_file

@@ -1,7 +1,7 @@
 /*
-  -------------------------------------------------------------------
+  ───────────────────────────────────────────────────────────────────
 
-  Copyright (C) 2015-2020, Andrew W. Steiner
+  Copyright (C) 2015-2026, Andrew W. Steiner
 
   This file is part of btmanip.
   
@@ -18,10 +18,9 @@
   You should have received a copy of the GNU General Public License
   along with btmanip. If not, see <http://www.gnu.org/licenses/>.
 
-  -------------------------------------------------------------------
-*/
-/** \file bib_file.cpp
-    \brief Source file for \ref bib_file class
+  ───────────────────────────────────────────────────────────────────
+*/ 
+/** \file hdf_bibtex.cpp
 */
 #include "bib_file.h"
 #include "hdf_bibtex.h"
